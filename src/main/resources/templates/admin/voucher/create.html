@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin_layout :: layout(~{:: .content-body})}">
+<head>
+    <title>Tạo Voucher mới - ChaosCoders</title>
+</head>
+<body>
+
+<div class="content-body">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Tạo Voucher mới</h2>
+            <small class="text-muted"></small>
+        </div>
+        <a href="/admin/vouchers" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+        </a>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i> <span th:text="${errorMessage}">Lỗi</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4" style="max-width: 900px; margin: 0 auto;">
+        <div class="card-body p-4">
+            <form action="/admin/vouchers/save" method="post" th:object="${voucher}">
+
+                <div class="row g-4">
+
+                    <div class="col-12">
+                        <h6 class="fw-bold text-secondary text-uppercase mb-3">
+                            <i class="fas fa-info-circle me-2"></i>Thông tin chung
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-muted">Mã Code <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-barcode text-muted"></i></span>
+                                    <input type="text" class="form-control border-start-0 py-2 fw-bold text-uppercase"
+                                           th:field="*{code}" required placeholder="">
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small text-muted">Số lượng phát hành</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-cubes text-muted"></i></span>
+                                    <input type="number" class="form-control border-start-0 py-2"
+                                           th:field="*{quantity}" required min="1" value="100">
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small text-muted">Trạng thái</label>
+                                <select class="form-select py-2 fw-bold text-success" th:field="*{status}">
+                                    <option value="active">🟢 Kích hoạt ngay</option>
+                                    <option value="inactive">⚪ Tạm ngưng (Nháp)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <hr class="text-muted opacity-25 my-2">
+                        <h6 class="fw-bold text-secondary text-uppercase mb-3 mt-2">
+                            <i class="fas fa-tags me-2"></i>Giá trị ưu đãi
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small text-muted">% Giảm giá (0-100)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-percent text-danger"></i></span>
+                                    <input type="number" step="0.01" class="form-control border-start-0 py-2 fw-bold text-danger"
+                                           th:field="*{discountPercent}" required min="0" max="100" placeholder="10">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small text-muted">Giảm tối đa (VNĐ)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-donate text-muted"></i></span>
+                                    <input type="number" class="form-control border-start-0 py-2"
+                                           th:field="*{maxDiscountAmount}" required min="0" placeholder="50000">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small text-muted">Đơn tối thiểu (VNĐ)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-shopping-cart text-muted"></i></span>
+                                    <input type="number" class="form-control border-start-0 py-2"
+                                           th:field="*{minOrderValue}" required min="0" placeholder="100000">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <hr class="text-muted opacity-25 my-2">
+                        <h6 class="fw-bold text-secondary text-uppercase mb-3 mt-2">
+                            <i class="far fa-clock me-2"></i>Thời gian hiệu lực
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-muted">Ngày bắt đầu</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-calendar-check text-success"></i></span>
+                                    <input type="datetime-local" class="form-control border-start-0 py-2"
+                                           th:field="*{startDate}" id="startDate" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-muted">Ngày kết thúc</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-calendar-times text-danger"></i></span>
+                                    <input type="datetime-local" class="form-control border-start-0 py-2"
+                                           th:field="*{endDate}" id="endDate" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-5 pt-3 border-top">
+                    <a href="/admin/vouchers" class="btn btn-light rounded-pill px-4 fw-bold">Hủy bỏ</a>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold"
+                            style="background-color: #f37021; border-color: #f37021;">
+                        <i class="fas fa-save me-2"></i>Lưu lại
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelector("form").addEventListener("submit", function(event) {
+        const startDateVal = document.getElementById("startDate").value;
+        const endDateVal = document.getElementById("endDate").value;
+
+        if (startDateVal && endDateVal) {
+            const start = new Date(startDateVal);
+            const end = new Date(endDateVal);
+
+            if (end <= start) {
+                alert("Lỗi logic thời gian: Ngày kết thúc phải lớn hơn ngày bắt đầu!");
+                event.preventDefault();
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

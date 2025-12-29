@@ -1,0 +1,437 @@
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org">-->
+<!--<body>-->
+
+<!--<footer th:fragment="footer" class="text-white text-center py-5 mt-5 d-flex flex-column justify-content-center"-->
+<!--        style="position: relative; overflow: hidden; min-height: 500px;">-->
+
+<!--    <video autoplay loop muted playsinline-->
+<!--           style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;">-->
+<!--        <source th:src="@{/videos/1221.mp4}" type="video/mp4">-->
+<!--    </video>-->
+
+<!--    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 1;"></div>-->
+
+<!--    <div class="container position-relative" style="z-index: 2;">-->
+<!--        <div class="row">-->
+<!--            <div class="col-md-6 text-md-start mb-4 mb-md-0">-->
+<!--                <h3 class="fw-bold text-uppercase border-bottom d-inline-block pb-2 border-warning mb-3">LAPTOP SHOP</h3>-->
+<!--                <p class="fs-5">Sang - Xịn - Mịn. <br> Đối tác công nghệ tin cậy của bạn.</p>-->
+<!--            </div>-->
+<!--            <div class="col-md-6 text-md-end">-->
+<!--                <p class="mb-2 fs-5"><i class="fas fa-map-marker-alt me-2 text-warning"></i> 1 Võ Văn Ngân, Thủ Đức, TP.HCM</p>-->
+<!--                <p class="mb-2 fs-5"><i class="fas fa-phone me-2 text-warning"></i> 0392286606 - AnhTus</p>-->
+<!--                <p class="fs-5"><i class="fas fa-envelope me-2 text-warning"></i> 23110168@student.hcmute.edu.vn</p>-->
+<!--            </div>-->
+<!--        </div>-->
+
+<!--        <hr class="border-light opacity-50 my-4">-->
+
+<!--        <div class="d-flex justify-content-between align-items-center">-->
+<!--            <p class="mb-0 opacity-75">&copy; 2024 Laptop Shop. All rights reserved.</p>-->
+<!--            <div>-->
+<!--                <a href="https://www.facebook.com/ninh.anh.tu.299279?locale=vi_VN" target="_blank" class="text-white me-3 hover-effect">-->
+<!--                    <i class="fab fa-facebook fa-2x"></i>-->
+<!--                </a>-->
+<!--                <a href="https://www.youtube.com/@42ninhanhtu15" target="_blank" class="text-white me-3 hover-effect">-->
+<!--                    <i class="fab fa-youtube fa-2x"></i>-->
+<!--                </a>-->
+<!--                <a href="https://www.tiktok.com/vi-VN/" target="_blank" class="text-white hover-effect">-->
+<!--                    <i class="fab fa-tiktok fa-2x"></i>-->
+<!--                </a>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+
+<!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>-->
+<!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>-->
+
+<!--    <button id="chat-toggle-btn" onclick="toggleChatWidget()"-->
+<!--            class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center"-->
+<!--            style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; z-index: 99999; border: none; transition: transform 0.3s;">-->
+<!--        <i class="fas fa-comments fa-2x text-white"></i>-->
+<!--    </button>-->
+
+<!--    <div id="chat-widget-container" class="card shadow-lg border-0 d-none"-->
+<!--         style="position: fixed; bottom: 100px; right: 30px; width: 360px; height: 480px; z-index: 99999; border-radius: 15px; overflow: hidden; display: flex; flex-direction: column; text-align: left;">-->
+
+<!--        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">-->
+<!--            <div class="d-flex align-items-center">-->
+<!--                <i class="fas fa-robot fa-lg me-2"></i>-->
+<!--                <div>-->
+<!--                    <h6 class="mb-0 fw-bold">Trợ lý LaptopShop</h6>-->
+<!--                    <small class="text-white-50" style="font-size: 0.8rem;">Luôn sẵn sàng hỗ trợ</small>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--            <button type="button" class="btn-close btn-close-white" onclick="toggleChatWidget()"></button>-->
+<!--        </div>-->
+
+<!--        <div class="card-body bg-light overflow-auto" id="widget-chat-history" style="flex: 1; padding: 15px;">-->
+<!--            <div class="d-flex flex-row justify-content-start mb-3">-->
+<!--                <div class="p-2 bg-white text-dark rounded-3 shadow-sm border" style="max-width: 85%; font-size: 14px;">-->
+<!--                    Chào bạn! Tôi là AI hỗ trợ. Bạn cần tìm laptop loại nào hay cần tra cứu đơn hàng không ạ?-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+
+<!--        <div class="card-footer bg-white p-2 border-top">-->
+<!--            <div class="input-group">-->
+<!--                <input type="text" id="widget-chat-input" class="form-control border-0"-->
+<!--                       placeholder="Nhập tin nhắn..." onkeypress="handleWidgetEnter(event)" autocomplete="off">-->
+<!--                <button class="btn btn-primary rounded-end" onclick="sendWidgetMessage()">-->
+<!--                    <i class="fas fa-paper-plane"></i>-->
+<!--                </button>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+
+<!--    <script th:inline="javascript">-->
+<!--        var widgetCurrentUser = /*[[${currentUser}]]*/ null;-->
+<!--        var widgetStompClient = null;-->
+<!--        var adminId = 1;-->
+
+<!--        document.addEventListener("DOMContentLoaded", function() {-->
+<!--            if (!widgetCurrentUser) {-->
+<!--                var input = document.getElementById('widget-chat-input');-->
+<!--                if(input) {-->
+<!--                    input.disabled = true;-->
+<!--                    input.placeholder = "Vui lòng đăng nhập để chat";-->
+<!--                }-->
+<!--                return;-->
+<!--            }-->
+<!--            connectWidgetWebSocket();-->
+<!--        });-->
+
+<!--        function toggleChatWidget() {-->
+<!--            var chatBox = document.getElementById('chat-widget-container');-->
+<!--            var btn = document.getElementById('chat-toggle-btn');-->
+
+<!--            if (chatBox.classList.contains('d-none')) {-->
+<!--                chatBox.classList.remove('d-none');-->
+<!--                btn.style.transform = "rotate(90deg)";-->
+<!--                if(widgetCurrentUser) loadWidgetHistory();-->
+<!--                scrollToWidgetBottom();-->
+<!--            } else {-->
+<!--                chatBox.classList.add('d-none');-->
+<!--                btn.style.transform = "rotate(0deg)";-->
+<!--            }-->
+<!--        }-->
+
+<!--        function connectWidgetWebSocket() {-->
+<!--            var socket = new SockJS('/ws');-->
+<!--            widgetStompClient = Stomp.over(socket);-->
+<!--            widgetStompClient.debug = null;-->
+
+<!--            widgetStompClient.connect({}, function (frame) {-->
+<!--                if (widgetCurrentUser) {-->
+<!--                    widgetStompClient.subscribe('/topic/messages/' + widgetCurrentUser.userId, function (response) {-->
+<!--                        var message = JSON.parse(response.body);-->
+<!--                        if (message.sender.userId !== widgetCurrentUser.userId) {-->
+<!--                            appendWidgetMessage(message.content, 'other');-->
+<!--                        }-->
+<!--                    });-->
+<!--                }-->
+<!--            });-->
+<!--        }-->
+
+<!--        function loadWidgetHistory() {-->
+<!--            fetch('/api/chat/history/' + adminId).then(res => res.json()).then(data => {-->
+<!--                var box = document.getElementById('widget-chat-history');-->
+<!--                box.innerHTML = '<div class="d-flex flex-row justify-content-start mb-3"><div class="p-2 bg-white text-dark rounded-3 shadow-sm border" style="max-width: 85%; font-size: 14px;">Chào bạn! Tôi là AI Hỗ trợ. Bạn cần tìm laptop loại nào hay cần tra cứu đơn hàng không ạ?</div></div>';-->
+
+<!--                data.forEach(msg => {-->
+<!--                    var type = (msg.sender.userId === widgetCurrentUser.userId) ? 'me' : 'other';-->
+<!--                    appendWidgetMessage(msg.content, type);-->
+<!--                });-->
+<!--                scrollToWidgetBottom();-->
+<!--            });-->
+<!--        }-->
+
+<!--        function sendWidgetMessage() {-->
+<!--            var inputField = document.getElementById('widget-chat-input');-->
+<!--            var content = inputField.value.trim();-->
+
+<!--            if (!widgetCurrentUser) {-->
+<!--                alert("Vui lòng đăng nhập để chat!");-->
+<!--                window.location.href = "/login";-->
+<!--                return;-->
+<!--            }-->
+
+<!--            if (content) {-->
+<!--                appendWidgetMessage(content, 'me');-->
+<!--                inputField.value = '';-->
+<!--                scrollToWidgetBottom();-->
+
+<!--                fetch('/api/chat/send', {-->
+<!--                    method: 'POST',-->
+<!--                    headers: { 'Content-Type': 'application/json' },-->
+<!--                    body: JSON.stringify({ receiverId: adminId, content: content })-->
+<!--                }).catch(err => console.error("Lỗi gửi tin nhắn:", err));-->
+<!--            }-->
+<!--        }-->
+
+<!--        function appendWidgetMessage(content, type) {-->
+<!--            var chatArea = document.getElementById('widget-chat-history');-->
+<!--            var div = document.createElement('div');-->
+
+<!--            if (type === 'me') {-->
+<!--                div.className = "d-flex flex-row justify-content-end mb-3";-->
+<!--                div.innerHTML = `<div class="p-2 bg-primary text-white rounded-3 shadow-sm" style="max-width: 85%; font-size: 14px;">${content}</div>`;-->
+<!--            } else {-->
+<!--                div.className = "d-flex flex-row justify-content-start mb-3";-->
+<!--                div.innerHTML = `<div class="p-2 bg-white text-dark rounded-3 shadow-sm border" style="max-width: 85%; font-size: 14px;">${content}</div>`;-->
+<!--            }-->
+
+<!--            chatArea.appendChild(div);-->
+<!--            scrollToWidgetBottom();-->
+<!--        }-->
+
+<!--        function handleWidgetEnter(event) {-->
+<!--            if (event.key === 'Enter') sendWidgetMessage();-->
+<!--        }-->
+
+<!--        function scrollToWidgetBottom() {-->
+<!--            var chatArea = document.getElementById('widget-chat-history');-->
+<!--            if(chatArea) chatArea.scrollTop = chatArea.scrollHeight;-->
+<!--        }-->
+<!--    </script>-->
+<!--</footer>-->
+
+<!--</body>-->
+<!--</html>-->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<footer th:fragment="footer" class="text-white text-center py-5 mt-5 d-flex flex-column justify-content-center"
+        style="position: relative; overflow: hidden; min-height: 500px;">
+
+    <video autoplay loop muted playsinline
+           style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;">
+        <source th:src="@{/videos/1221.mp4}" type="video/mp4">
+    </video>
+
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 1;"></div>
+
+    <div class="container position-relative" style="z-index: 2;">
+        <div class="row">
+            <div class="col-md-6 text-md-start mb-4 mb-md-0">
+                <h3 class="fw-bold text-uppercase border-bottom d-inline-block pb-2 border-warning mb-3">LAPTOP SHOP</h3>
+                <p class="fs-5">Sang - Xịn - Mịn. <br> Đối tác công nghệ tin cậy của bạn.</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <p class="mb-2 fs-5"><i class="fas fa-map-marker-alt me-2 text-warning"></i> 1 Võ Văn Ngân, Thủ Đức, TP.HCM</p>
+                <p class="mb-2 fs-5"><i class="fas fa-phone me-2 text-warning"></i> 0392286606 - AnhTus</p>
+                <p class="fs-5"><i class="fas fa-envelope me-2 text-warning"></i> 23110168@student.hcmute.edu.vn</p>
+            </div>
+        </div>
+
+        <hr class="border-light opacity-50 my-4">
+
+        <div class="d-flex justify-content-between align-items-center">
+            <p class="mb-0 opacity-75">&copy; 2024 Laptop Shop. All rights reserved.</p>
+            <div>
+                <a href="https://www.facebook.com/ninh.anh.tu.299279?locale=vi_VN" target="_blank" class="text-white me-3 hover-effect">
+                    <i class="fab fa-facebook fa-2x"></i>
+                </a>
+                <a href="https://www.youtube.com/@42ninhanhtu15" target="_blank" class="text-white me-3 hover-effect">
+                    <i class="fab fa-youtube fa-2x"></i>
+                </a>
+                <a href="https://www.tiktok.com/vi-VN/" target="_blank" class="text-white hover-effect">
+                    <i class="fab fa-tiktok fa-2x"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+    <button id="chat-toggle-btn" onclick="toggleChatWidget()"
+            class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center"
+            style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; z-index: 99999; border: none; transition: transform 0.3s;">
+        <i class="fas fa-comments fa-2x text-white"></i>
+    </button>
+
+    <div id="chat-widget-container" class="card shadow-lg border-0 d-none"
+         style="position: fixed; bottom: 100px; right: 30px; width: 360px; height: 480px; z-index: 99999; border-radius: 15px; overflow: hidden; display: flex; flex-direction: column; text-align: left;">
+
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-robot fa-lg me-2"></i>
+                <div>
+                    <h6 class="mb-0 fw-bold">Trợ lý LaptopShop</h6>
+                    <small class="text-white-50" style="font-size: 0.8rem;">Luôn sẵn sàng hỗ trợ</small>
+                </div>
+            </div>
+            <button type="button" class="btn-close btn-close-white" onclick="toggleChatWidget()"></button>
+        </div>
+
+        <div class="card-body bg-light overflow-auto" id="widget-chat-history" style="flex: 1; padding: 15px;">
+            <div class="d-flex flex-row justify-content-start mb-3">
+                <div class="p-2 bg-white text-dark rounded-3 shadow-sm border" style="max-width: 85%; font-size: 14px;">
+                    Chào bạn! Tôi là AI hỗ trợ. Bạn cần tìm laptop loại nào hay cần tra cứu đơn hàng không ạ?
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer bg-white p-2 border-top">
+            <div class="input-group">
+                <input type="text" id="widget-chat-input" class="form-control border-0"
+                       placeholder="Nhập tin nhắn..." onkeypress="handleWidgetEnter(event)" autocomplete="off">
+                <button class="btn btn-primary rounded-end" onclick="sendWidgetMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        var widgetCurrentUser = /*[[${currentUser}]]*/ null;
+        var widgetStompClient = null;
+        var adminId = 1; // ID của Admin nhận tin nhắn
+
+        // --- 1. HÀM FORMAT THỜI GIAN + NGÀY ---
+        function formatWidgetTime(timestamp) {
+            if (!timestamp) timestamp = new Date(); // Nếu không có thì lấy giờ hiện tại
+            var date = new Date(timestamp);
+
+            // Format: 10:30 25/12
+            var time = date.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+            var day = date.toLocaleDateString('vi-VN', {day: '2-digit', month: '2-digit'});
+
+            return time + ' ' + day;
+        }
+
+        // --- 2. HÀM TOGGLE (BẬT/TẮT) CHAT ---
+        function toggleChatWidget() {
+            var chatContainer = document.getElementById('chat-widget-container');
+            var toggleBtnIcon = document.querySelector('#chat-toggle-btn i');
+
+            if (chatContainer.classList.contains('d-none')) {
+                // Mở chat
+                chatContainer.classList.remove('d-none');
+                toggleBtnIcon.classList.remove('fa-comments');
+                toggleBtnIcon.classList.add('fa-times');
+
+                // Nếu đã đăng nhập thì load lịch sử chat
+                if (widgetCurrentUser) {
+                    loadWidgetHistory();
+                    setTimeout(scrollToWidgetBottom, 200);
+                }
+            } else {
+                // Đóng chat
+                chatContainer.classList.add('d-none');
+                toggleBtnIcon.classList.remove('fa-times');
+                toggleBtnIcon.classList.add('fa-comments');
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            if (!widgetCurrentUser) {
+                var input = document.getElementById('widget-chat-input');
+                if(input) {
+                    input.disabled = true;
+                    input.placeholder = "Vui lòng đăng nhập để chat";
+                }
+                return;
+            }
+            connectWidgetWebSocket();
+        });
+
+        function connectWidgetWebSocket() {
+            var socket = new SockJS('/ws');
+            widgetStompClient = Stomp.over(socket);
+            widgetStompClient.debug = null;
+
+            widgetStompClient.connect({}, function (frame) {
+                if (widgetCurrentUser) {
+                    widgetStompClient.subscribe('/topic/messages/' + widgetCurrentUser.userId, function (response) {
+                        var message = JSON.parse(response.body);
+                        if (message.sender.userId !== widgetCurrentUser.userId) {
+                            appendWidgetMessage(message.content, 'other', message.timestamp);
+                        }
+                    });
+                }
+            });
+        }
+
+        function loadWidgetHistory() {
+            fetch('/api/chat/history/' + adminId)
+                .then(res => res.json())
+                .then(data => {
+                    var box = document.getElementById('widget-chat-history');
+                    box.innerHTML = '<div class="d-flex flex-row justify-content-start mb-3"><div class="p-2 bg-white text-dark rounded-3 shadow-sm border" style="max-width: 85%; font-size: 14px;">Chào bạn! Tôi là AI Hỗ trợ. Bạn cần tìm laptop loại nào hay cần tra cứu đơn hàng không ạ?</div></div>';
+
+                    data.forEach(msg => {
+                        var type = (msg.sender.userId === widgetCurrentUser.userId) ? 'me' : 'other';
+                        appendWidgetMessage(msg.content, type, msg.timestamp);
+                    });
+                    scrollToWidgetBottom();
+                })
+                .catch(err => console.error("Lỗi tải lịch sử chat:", err));
+        }
+
+        function sendWidgetMessage() {
+            var inputField = document.getElementById('widget-chat-input');
+            var content = inputField.value.trim();
+
+            if (!widgetCurrentUser) {
+                alert("Vui lòng đăng nhập để chat!");
+                window.location.href = "/login";
+                return;
+            }
+
+            if (content) {
+                appendWidgetMessage(content, 'me', new Date().toISOString());
+                inputField.value = '';
+                scrollToWidgetBottom();
+
+                fetch('/api/chat/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ receiverId: adminId, content: content })
+                }).catch(err => console.error("Lỗi gửi tin nhắn:", err));
+            }
+        }
+
+        // --- 3. HÀM HIỂN THỊ TIN NHẮN ---
+        function appendWidgetMessage(content, type, timestamp) {
+            var chatArea = document.getElementById('widget-chat-history');
+            var div = document.createElement('div');
+            var timeStr = formatWidgetTime(timestamp);
+
+            if (type === 'me') {
+                div.className = "d-flex flex-row justify-content-end mb-3";
+                div.innerHTML = `
+                    <div class="p-2 bg-primary text-white rounded-3 shadow-sm" style="max-width: 85%; font-size: 14px;">
+                        <div>${content}</div>
+                        <div class="text-end" style="font-size: 0.65rem; opacity: 0.8; margin-top: 3px;">${timeStr}</div>
+                    </div>`;
+            } else {
+                div.className = "d-flex flex-row justify-content-start mb-3";
+                div.innerHTML = `
+                    <div class="p-2 bg-white text-dark rounded-3 shadow-sm border" style="max-width: 85%; font-size: 14px;">
+                        <div>${content}</div>
+                        <div class="text-end text-muted" style="font-size: 0.65rem; margin-top: 3px;">${timeStr}</div>
+                    </div>`;
+            }
+
+            chatArea.appendChild(div);
+            scrollToWidgetBottom();
+        }
+
+        function handleWidgetEnter(event) {
+            if (event.key === 'Enter') sendWidgetMessage();
+        }
+
+        function scrollToWidgetBottom() {
+            var chatArea = document.getElementById('widget-chat-history');
+            if(chatArea) chatArea.scrollTop = chatArea.scrollHeight;
+        }
+    </script>
+</footer>
+
+</body>
+</html>

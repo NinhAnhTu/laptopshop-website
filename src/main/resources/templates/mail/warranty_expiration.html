@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thông báo sắp hết hạn bảo hành</title>
+    <style>
+        /* CSS Reset & Basics */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f8; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; width: 100% !important; }
+
+        /* Main Container */
+        .email-container { display: block; max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 16px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); overflow: hidden; }
+
+        /* Header */
+        .header { background-color: #f37021; color: #ffffff; padding: 30px 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
+
+        /* Content Body */
+        .content { padding: 30px; color: #333333; line-height: 1.6; text-align: center; }
+
+        /* Warning Icon */
+        .warning-icon { font-size: 40px; color: #f37021; margin-bottom: 10px; display: block; }
+
+        /* Headline */
+        .headline { font-size: 20px; font-weight: bold; color: #333; margin-bottom: 20px; text-transform: uppercase; }
+
+        /* Product Box */
+        .product-box { background-color: #fff9f0; border: 2px dashed #f37021; border-radius: 12px; padding: 25px; text-align: left; margin: 25px 0; }
+        .info-row { margin-bottom: 10px; font-size: 15px; }
+        .info-label { font-weight: bold; color: #555; display: inline-block; width: 130px; }
+        .info-value { color: #333; font-weight: 500; }
+
+        /* Highlight Date */
+        .date-highlight { color: #dc3545; font-weight: bold; font-size: 18px; }
+
+        /* Button Main */
+        .btn-main { display: inline-block; background-color: #f37021; color: #ffffff; text-align: center; padding: 12px 30px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 14px; margin-top: 10px; box-shadow: 0 4px 10px rgba(243, 112, 33, 0.3); }
+        .btn-main:hover { background-color: #d8520e; }
+
+        /* Footer */
+        .footer { background-color: #f1f1f1; padding: 20px; text-align: center; font-size: 12px; color: #888; border-radius: 0 0 16px 16px; }
+        .contact-info { margin-top: 5px; color: #666; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="email-container">
+    <div class="header">
+        <h1>CHAOSCODERS SHOP</h1>
+    </div>
+
+    <div class="content">
+        <span class="warning-icon">⚠️</span>
+        <div class="headline">Thông báo sắp hết hạn bảo hành</div>
+
+        <p>Xin chào <strong th:text="${customerName}">Khách hàng</strong>,</p>
+        <p>Hệ thống xin thông báo thời hạn bảo hành cho thiết bị của bạn sắp kết thúc. Để đảm bảo quyền lợi, vui lòng kiểm tra thông tin dưới đây:</p>
+
+        <div class="product-box">
+            <div class="info-row">
+                <span class="info-label">📦 Sản phẩm:</span>
+                <span class="info-value" th:text="${productName}">Laptop Dell XPS 13</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">🔖 Mã bảo hành:</span>
+                <span class="info-value" style="font-family: monospace; letter-spacing: 1px;" th:text="${warrantyCode}">WAR-123456</span>
+            </div>
+            <div class="info-row" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
+                <span class="info-label">📅 Ngày hết hạn:</span>
+                <span class="date-highlight" th:text="${expirationDate}">20/12/2025</span>
+            </div>
+        </div>
+
+        <p style="font-size: 14px; color: #666;">
+            Nếu thiết bị đang gặp sự cố, vui lòng mang đến trung tâm bảo hành trước ngày hết hạn để được hỗ trợ miễn phí.
+        </p>
+
+        <a href="http://localhost:8080/warranty-check" class="btn-main">Kiểm tra bảo hành</a>
+    </div>
+
+    <div class="footer">
+        <p>Đây là email tự động, vui lòng không trả lời.</p>
+        <div class="contact-info">
+            Hotline: 1900 1234 | Email: support@chaoscoders.com
+        </div>
+        <p style="margin-top: 10px;">&copy; 2024 ChaosCoders Shop. Mọi quyền được bảo lưu.</p>
+    </div>
+</div>
+
+</body>
+</html>

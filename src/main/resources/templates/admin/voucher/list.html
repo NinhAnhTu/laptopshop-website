@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin_layout :: layout(~{:: .content-body})}">
+<head>
+    <title>Quản lý Voucher - ChaosCoders</title>
+</head>
+<body>
+
+<div class="content-body">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Quản lý Voucher</h2>
+            <small class="text-muted"></small>
+        </div>
+        <a href="/admin/vouchers/create" class="btn btn-primary rounded-pill px-4 fw-bold"
+           style="background-color: #f37021; border-color: #f37021;">
+            <i class="fas fa-plus me-2"></i>Tạo Voucher mới
+        </a>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm rounded-3" role="alert">
+        <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold text-secondary">Danh sách mã khuyến mãi</h6>
+            <span class="badge bg-light text-dark border rounded-pill px-3"
+                  th:text="${vouchers.size()} + ' mã'">0 mã</span>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-secondary text-uppercase small">
+                    <tr>
+                        <th class="ps-4 py-3">Mã Code</th>
+                        <th class="py-3">Mức giảm</th>
+                        <th class="py-3">Điều kiện</th>
+                        <th class="py-3">Thời gian</th>
+                        <th class="text-center py-3">Số lượng</th>
+                        <th class="text-center py-3">Trạng thái</th>
+                        <th class="text-end pe-4 py-3">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${vouchers.isEmpty()}">
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <div class="opacity-50 mb-3">
+                                <i class="fas fa-ticket-alt fa-3x"></i>
+                            </div>
+                            <p class="mb-0">Chưa có mã giảm giá nào.</p>
+                        </td>
+                    </tr>
+
+                    <tr th:each="v : ${vouchers}">
+                        <td class="ps-4">
+                                    <span class="font-monospace fw-bold text-primary bg-light px-2 py-1 rounded border border-primary-subtle"
+                                          style="letter-spacing: 1px;" th:text="${v.code}">CODE123</span>
+                        </td>
+
+                        <td>
+                            <div class="d-flex flex-column">
+                                        <span class="fw-bold text-danger" style="font-size: 1.1rem;"
+                                              th:text="${v.discountPercent} + '%'">10%</span>
+                                <small class="text-muted" style="font-size: 0.8rem;">
+                                    Tối đa: <span th:text="${#numbers.formatDecimal(v.maxDiscountAmount, 0, 'COMMA', 0, 'POINT')}"></span> đ
+                                </small>
+                            </div>
+                        </td>
+
+                        <td>
+                            <small class="text-dark fw-bold">Đơn tối thiểu:</small><br>
+                            <span class="badge bg-light text-dark border fw-normal"
+                                  th:text="${#numbers.formatDecimal(v.minOrderValue, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</span>
+                        </td>
+
+                        <td>
+                            <div class="d-flex flex-column small">
+                                <span class="mb-1"><i class="far fa-calendar-check me-2 text-success" style="width: 15px;"></i><span th:text="${#temporals.format(v.startDate, 'dd/MM/yyyy HH:mm')}"></span></span>
+                                <span><i class="far fa-calendar-times me-2 text-danger" style="width: 15px;"></i><span th:text="${#temporals.format(v.endDate, 'dd/MM/yyyy HH:mm')}"></span></span>
+                            </div>
+                        </td>
+
+                        <td class="text-center">
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3"
+                                          th:text="${v.quantity}">100</span>
+                        </td>
+
+                        <td class="text-center">
+                                    <span th:if="${v.status == 'active'}"
+                                          class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3">
+                                        <i class="fas fa-check-circle me-1"></i> Hoạt động
+                                    </span>
+                            <span th:if="${v.status != 'active'}"
+                                  class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3">
+                                        <i class="fas fa-pause-circle me-1"></i> Đã tắt/Hết hạn
+                                    </span>
+                        </td>
+
+                        <td class="text-end pe-4">
+                            <a th:href="@{'/admin/vouchers/edit/' + ${v.voucherId}}"
+                               class="btn btn-outline-warning btn-sm rounded-circle me-1"
+                               title="Chỉnh sửa" data-bs-toggle="tooltip">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a th:href="@{'/admin/vouchers/delete/' + ${v.voucherId}}"
+                               class="btn btn-outline-danger btn-sm rounded-circle"
+                               onclick="return confirm('Bạn có chắc chắn muốn xóa voucher này?');"
+                               title="Xóa" data-bs-toggle="tooltip">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card-footer bg-white py-3 border-top-0"></div>
+    </div>
+</div>
+
+<script>
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
+
+</body>
+</html>

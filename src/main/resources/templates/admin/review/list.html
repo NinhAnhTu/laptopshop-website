@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin_layout :: layout(~{:: .content-body})}">
+<head>
+    <title>Quản lý đánh giá - ChaosCoders</title>
+</head>
+<body>
+
+<div class="content-body">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Quản lý đánh giá</h2>
+            <small class="text-muted"></small>
+        </div>
+        <div class="d-flex gap-3">
+            <div class="bg-white px-3 py-2 rounded-pill shadow-sm border">
+                <span class="text-muted small">Tổng đánh giá:</span>
+                <strong class="text-dark ms-1" th:text="${listReviewss != null ? listReviewss.size() : 0}">0</strong>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm rounded-3 border-0" role="alert">
+        <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3 border-0" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <form action="/admin/reviews" method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small text-secondary">Từ khóa</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" name="keyword" class="form-control border-start-0 ps-0"
+                               placeholder="Tìm tên khách, sản phẩm..."
+                               th:value="${keyword}">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small text-secondary">Đánh giá</label>
+                    <select name="rating" class="form-select">
+                        <option value="">Tất cả</option>
+                        <option value="5" th:selected="${rating == 5}">5 Sao</option>
+                        <option value="4" th:selected="${rating == 4}">4 Sao</option>
+                        <option value="3" th:selected="${rating == 3}">3 Sao</option>
+                        <option value="2" th:selected="${rating == 2}">2 Sao</option>
+                        <option value="1" th:selected="${rating == 1}">1 Sao</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small text-secondary">Trạng thái</label>
+                    <select name="status" class="form-select">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="pending" th:selected="${status == 'pending'}">Chờ trả lời</option>
+                        <option value="replied" th:selected="${status == 'replied'}">Đã phản hồi</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary fw-bold flex-grow-1 text-white"
+                            style="background-color: #f37021; border-color: #f37021;">
+                        <i class="fas fa-filter me-1"></i> Lọc
+                    </button>
+                    <a href="/admin/reviews" class="btn btn-light border fw-bold" data-bs-toggle="tooltip" title="Xóa bộ lọc">
+                        <i class="fas fa-redo-alt text-secondary"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-secondary text-uppercase small fw-bold">
+                    <tr>
+                        <th class="ps-4 py-3" width="5%">ID</th>
+                        <th class="py-3" width="25%">Sản phẩm / Khách hàng</th>
+                        <th class="py-3" width="40%">Nội dung đánh giá</th>
+                        <th class="py-3 text-center" width="15%">Trạng thái</th>
+                        <th class="text-end pe-4 py-3" width="15%">Hành động</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${listReviewss == null or listReviewss.isEmpty()}">
+                        <td colspan="5" class="text-center py-5">
+                            <img src="https://cdn-icons-png.flaticon.com/512/4076/4076432.png" width="80" class="mb-3 opacity-50" alt="empty">
+                            <p class="text-muted mb-0">Không tìm thấy đánh giá nào phù hợp.</p>
+                        </td>
+                    </tr>
+
+                    <tr th:each="r : ${listReviewss}">
+                        <td class="ps-4 fw-bold text-muted" th:text="'#' + ${r.reviewId}">#1</td>
+                        <td>
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center text-primary fw-bold me-2" style="width: 35px; height: 35px;">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark" style="font-size: 0.95rem;" th:text="${r.user.fullname}">User Name</div>
+                                    <small class="text-muted" th:text="${#temporals.format(r.createdAt, 'dd/MM/yyyy HH:mm')}">Time</small>
+                                </div>
+                            </div>
+                            <div class="small text-muted bg-light px-2 py-1 rounded d-inline-block border">
+                                <i class="fas fa-box me-1"></i> <span th:text="${r.product.productName}">Product Name</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="text-warning mb-2" style="font-size: 0.9rem;">
+                                <i class="fas fa-star" th:each="i : ${#numbers.sequence(1, r.rating)}"></i>
+                                <i class="far fa-star text-muted opacity-25" th:each="i : ${#numbers.sequence(r.rating + 1, 5)}" th:if="${r.rating < 5}"></i>
+                            </div>
+                            <p class="mb-2 text-dark" style="font-style: italic;">
+                                "<span th:text="${r.comment}">Nội dung...</span>"
+                            </p>
+                            <div th:if="${r.reply != null}" class="p-3 rounded-3 border border-start-0 border-end-0 border-bottom-0 border-top-0"
+                                 style="background-color: #fff8f0; border-left: 3px solid #f37021 !important;">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <small class="fw-bold" style="color: #f37021;"><i class="fas fa-store me-1"></i>Shop phản hồi:</small>
+                                    <small class="text-muted" style="font-size: 0.75rem;" th:text="${#temporals.format(r.reply.replyDate, 'dd/MM/yyyy')}"></small>
+                                </div>
+                                <span class="small text-secondary" th:text="${r.reply.content}">Nội dung trả lời</span>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                                <span th:if="${r.reply != null}" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2">
+                                    <i class="fas fa-check-circle me-1"></i>Đã phản hồi
+                                </span>
+                            <span th:if="${r.reply == null}" class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-3 py-2">
+                                    <i class="fas fa-clock me-1"></i>Chờ trả lời
+                                </span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <button class="btn btn-sm rounded-pill px-3 fw-bold btn-reply"
+                                    th:classappend="${r.reply != null} ? 'btn-outline-secondary' : 'text-white'"
+                                    th:style="${r.reply == null} ? 'background-color: #f37021; border-color: #f37021;' : 'border-color: #f37021;'"
+                                    th:data-id="${r.reviewId}"
+                                    th:data-user="${r.user.fullname}"
+                                    th:data-comment="${r.comment}"
+                                    th:data-reply="${r.reply != null ? r.reply.content : ''}"
+                                    th:text="${r.reply != null ? 'Sửa' : 'Trả lời'}">
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm rounded-circle btn-delete"
+                                    th:data-id="${r.reviewId}"
+                                    data-bs-toggle="tooltip" title="Gỡ đánh giá">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="replyModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header text-white" style="background-color: #f37021;">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-reply me-2"></i>Phản hồi đánh giá</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="/admin/reviews/reply" method="post">
+                    <div class="modal-body p-4">
+                        <input type="hidden" name="id" id="replyReviewId">
+                        <div class="mb-3 bg-light p-3 rounded-3 border border-dashed">
+                            <small class="text-muted d-block mb-1">Khách hàng <strong id="replyUserName"></strong> viết:</small>
+                            <i class="fas fa-quote-left text-muted opacity-25 me-1"></i>
+                            <span id="replyUserComment" class="text-dark fw-medium"></span>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-bold text-secondary">Nội dung phản hồi</label>
+                            <textarea name="content" id="replyContent" class="form-control" rows="4" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top-0 pt-0">
+                        <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold text-white" style="background-color: #f37021; border-color: #f37021;">Gửi phản hồi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>Xác nhận gỡ đánh giá</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="/admin/reviews/delete" method="post">
+                    <div class="modal-body p-4">
+                        <input type="hidden" name="id" id="deleteReviewId">
+                        <div class="text-center mb-4">
+                            <i class="fas fa-trash-alt text-danger mb-3" style="font-size: 3rem; opacity: 0.2;"></i>
+                            <p class="text-dark fw-bold mb-1">Hành động này sẽ xóa vĩnh viễn đánh giá này.</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Lý do gỡ bỏ:</label>
+                            <select name="reason" class="form-select" id="reasonSelect" onchange="toggleCustomReason()">
+                                <option value="Vi phạm tiêu chuẩn cộng đồng">Vi phạm tiêu chuẩn cộng đồng</option>
+                                <option value="Spam hoặc quảng cáo trái phép">Spam hoặc quảng cáo trái phép</option>
+                                <option value="Khác">Lý do khác...</option>
+                            </select>
+                            <input type="text" name="customReason" id="customReasonInput" class="form-control mt-2 d-none" placeholder="Nhập lý do cụ thể...">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top-0 pt-0">
+                        <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Xác nhận Gỡ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Reply Modal
+            var replyModalEl = document.getElementById('replyModal');
+            if (replyModalEl) {
+                var replyModal = new bootstrap.Modal(replyModalEl);
+                document.querySelectorAll('.btn-reply').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var id = this.getAttribute('data-id');
+                        var user = this.getAttribute('data-user');
+                        var comment = this.getAttribute('data-comment');
+                        var oldReply = this.getAttribute('data-reply');
+                        document.getElementById('replyReviewId').value = id;
+                        document.getElementById('replyUserName').textContent = user;
+                        document.getElementById('replyUserComment').textContent = comment;
+                        document.getElementById('replyContent').value = oldReply ? oldReply : '';
+                        replyModal.show();
+                    });
+                });
+            }
+            // Delete Modal
+            var deleteModalEl = document.getElementById('deleteModal');
+            if (deleteModalEl) {
+                var deleteModal = new bootstrap.Modal(deleteModalEl);
+                document.querySelectorAll('.btn-delete').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var id = this.getAttribute('data-id');
+                        document.getElementById('deleteReviewId').value = id;
+                        deleteModal.show();
+                    });
+                });
+            }
+        });
+
+        function toggleCustomReason() {
+            const select = document.getElementById('reasonSelect');
+            const input = document.getElementById('customReasonInput');
+            if (select.value === 'Khác') {
+                input.classList.remove('d-none');
+                input.setAttribute('name', 'reason');
+                select.removeAttribute('name');
+                input.required = true;
+            } else {
+                input.classList.add('d-none');
+                select.setAttribute('name', 'reason');
+                input.removeAttribute('name');
+                input.required = false;
+            }
+        }
+    </script>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin_layout :: layout(~{:: .content-body})}">
+<head>
+    <title>Cập nhật bảo hành - ChaosCoders</title>
+</head>
+<body>
+
+<div class="content-body">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Cập nhật phiếu bảo hành</h2>
+            <small class="text-muted"></small>
+        </div>
+        <a href="/admin/warranties" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+        </a>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-primary-subtle border-bottom-0 py-3 text-center">
+                    <small class="text-uppercase text-primary fw-bold letter-spacing-1">Mã bảo hành</small>
+                    <h4 class="fw-bold text-primary mb-0 font-monospace mt-1" th:text="${warranty.warrantyCode}">WC-123456</h4>
+                </div>
+                <div class="card-body p-4">
+
+                    <div class="mb-4 text-center">
+                        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                             style="width: 60px; height: 60px;">
+                            <i class="fas fa-laptop fa-lg text-secondary"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1" th:text="${warranty.product.productName}">Laptop Dell XPS</h6>
+                        <span class="badge bg-light text-secondary border"
+                              th:if="${warranty.warrantyPolicy != null}"
+                              th:text="${warranty.warrantyPolicy.policyName}">Gói tiêu chuẩn</span>
+                    </div>
+
+                    <hr class="text-muted opacity-25">
+
+                    <h6 class="fw-bold text-secondary text-uppercase small mb-3">
+                        <i class="fas fa-user-circle me-2"></i>Thông tin sở hữu
+                    </h6>
+
+                    <div class="mb-2">
+                        <label class="small text-muted d-block">Khách hàng:</label>
+                        <span class="fw-bold text-dark" th:text="${warranty.user.fullname}">Nguyen Van A</span>
+                    </div>
+                    <div class="mb-2">
+                        <label class="small text-muted d-block">Liên hệ:</label>
+                        <div class="d-flex flex-column small">
+                            <span><i class="fas fa-phone me-2 text-muted" style="width: 15px;"></i><span th:text="${warranty.user.phone}">090...</span></span>
+                            <span><i class="fas fa-envelope me-2 text-muted" style="width: 15px;"></i><span th:text="${warranty.user.email}">user@email.com</span></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-light rounded-3 border border-dashed">
+                        <label class="small text-muted d-block mb-1"><i class="fas fa-shopping-cart me-1"></i>Ngày mua hàng:</label>
+                        <span class="fw-bold text-dark font-monospace"
+                              th:text="${#temporals.format(warranty.purchaseDate, 'dd/MM/yyyy HH:mm')}">01/01/2024</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <form th:action="@{/admin/warranties/save}" method="post" th:object="${warranty}">
+                        <input type="hidden" th:field="*{id}">
+                        <input type="hidden" th:field="*{warrantyCode}">
+                        <input type="hidden" th:field="*{purchaseDate}">
+
+                        <h6 class="fw-bold text-secondary text-uppercase mb-4">
+                            <i class="fas fa-edit me-2"></i>Cập nhật trạng thái
+                        </h6>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-muted">Ngày hết hạn bảo hành</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="far fa-calendar-alt text-danger"></i></span>
+                                <input type="datetime-local" class="form-control border-start-0 py-2 fw-bold text-danger"
+                                       th:field="*{expirationDate}" required>
+                            </div>
+                            <div class="form-text small mt-2">
+                                <i class="fas fa-info-circle text-info me-1"></i>
+                                Bạn có thể gia hạn thêm thời gian bảo hành cho khách hàng tại đây.
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-muted">Trạng thái hiện tại</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-toggle-on text-muted"></i></span>
+                                <select class="form-select border-start-0 py-2 fw-bold" th:field="*{status}"
+                                        th:classappend="${warranty.status == 'ACTIVE' ? 'text-success' : (warranty.status == 'VOID' ? 'text-danger' : 'text-secondary')}">
+                                    <option value="ACTIVE">✅ Đang bảo hành (Active)</option>
+                                    <option value="EXPIRED">⏳ Đã hết hạn (Expired)</option>
+                                    <option value="VOID">⛔ Từ chối bảo hành (Void) - Vi phạm chính sách</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr class="text-muted opacity-25 my-4">
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="/admin/warranties" class="btn btn-light rounded-pill px-4 fw-bold">Hủy bỏ</a>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold"
+                                    style="background-color: #f37021; border-color: #f37021;">
+                                <i class="fas fa-save me-2"></i>Lưu thay đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

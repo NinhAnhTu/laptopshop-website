@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Tài khoản của tôi - ChaosCoders</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* --- TONE MÀU CHỦ ĐẠO --- */
+        :root {
+            --primary-blue: #0f2027;
+            --secondary-blue: #203a43;
+            --accent-orange: #f37021;
+            --light-bg: #f8f9fa;
+            --soft-blue-bg: #c4dff6;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Page Wrapper */
+        .page-wrapper {
+            background: linear-gradient(180deg, var(--soft-blue-bg) 0%, #ffffff 40%, #ffffff 100%);
+            min-height: 100vh;
+            padding-top: 2rem;
+            padding-bottom: 3rem;
+        }
+
+        /* Account Cards */
+        .account-card {
+            background: white;
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(15, 32, 39, 0.08);
+            overflow: hidden;
+            height: 100%;
+        }
+
+        /* Tabs Styling */
+        .nav-tabs { border-bottom: 2px solid #eee; }
+        .nav-tabs .nav-link {
+            border: none;
+            color: var(--secondary-blue);
+            font-weight: 600;
+            padding: 15px 25px;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        .nav-tabs .nav-link:hover { color: var(--accent-orange); }
+        .nav-tabs .nav-link.active {
+            color: var(--accent-orange);
+            background: transparent;
+            border-bottom: 3px solid var(--accent-orange);
+        }
+
+        /* Table Styling */
+        .table thead th {
+            background-color: rgba(15, 32, 39, 0.03);
+            color: var(--secondary-blue);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            border-bottom: 2px solid var(--soft-blue-bg);
+            padding: 15px;
+        }
+        .table tbody td {
+            padding: 15px;
+            vertical-align: middle;
+            border-bottom: 1px dashed #eee;
+        }
+
+        /* Buttons */
+        .btn-custom-orange {
+            background-color: var(--accent-orange);
+            color: white;
+            border: none;
+            font-weight: 700;
+            border-radius: 50px;
+            padding: 10px 25px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(243, 112, 33, 0.3);
+        }
+        .btn-custom-orange:hover {
+            background-color: #d35400;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Profile Avatar */
+        .avatar-container {
+            position: relative;
+            display: inline-block;
+        }
+        .avatar-img {
+            width: 120px; height: 120px;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* --- [MỚI] STYLE CHO ICON MẬT KHẨU --- */
+        .password-icon-container {
+            position: absolute;
+            top: 50%;
+            right: 15px;
+            transform: translateY(-50%);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Hiệu ứng nảy (Pop animation) */
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .icon-animated {
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            font-size: 1.2rem;
+        }
+
+        /* Input padding để không đè chữ lên icon */
+        .form-control-password {
+            padding-right: 45px !important;
+        }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="page-wrapper">
+    <div class="container">
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb py-2 px-3 bg-white rounded-pill shadow-sm d-inline-flex border border-light mb-4">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-secondary"><i class="fas fa-home me-1"></i>Trang chủ</a></li>
+                <li class="breadcrumb-item active text-primary fw-bold" aria-current="page">Tài khoản</li>
+            </ol>
+        </nav>
+
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm border-0 bg-success text-white" role="alert">
+            <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm border-0 bg-danger text-white" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-3">
+                <div class="account-card text-center p-4">
+                    <div class="avatar-container mb-3">
+                        <img th:if="${user.avatarUrl != null}" th:src="${user.avatarUrl}"
+                             class="rounded-circle avatar-img">
+                        <img th:if="${user.avatarUrl == null}" src="https://via.placeholder.com/150"
+                             class="rounded-circle avatar-img" alt="Avatar">
+                    </div>
+
+                    <h5 class="fw-bold mb-1" th:text="${user.fullname}" style="color: var(--primary-blue);">Nguyen Van A</h5>
+                    <p class="text-muted small mb-3" th:text="${user.email}">email@example.com</p>
+
+                    <hr class="my-4" style="opacity: 0.1;">
+
+                    <div class="d-grid gap-2">
+                        <a href="/logout" class="btn btn-outline-danger rounded-pill">
+                            <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                <div class="account-card">
+                    <div class="card-header bg-white p-0">
+                        <ul class="nav nav-tabs card-header-tabs m-0" id="myTab" role="tablist">
+                            <li class="nav-item">
+                                <button class="nav-link active" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button">
+                                    <i class="fas fa-history me-2"></i> Lịch sử đơn hàng
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button">
+                                    <i class="fas fa-user-edit me-2"></i> Cập nhật thông tin
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" id="password-tab" data-bs-toggle="tab" data-bs-target="#password" type="button">
+                                    <i class="fas fa-key me-2"></i> Đổi mật khẩu
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <div class="tab-content" id="myTabContent">
+
+                            <div class="tab-pane fade show active" id="orders" role="tabpanel">
+                                <div th:if="${#lists.isEmpty(orders)}" class="text-center py-5">
+                                    <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" width="80" class="mb-3 opacity-50">
+                                    <p class="text-muted mb-3">Bạn chưa có đơn hàng nào.</p>
+                                    <a href="/store" class="btn btn-custom-orange rounded-pill px-4">Mua sắm ngay</a>
+                                </div>
+
+                                <div th:if="${not #lists.isEmpty(orders)}" class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead>
+                                        <tr>
+                                            <th>Mã đơn</th>
+                                            <th>Ngày đặt</th>
+                                            <th>Tổng tiền</th>
+                                            <th>Trạng thái</th>
+                                            <th class="text-end">Thao tác</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr th:each="order : ${orders}">
+                                            <td class="fw-bold text-primary" th:text="'#' + ${order.orderId}"></td>
+                                            <td class="text-muted small" th:text="${#temporals.format(order.createdAt, 'dd-MM-yyyy HH:mm')}"></td>
+                                            <td class="fw-bold text-danger" th:text="${#numbers.formatDecimal(order.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                                            <td>
+                                                <span class="badge rounded-pill px-3 py-2"
+                                                      th:classappend="${order.status == 'Chờ xác nhận'} ? 'bg-warning text-dark' :
+                                                                      (${order.status == 'Đang giao'} ? 'bg-info text-white' :
+                                                                      (${order.status == 'Đã giao' or order.status == 'Đã thanh toán'} ? 'bg-success' :
+                                                                      (${order.status == 'Đã hủy'} ? 'bg-danger' : 'bg-secondary')))"
+                                                      th:text="${order.status}">
+                                                </span>
+                                            </td>
+                                            <td class="text-end">
+                                                <a th:if="${order.status == 'Chờ xác nhận'}"
+                                                   th:href="@{'/account/cancel-order/' + ${order.orderId}}"
+                                                   class="btn btn-sm btn-outline-danger rounded-pill"
+                                                   onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?');">
+                                                    <i class="fas fa-times me-1"></i>Hủy
+                                                </a>
+
+                                                <span th:if="${order.status != 'Chờ xác nhận'}" class="text-muted small fst-italic">
+                                                    Không thể hủy
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="profile" role="tabpanel">
+                                <form action="/account/update" method="post" class="row g-4">
+                                    <input type="hidden" name="userId" th:value="${user.userId}">
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-secondary">Email</label>
+                                        <input type="text" class="form-control bg-light" th:value="${user.email}" disabled>
+                                        <div class="form-text small"><i class="fas fa-lock me-1"></i>Email không thể thay đổi</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-secondary">Họ và tên</label>
+                                        <input type="text" name="fullname" class="form-control" th:value="${user.fullname}" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-secondary">Số điện thoại</label>
+                                        <input type="text" name="phone" class="form-control" th:value="${user.phone}">
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold text-secondary">Địa chỉ mặc định</label>
+                                        <input type="text" name="address" class="form-control" th:value="${user.address}" placeholder="Nhập địa chỉ giao hàng của bạn...">
+                                    </div>
+
+                                    <div class="col-12 text-end mt-4">
+                                        <button type="submit" class="btn btn-custom-orange px-5">
+                                            <i class="fas fa-save me-2"></i>Lưu thay đổi
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="tab-pane fade" id="password" role="tabpanel">
+                                <form action="/account/change-password" method="post" class="row g-4 justify-content-center p-3">
+
+                                    <div class="col-md-8">
+                                        <label class="form-label fw-bold text-secondary small text-uppercase">Mật khẩu hiện tại</label>
+                                        <div class="position-relative">
+                                            <input type="password" name="oldPassword" id="oldPassword"
+                                                   class="form-control form-control-lg form-control-password rounded-pill fs-6"
+                                                   required placeholder="Nhập mật khẩu cũ...">
+
+                                            <div class="password-icon-container">
+                                                <i class="fas fa-check-circle text-success icon-animated d-none" id="checkOldPass"></i>
+                                                <i class="fas fa-times-circle text-danger icon-animated d-none" id="failOldPass"></i>
+                                            </div>
+                                        </div>
+                                        <div id="oldPassFeedback" class="form-text text-danger d-none small ms-3 mt-1">
+                                            <i class="fas fa-exclamation-triangle me-1"></i> Mật khẩu hiện tại không đúng!
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-8">
+                                        <label class="form-label fw-bold text-secondary small text-uppercase">Mật khẩu mới</label>
+                                        <input type="password" name="newPassword" id="newPassword"
+                                               class="form-control form-control-lg rounded-pill fs-6"
+                                               required placeholder="Nhập mật khẩu mới...">
+                                    </div>
+
+                                    <div class="col-md-8">
+                                        <label class="form-label fw-bold text-secondary small text-uppercase">Xác nhận mật khẩu mới</label>
+                                        <div class="position-relative">
+                                            <input type="password" name="confirmPassword" id="confirmPassword"
+                                                   class="form-control form-control-lg form-control-password rounded-pill fs-6"
+                                                   required placeholder="Nhập lại mật khẩu mới...">
+
+                                            <div class="password-icon-container">
+                                                <i class="fas fa-check-circle text-success icon-animated d-none" id="checkConfirmPass"></i>
+                                            </div>
+                                        </div>
+                                        <div id="confirmPassFeedback" class="form-text text-danger d-none small ms-3 mt-1">
+                                            <i class="fas fa-exclamation-triangle me-1"></i> Mật khẩu xác nhận không khớp!
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-8 text-end mt-4">
+                                        <button type="submit" class="btn btn-custom-orange px-5 rounded-pill fw-bold shadow-sm" id="btnChangePass">
+                                            <i class="fas fa-key me-2"></i>Đổi mật khẩu
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+
+        // --- 1. KIỂM TRA MẬT KHẨU CŨ (API) ---
+        const oldPassInput = document.getElementById("oldPassword");
+        const checkOldIcon = document.getElementById("checkOldPass");
+        const failOldIcon = document.getElementById("failOldPass");
+        const oldFeedback = document.getElementById("oldPassFeedback");
+
+        oldPassInput.addEventListener("change", function() {
+            const password = this.value;
+
+            // Nếu xóa trắng thì ẩn hết icon
+            if(password.length === 0) {
+                checkOldIcon.classList.add("d-none");
+                failOldIcon.classList.add("d-none");
+                oldFeedback.classList.add("d-none");
+                oldPassInput.classList.remove("is-invalid", "is-valid");
+                return;
+            }
+
+            // Gọi API
+            fetch('/api/client/check-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ oldPassword: password })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.valid) {
+                        // Đúng: Hiện tích xanh
+                        checkOldIcon.classList.remove("d-none");
+                        failOldIcon.classList.add("d-none");
+                        oldPassInput.classList.remove("is-invalid");
+                        oldPassInput.classList.add("is-valid");
+                        oldFeedback.classList.add("d-none");
+                    } else {
+                        // Sai: Hiện dấu X đỏ
+                        checkOldIcon.classList.add("d-none");
+                        failOldIcon.classList.remove("d-none");
+                        oldPassInput.classList.remove("is-valid");
+                        oldPassInput.classList.add("is-invalid");
+                        oldFeedback.classList.remove("d-none");
+                    }
+                })
+                .catch(err => console.error(err));
+        });
+
+        // --- 2. KIỂM TRA KHỚP MẬT KHẨU MỚI ---
+        const newPassInput = document.getElementById("newPassword");
+        const confirmPassInput = document.getElementById("confirmPassword");
+        const checkConfirmIcon = document.getElementById("checkConfirmPass");
+        const confirmFeedback = document.getElementById("confirmPassFeedback");
+
+        function validateMatch() {
+            const newPass = newPassInput.value;
+            const confirmPass = confirmPassInput.value;
+
+            // Chưa nhập xác nhận thì chưa báo gì cả
+            if(confirmPass.length === 0) {
+                checkConfirmIcon.classList.add("d-none");
+                confirmPassInput.classList.remove("is-valid", "is-invalid");
+                confirmFeedback.classList.add("d-none");
+                return;
+            }
+
+            if(newPass === confirmPass) {
+                // Khớp
+                checkConfirmIcon.classList.remove("d-none");
+                confirmPassInput.classList.remove("is-invalid");
+                confirmPassInput.classList.add("is-valid");
+                confirmFeedback.classList.add("d-none");
+            } else {
+                // Không khớp
+                checkConfirmIcon.classList.add("d-none");
+                confirmPassInput.classList.remove("is-valid");
+                confirmPassInput.classList.add("is-invalid"); // Viền đỏ input
+                confirmFeedback.classList.remove("d-none");
+            }
+        }
+
+        newPassInput.addEventListener("input", validateMatch);
+        confirmPassInput.addEventListener("input", validateMatch);
+    });
+</script>
+
+</body>
+</html>

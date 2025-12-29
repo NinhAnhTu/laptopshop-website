@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin_layout :: layout(~{:: .content-body})}">
+<head>
+    <title>Quản lý thương hiệu - ChaosCoders</title>
+</head>
+<body>
+
+<div class="content-body">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
+        <h2 class="fw-bold text-dark">Quản lý hãng sản xuất</h2>
+        <a href="/admin/brands/create" class="btn btn-primary rounded-pill px-4"
+           style="background-color: #f37021; border-color: #f37021;">
+            <i class="fas fa-plus me-2"></i>Thêm mới
+        </a>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm rounded-3" role="alert">
+        <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                <tr>
+                    <th class="py-3 ps-4">ID</th>
+                    <th class="py-3">Logo</th>
+                    <th class="py-3">Tên hãng</th>
+                    <th class="py-3">Quốc gia</th>
+                    <th class="py-3 text-end pe-4">Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="brand : ${brands}">
+                    <td class="ps-4 fw-bold text-secondary" th:text="'#' + ${brand.brandId}">1</td>
+                    <td>
+                        <div class="p-1 border rounded bg-white d-inline-block">
+                            <img th:if="${brand.logoUrl != null}" th:src="${brand.logoUrl}"
+                                 height="40" width="40" style="object-fit: contain;">
+                            <span th:if="${brand.logoUrl == null}" class="text-muted small px-1">No Logo</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="fw-bold text-dark" th:text="${brand.brandName}">Dell</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border" th:text="${brand.country}">USA</span>
+                    </td>
+                    <td class="text-end pe-4">
+                        <a th:href="@{'/admin/brands/edit/' + ${brand.brandId}}"
+                           class="btn btn-warning btn-sm rounded-2 me-1 text-white" title="Chỉnh sửa">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a th:href="@{'/admin/brands/delete/' + ${brand.brandId}}"
+                           class="btn btn-danger btn-sm rounded-2"
+                           onclick="return confirm('Bạn có chắc chắn muốn xóa hãng này? Sẽ ảnh hưởng đến các sản phẩm thuộc hãng.');" title="Xóa">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(brands)}">
+                    <td colspan="5" class="text-center py-5 text-muted">
+                        <i class="fas fa-box-open fa-3x mb-3 opacity-50"></i>
+                        <p>Chưa có hãng sản xuất nào.</p>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

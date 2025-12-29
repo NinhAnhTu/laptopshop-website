@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thanh toán - ChaosCoders</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* --- TONE MÀU CHỦ ĐẠO --- */
+        :root {
+            --primary-blue: #0f2027;
+            --secondary-blue: #203a43;
+            --accent-orange: #f37021;
+            --light-bg: #f8f9fa;
+            --soft-blue-bg: #c4dff6;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* [MỚI] Dấu sao đỏ cho trường bắt buộc */
+        .required-mark {
+            color: #dc3545; /* Màu đỏ */
+            font-weight: bold;
+            margin-left: 3px;
+        }
+
+        /* Page Wrapper */
+        .page-wrapper {
+            background: linear-gradient(180deg, var(--soft-blue-bg) 0%, #ffffff 40%, #ffffff 100%);
+            min-height: 100vh;
+            padding-top: 2rem;
+            padding-bottom: 3rem;
+        }
+
+        /* Checkout Cards */
+        .checkout-card {
+            background: white;
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(15, 32, 39, 0.08);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .card-header-custom {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 15px 25px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 1rem;
+        }
+
+        .card-body-custom { padding: 25px; }
+
+        /* Form Controls */
+        .form-label { font-weight: 600; color: var(--secondary-blue); font-size: 0.9rem; }
+        .form-control, .form-select {
+            border-radius: 10px;
+            padding: 10px 15px;
+            border: 1px solid #dee2e6;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 0 0.2rem rgba(243, 112, 33, 0.25);
+        }
+
+        /* Payment Methods */
+        .payment-option {
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        .payment-option:hover { background-color: #f8f9fa; }
+
+        .form-check-input:checked + .payment-label-content {
+            font-weight: bold;
+            color: var(--accent-orange);
+        }
+        .payment-option:has(.form-check-input:checked) {
+            border-color: var(--accent-orange);
+            background-color: #fff8f0;
+            box-shadow: 0 2px 8px rgba(243, 112, 33, 0.1);
+        }
+
+        .form-check-input {
+            width: 1.2em; height: 1.2em;
+            margin-top: 0;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+        .form-check-input:checked {
+            background-color: var(--accent-orange);
+            border-color: var(--accent-orange);
+        }
+
+        /* Order Summary Items */
+        .order-item { border-bottom: 1px dashed #eee; padding: 15px 0; }
+        .order-item:last-child { border-bottom: none; }
+
+        .total-row {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        /* Buttons */
+        .btn-custom-orange {
+            background-color: var(--accent-orange);
+            color: white;
+            border: none;
+            font-weight: 700;
+            border-radius: 50px;
+            padding: 15px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(243, 112, 33, 0.3);
+            font-size: 1.1rem;
+        }
+        .btn-custom-orange:hover {
+            background-color: #d35400;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Voucher Styles */
+        .voucher-success { color: #198754; font-weight: bold; font-size: 0.9em; display: block; margin-top: 5px; }
+        .voucher-error { color: #dc3545; font-weight: bold; font-size: 0.9em; display: block; margin-top: 5px; }
+
+        /* Modal Custom */
+        .modal-header { background-color: var(--primary-blue); color: white; }
+        .btn-close-white { filter: invert(1) grayscale(100%) brightness(200%); }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="page-wrapper">
+    <div class="container">
+        <h2 class="mb-4 fw-bold text-center" style="color: var(--primary-blue);">
+            <i class="fas fa-check-circle me-2 text-success"></i>XÁC NHẬN ĐƠN HÀNG
+        </h2>
+
+        <form action="/place-order" method="post">
+
+            <input type="hidden" name="voucherCode" id="hiddenVoucherCode">
+
+            <div th:each="id : ${selectedIds}">
+                <input type="hidden" name="selectedIds" th:value="${id}">
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-7">
+                    <div class="checkout-card">
+                        <div class="card-header-custom">
+                            <i class="fas fa-map-marker-alt me-2"></i> Thông tin giao hàng
+                        </div>
+                        <div class="card-body-custom">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label"><i class="fas fa-user me-1"></i> Họ và tên <span class="required-mark">*</span></label>
+                                    <input type="text" name="fullname" class="form-control" th:value="${user.fullname}" placeholder="Nguyễn Văn A" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label"><i class="fas fa-phone me-1"></i> Số điện thoại <span class="required-mark">*</span></label>
+                                    <input type="text" name="phone" class="form-control" th:value="${user.phone}" placeholder="0912..." required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label"><i class="fas fa-city me-1"></i> Tỉnh / Thành phố <span class="required-mark">*</span></label>
+                                    <select name="cityId" class="form-select" required>
+                                        <option value="" disabled selected>-- Chọn khu vực --</option>
+                                        <option th:each="city : ${cities}"
+                                                th:value="${city.cityId}"
+                                                th:text="${city.cityName}">
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label"><i class="fas fa-home me-1"></i> Địa chỉ chi tiết <span class="required-mark">*</span></label>
+                                    <input type="text" name="address" class="form-control" th:value="${user.address}" placeholder="Số nhà, tên đường, phường/xã..." required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label"><i class="fas fa-clipboard-list me-1"></i> Ghi chú (Tùy chọn)</label>
+                                    <textarea name="note" class="form-control" rows="2" placeholder=" "></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkout-card">
+                        <div class="card-header-custom">
+                            <i class="fas fa-credit-card me-2"></i> Phương thức thanh toán
+                        </div>
+                        <div class="card-body-custom">
+
+                            <label class="payment-option">
+                                <input class="form-check-input" type="radio" name="paymentMethod" value="1" id="cod" checked>
+                                <span class="payment-label-content">
+                                    <i class="fas fa-money-bill-wave me-2 text-success"></i>Thanh toán khi nhận hàng (COD)
+                                </span>
+                            </label>
+
+                            <label class="payment-option">
+                                <input class="form-check-input" type="radio" name="paymentMethod" value="2" id="banking">
+                                <span class="payment-label-content d-flex align-items-center justify-content-between w-100">
+                                    <span>
+                                        <i class="fas fa-qrcode me-2 text-primary"></i>Thanh toán VNPAY-QR / ATM
+                                    </span>
+                                    <img src="https://vnpay.vn/assets/images/logo-icon/logo-primary.svg" height="20">
+                                </span>
+                            </label>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="checkout-card sticky-top" style="top: 20px; z-index: 10;">
+                        <div class="card-header-custom bg-secondary">
+                            <i class="fas fa-shopping-bag me-2"></i> Đơn hàng của bạn
+                        </div>
+                        <div class="card-body-custom">
+
+                            <div class="mb-4">
+                                <div class="order-item d-flex justify-content-between align-items-center" th:each="item : ${cartItems}">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-light text-dark border me-2" th:text="${item.quantity} + 'x'"></span>
+                                        <div>
+                                            <h6 class="mb-0 small fw-bold text-dark" th:text="${item.product.productName}">Product</h6>
+                                        </div>
+                                    </div>
+                                    <span class="fw-bold text-muted small"
+                                          th:text="${#numbers.formatDecimal(item.product.salePrice * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="mb-4 p-3 bg-light rounded-3 border border-dashed">
+                                <label class="form-label small mb-2"><i class="fas fa-ticket-alt me-1 text-warning"></i> Mã giảm giá</label>
+                                <div class="input-group">
+                                    <input type="text" id="voucherCodeInput" class="form-control" placeholder="Nhập mã...">
+                                    <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#voucherModal" onclick="loadVouchers()">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                    <button class="btn btn-dark" type="button" onclick="applyVoucher()">Áp dụng</button>
+                                </div>
+                                <div id="voucherMessage"></div>
+                            </div>
+
+                            <div class="total-row">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Tạm tính:</span>
+                                    <span class="fw-bold" th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2 text-success">
+                                    <span><i class="fas fa-tag me-1"></i>Giảm giá:</span>
+                                    <span class="fw-bold" id="discountDisplay">- 0 đ</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-3 text-muted">
+                                    <span><i class="fas fa-truck me-1"></i>Phí vận chuyển:</span>
+                                    <span class="small">Tính theo khu vực</span>
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between align-items-center pt-2">
+                                    <span class="fw-bold fs-5 text-dark">TỔNG CỘNG:</span>
+                                    <strong id="finalTotalDisplay" class="fs-4 text-danger fw-bold"
+                                            th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                    </strong>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-custom-orange w-100 mt-4">
+                                <i class="fas fa-paper-plane me-2"></i>ĐẶT HÀNG NGAY
+                            </button>
+                            <div class="text-center mt-3">
+                                <a href="/cart" class="text-muted small text-decoration-underline">Quay lại giỏ hàng</a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="voucherModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold"><i class="fas fa-gift me-2 text-warning"></i>Kho Voucher</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light" id="voucherListContainer">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="text-muted mt-2">Đang tìm mã giảm giá tốt nhất...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:inline="javascript">
+    const originalTotal = /*[[${totalPrice}]]*/ 0;
+
+    function applyVoucher() {
+        const codeInput = document.getElementById("voucherCodeInput");
+        const code = codeInput.value.trim();
+        const messageBox = document.getElementById("voucherMessage");
+
+        messageBox.innerHTML = "";
+        messageBox.className = "";
+
+        if (!code) {
+            messageBox.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Vui lòng nhập mã!';
+            messageBox.className = "voucher-error";
+            return;
+        }
+
+        const selectedIdInputs = document.querySelectorAll('input[name="selectedIds"]');
+        let selectedIdsParam = "";
+        selectedIdInputs.forEach(input => { selectedIdsParam += "&selectedIds=" + input.value; });
+
+        fetch('/api/voucher/apply?code=' + code + selectedIdsParam)
+            .then(response => response.json())
+            .then(data => {
+                if (data.valid) {
+                    messageBox.innerHTML = '<i class="fas fa-check-circle me-1"></i> ' + data.message;
+                    messageBox.className = "voucher-success";
+
+                    const discount = data.discountAmount;
+                    document.getElementById("discountDisplay").innerText = "- " + discount.toLocaleString('vi-VN') + " đ";
+
+                    const newTotal = originalTotal - discount;
+                    const finalTotal = newTotal > 0 ? newTotal : 0;
+
+                    document.getElementById("finalTotalDisplay").innerText = finalTotal.toLocaleString('vi-VN') + " đ";
+                    document.getElementById("hiddenVoucherCode").value = code;
+                    codeInput.readOnly = true;
+                } else {
+                    messageBox.innerHTML = '<i class="fas fa-times-circle me-1"></i> ' + data.message;
+                    messageBox.className = "voucher-error";
+
+                    document.getElementById("discountDisplay").innerText = "- 0 đ";
+                    document.getElementById("finalTotalDisplay").innerText = originalTotal.toLocaleString('vi-VN') + " đ";
+                    document.getElementById("hiddenVoucherCode").value = "";
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
+                messageBox.innerHTML = "Lỗi kết nối!";
+                messageBox.className = "voucher-error";
+            });
+    }
+
+    function loadVouchers() {
+        const container = document.getElementById("voucherListContainer");
+        const selectedIdInputs = document.querySelectorAll('input[name="selectedIds"]');
+        let selectedIdsParam = "";
+        selectedIdInputs.forEach(input => { selectedIdsParam += "&selectedIds=" + input.value; });
+
+        fetch('/api/voucher/available?t=' + new Date().getTime() + selectedIdsParam)
+            .then(res => res.json())
+            .then(data => {
+                if (!data || data.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-5">
+                            <img src="https://cdn-icons-png.flaticon.com/512/6134/6134065.png" width="60" class="opacity-50 mb-3">
+                            <p class="text-muted">Không có voucher nào phù hợp.</p>
+                        </div>`;
+                    return;
+                }
+
+                let html = '';
+                data.forEach((v, index) => {
+                    const discountAmt = v.discountAmount.toLocaleString('vi-VN');
+                    const minOrder = v.minOrder.toLocaleString('vi-VN');
+
+                    // [MỚI] Lấy số lượng từ API
+                    const quantity = v.quantity;
+
+                    let badge = '';
+                    let cardClass = 'border-0 shadow-sm mb-3';
+
+                    if (index === 0) {
+                        badge = '<div class="badge bg-warning text-dark mb-2"><i class="fas fa-crown me-1"></i>Đề xuất</div>';
+                        cardClass = 'border border-warning border-2 mb-3 shadow';
+                    }
+
+                    html += `
+                    <div class="card ${cardClass}" style="border-radius: 15px; cursor: pointer; overflow: hidden;" onclick="selectVoucher('${v.code}')">
+                        <div class="card-body position-relative">
+                            <div class="d-flex">
+                                <div class="bg-primary text-white rounded-3 p-3 d-flex flex-column align-items-center justify-content-center me-3" style="min-width: 80px;">
+                                    <i class="fas fa-percent fa-lg"></i>
+                                    <small class="fw-bold mt-1">GIẢM</small>
+                                </div>
+                                <div class="flex-grow-1">
+                                    ${badge}
+                                    <div class="d-flex justify-content-between">
+                                        <h6 class="fw-bold text-primary mb-1">${v.code}</h6>
+                                        <small class="text-danger fw-bold" style="font-size: 0.8em;">Còn: ${quantity}</small>
+                                    </div>
+                                    <div class="fs-5 fw-bold text-success mb-1">Giảm ${discountAmt}đ</div>
+                                    <small class="text-muted d-block">Đơn tối thiểu: ${minOrder}đ</small>
+                                </div>
+                                <div class="align-self-center ms-2">
+                                    <button class="btn btn-sm btn-outline-primary rounded-pill">Dùng</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                container.innerHTML = html;
+            })
+            .catch(err => {
+                container.innerHTML = '<div class="text-center text-danger py-3">Lỗi tải dữ liệu.</div>';
+            });
+    }
+
+    function selectVoucher(code) {
+        const input = document.getElementById("voucherCodeInput");
+        input.value = code;
+        input.readOnly = false;
+
+        const modalEl = document.getElementById('voucherModal');
+        let modal = bootstrap.Modal.getInstance(modalEl);
+        if (!modal) modal = new bootstrap.Modal(modalEl);
+        modal.hide();
+
+        applyVoucher();
+    }
+</script>
+
+</body>
+</html>

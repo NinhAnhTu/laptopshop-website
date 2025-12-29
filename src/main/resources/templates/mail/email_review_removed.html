@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .container { background: #fff; padding: 30px; border-radius: 8px; max-width: 600px; margin: 0 auto; }
+        .header { color: #dc3545; font-size: 24px; font-weight: bold; margin-bottom: 20px; text-align: center; }
+        .reason { background: #fff5f5; color: #dc3545; padding: 15px; border: 1px dashed #dc3545; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">THÔNG BÁO GỠ ĐÁNH GIÁ</div>
+    <p>Xin chào <strong th:text="${review.user.fullname}">Khách hàng</strong>,</p>
+    <p>Đánh giá của bạn về sản phẩm <strong th:text="${review.product.productName}">Sản phẩm</strong> đã bị quản trị viên gỡ bỏ do vi phạm quy tắc cộng đồng.</p>
+
+    <p>Lý do gỡ bỏ:</p>
+    <div class="reason" th:text="${reason}">Lý do...</div>
+
+    <p>Nếu bạn có thắc mắc, vui lòng liên hệ bộ phận CSKH.</p>
+    <p>Trân trọng,<br>ChaosCoders Team</p>
+</div>
+</body>
+</html>

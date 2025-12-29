@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin_layout :: layout(~{:: .content-body})}">
+<head>
+    <title>Cập nhật người dùng - ChaosCoders</title>
+</head>
+<body>
+
+<div class="content-body">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Cập nhật người dùng</h2>
+            <small class="text-muted"></small>
+        </div>
+        <a href="/admin/users" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4" style="max-width: 900px; margin: 0 auto;">
+        <div class="card-body p-4">
+            <form action="/admin/users/save" method="post" th:object="${user}">
+                <input type="hidden" th:field="*{userId}">
+                <input type="hidden" th:field="*{avatarUrl}">
+                <input type="hidden" th:field="*{provider}">
+
+                <div class="row g-4">
+
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-secondary text-uppercase mb-3">
+                            <i class="fas fa-user-shield me-2"></i>Thông tin tài khoản
+                        </h6>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Email đăng nhập</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-envelope text-muted"></i></span>
+                                <input type="email" class="form-control border-start-0 py-2 bg-light text-muted"
+                                       th:field="*{email}" readonly style="cursor: not-allowed;">
+                            </div>
+                            <div class="form-text small"><i class="fas fa-lock me-1"></i> Email không thể thay đổi.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Mật khẩu mới</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-key text-muted"></i></span>
+                                <input type="password" class="form-control border-start-0 py-2"
+                                       th:field="*{password}" placeholder="Để trống nếu không muốn đổi">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Vai trò (Role)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-user-tag text-muted"></i></span>
+                                <select class="form-select border-start-0 py-2 fw-bold text-primary" th:field="*{userType.userTypeId}">
+                                    <option th:each="role : ${roles}"
+                                            th:value="${role.userTypeId}"
+                                            th:text="${role.typeName}"></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 border-start-md">
+                        <h6 class="fw-bold text-secondary text-uppercase mb-3">
+                            <i class="fas fa-address-card me-2"></i>Thông tin cá nhân
+                        </h6>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Họ và tên <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-user text-muted"></i></span>
+                                <input type="text" class="form-control border-start-0 py-2 fw-bold"
+                                       th:field="*{fullname}" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Số điện thoại</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-phone text-muted"></i></span>
+                                <input type="text" class="form-control border-start-0 py-2"
+                                       th:field="*{phone}" placeholder="09xxxx...">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Địa chỉ</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-map-marker-alt text-muted"></i></span>
+                                <input type="text" class="form-control border-start-0 py-2"
+                                       th:field="*{address}" placeholder="Nhập địa chỉ liên hệ...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                    <a href="/admin/users" class="btn btn-light rounded-pill px-4 fw-bold">Hủy bỏ</a>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold"
+                            style="background-color: #f37021; border-color: #f37021;">
+                        <i class="fas fa-save me-2"></i>Cập nhật
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

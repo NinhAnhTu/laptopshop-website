@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin_layout :: layout(~{:: .dashboard-content})}">
+<head>
+    <title>Dashboard - ChaosCoders</title>
+</head>
+<body>
+
+<div class="dashboard-content">
+
+    <h2 class="fw-bold text-dark mb-4">Tổng quan hệ thống</h2>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card text-white border-0 shadow-sm rounded-4" style="background: linear-gradient(45deg, #11998e, #38ef7d);">
+                <div class="card-body p-3">
+                    <h6 class="text-uppercase opacity-75 small">Doanh Thu Năm</h6>
+                    <h4 class="fw-bold mb-0" th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white border-0 shadow-sm rounded-4" style="background: linear-gradient(45deg, #3a7bd5, #3a6073);">
+                <div class="card-body p-3">
+                    <h6 class="text-uppercase opacity-75 small">Tổng Đơn Hàng</h6>
+                    <h4 class="fw-bold mb-0" th:text="${totalOrders}">0</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white border-0 shadow-sm rounded-4" style="background: linear-gradient(45deg, #FFB75E, #ED8F03);">
+                <div class="card-body p-3">
+                    <h6 class="text-uppercase opacity-75 small">Đã Giao</h6>
+                    <h4 class="fw-bold mb-0" th:text="${deliveredOrders}">0</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white border-0 shadow-sm rounded-4" style="background: linear-gradient(45deg, #eb3349, #f45c43);">
+                <div class="card-body p-3">
+                    <h6 class="text-uppercase opacity-75 small">Đã Hủy</h6>
+                    <h4 class="fw-bold mb-0" th:text="${cancelledOrders}">0</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold text-secondary"><i class="fas fa-chart-pie me-2"></i>Phân tích dữ liệu</h5>
+
+            <div>
+                <button class="btn btn-sm btn-outline-secondary rounded-circle" type="button" data-bs-target="#chartCarousel" data-bs-slide="prev">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary rounded-circle" type="button" data-bs-target="#chartCarousel" data-bs-slide="next">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body p-4">
+            <div id="chartCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000"> <div class="carousel-inner">
+
+                <div class="carousel-item active">
+                    <h6 class="text-center fw-bold text-success mb-3">BIỂU ĐỒ DOANH THU THEO THÁNG</h6>
+                    <div style="height: 400px;">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="carousel-item">
+                    <h6 class="text-center fw-bold text-primary mb-3">TOP 5 SẢN PHẨM BÁN CHẠY NHẤT</h6>
+                    <div style="height: 400px;">
+                        <canvas id="topProductChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="carousel-item">
+                    <h6 class="text-center fw-bold text-warning mb-3">TỶ LỆ TRẠNG THÁI ĐƠN HÀNG</h6>
+                    <div style="height: 400px; display: flex; justify-content: center;">
+                        <canvas id="orderStatusChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // --- DATA TỪ SERVER ---
+        var revenueData = /*[[${monthlyRevenue}]]*/ [];
+        var topProductNames = /*[[${topProductNames}]]*/ [];
+        var topProductSales = /*[[${topProductSales}]]*/ [];
+        var orderStatusData = /*[[${orderStatusData}]]*/ []; // [Chờ xử lý, Đã giao, Đã hủy]
+
+        // --- CHART 1: DOANH THU ---
+        new Chart(document.getElementById('revenueChart'), {
+            type: 'bar',
+            data: {
+                labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+                datasets: [{
+                    label: 'Doanh thu (VNĐ)',
+                    data: revenueData,
+                    backgroundColor: '#38ef7d',
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // --- CHART 2: TOP SẢN PHẨM ---
+        new Chart(document.getElementById('topProductChart'), {
+            type: 'bar',
+            indexAxis: 'y', // Biểu đồ ngang
+            data: {
+                labels: topProductNames,
+                datasets: [{
+                    label: 'Số lượng đã bán',
+                    data: topProductSales,
+                    backgroundColor: '#3a7bd5',
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        // --- CHART 3: TRẠNG THÁI ĐƠN ---
+        new Chart(document.getElementById('orderStatusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Chờ xác nhận', 'Đã giao', 'Đã hủy'],
+                datasets: [{
+                    data: orderStatusData,
+                    backgroundColor: ['#ffc107', '#28a745', '#dc3545'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    </script>
+</div>
+
+</body>
+</html>

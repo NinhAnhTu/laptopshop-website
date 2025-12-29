@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin_layout :: layout(~{:: .content-body})}">
+<head>
+    <title>Quản lý sản phẩm - ChaosCoders</title>
+</head>
+<body>
+
+<div class="content-body">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Quản lý sản phẩm</h2>
+            <small class="text-muted"></small>
+        </div>
+        <a href="/admin/products/create" class="btn btn-primary rounded-pill px-4 fw-bold"
+           style="background-color: #f37021; border-color: #f37021;">
+            <i class="fas fa-plus me-2"></i>Thêm sản phẩm
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0">
+            <h6 class="fw-bold text-secondary text-uppercase mb-0">
+                <i class="fas fa-filter me-2 text-primary"></i>Bộ lọc tìm kiếm
+            </h6>
+        </div>
+        <div class="card-body p-4">
+            <form action="/admin/products" method="get" class="row g-3">
+
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small text-muted">Tên sản phẩm</label>
+                    <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                        <input type="text" class="form-control border-start-0 rounded-end-pill py-2" name="keyword"
+                               placeholder="Nhập tên..." th:value="${keyword}">
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small text-muted">Danh mục</label>
+                    <select class="form-select rounded-pill py-2" name="categoryId">
+                        <option value="">-- Tất cả --</option>
+                        <option th:each="cat : ${categories}"
+                                th:value="${cat.categoryId}"
+                                th:text="${cat.categoryName}"
+                                th:selected="${cat.categoryId == selectedCategoryId}"></option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small text-muted">Thương hiệu</label>
+                    <select class="form-select rounded-pill py-2" name="brandId">
+                        <option value="">-- Tất cả --</option>
+                        <option th:each="brand : ${brands}"
+                                th:value="${brand.brandId}"
+                                th:text="${brand.brandName}"
+                                th:selected="${brand.brandId == selectedBrandId}"></option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small text-muted">Khoảng giá</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control rounded-start-pill py-2" name="minPrice"
+                               placeholder="Min" th:value="${minPrice}">
+                        <span class="input-group-text bg-light border-start-0 border-end-0 text-muted">-</span>
+                        <input type="number" class="form-control rounded-end-pill py-2" name="maxPrice"
+                               placeholder="Max" th:value="${maxPrice}">
+                    </div>
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end">
+                    <div class="d-flex w-100 gap-2">
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold py-2"
+                                style="background-color: #f37021; border-color: #f37021;">
+                            Lọc
+                        </button>
+                        <a href="/admin/products" class="btn btn-light border rounded-circle d-flex align-items-center justify-content-center"
+                           style="width: 42px; height: 42px;" title="Reset bộ lọc" data-bs-toggle="tooltip">
+                            <i class="fas fa-sync-alt text-secondary"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold text-secondary">Danh sách sản phẩm</h6>
+            <span class="badge bg-light text-dark border rounded-pill px-3"
+                  th:text="${products.size()} + ' sản phẩm'">0 sản phẩm</span>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-secondary text-uppercase small">
+                    <tr>
+                        <th class="ps-4 py-3">Sản phẩm</th>
+                        <th class="py-3">Danh mục / Hãng</th>
+                        <th class="py-3 text-center">Giá bán</th>
+                        <th class="py-3 text-center">Tồn kho</th>
+                        <th class="text-end pe-4 py-3">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${products.isEmpty()}">
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <div class="opacity-50 mb-3">
+                                <i class="fas fa-laptop fa-3x"></i>
+                            </div>
+                            <p class="mb-0">Không tìm thấy sản phẩm nào.</p>
+                        </td>
+                    </tr>
+
+                    <tr th:each="product : ${products}">
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="border rounded-3 p-1 me-3 bg-white" style="width: 50px; height: 50px; flex-shrink: 0;">
+                                    <img th:if="${not #lists.isEmpty(product.images)}"
+                                         th:src="${product.images[0].url}"
+                                         style="width: 100%; height: 100%; object-fit: contain;">
+                                    <div th:if="${#lists.isEmpty(product.images)}" class="d-flex align-items-center justify-content-center h-100 text-muted">
+                                        <i class="fas fa-image"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold text-dark text-truncate" style="max-width: 250px;" th:text="${product.productName}">Dell XPS 13</h6>
+                                    <small class="text-muted" th:text="'ID: #' + ${product.productId}">ID: #1</small>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="d-flex flex-column">
+                                        <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill w-auto mb-1" style="width: fit-content;">
+                                            <i class="fas fa-folder me-1"></i> <span th:text="${product.category.categoryName}">Laptop</span>
+                                        </span>
+                                <small class="text-muted ps-1"><i class="fas fa-tag me-1"></i><span th:text="${product.brand.brandName}">Dell</span></small>
+                            </div>
+                        </td>
+
+                        <td class="text-center fw-bold text-danger">
+                            <span th:text="${#numbers.formatDecimal(product.salePrice, 0, 'COMMA', 0, 'POINT')}">20.000.000</span>
+                            <span class="small text-dark">đ</span>
+                        </td>
+
+                        <td class="text-center">
+                                    <span th:if="${product.stock > 0}" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3">
+                                        <span th:text="${product.stock}">10</span> cái
+                                    </span>
+                            <span th:if="${product.stock == 0}" class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3">
+                                        Hết hàng
+                                    </span>
+                        </td>
+
+                        <td class="text-end pe-4">
+                            <a th:href="@{/admin/products/edit/{id}(id=${product.productId})}"
+                               class="btn btn-outline-warning btn-sm rounded-circle me-1" title="Sửa" data-bs-toggle="tooltip">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a th:href="@{/admin/products/delete/{id}(id=${product.productId})}"
+                               class="btn btn-outline-danger btn-sm rounded-circle"
+                               onclick="return confirm('CẢNH BÁO: Xóa sản phẩm sẽ xóa luôn tồn kho và hình ảnh liên quan. Bạn có chắc chắn?')"
+                               title="Xóa" data-bs-toggle="tooltip">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card-footer bg-white py-3 border-top-0">
+        </div>
+    </div>
+
+</div>
+
+<script>
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
+
+</body>
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Giỏ hàng - ChaosCoders</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* --- GIỮ NGUYÊN CSS CŨ CỦA BẠN --- */
+        :root { --primary-blue: #0f2027; --secondary-blue: #203a43; --accent-orange: #f37021; --light-bg: #f8f9fa; --soft-blue-bg: #c4dff6; }
+        body { background-color: var(--light-bg); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .page-wrapper { background: linear-gradient(180deg, var(--soft-blue-bg) 0%, #ffffff 40%, #ffffff 100%); min-height: 100vh; padding-top: 2rem; padding-bottom: 3rem; }
+        .breadcrumb-item a { color: var(--secondary-blue); text-decoration: none; font-weight: 500; }
+        .breadcrumb-item.active { color: var(--accent-orange); }
+        .cart-card { background: white; border: none; border-radius: 20px; box-shadow: 0 8px 25px rgba(15, 32, 39, 0.08); overflow: hidden; }
+        .table thead th { background-color: rgba(196, 223, 246, 0.3); color: var(--secondary-blue); font-weight: 700; text-transform: uppercase; font-size: 0.85rem; border-bottom: 2px solid var(--soft-blue-bg); padding: 15px; }
+        .table tbody td { padding: 15px; vertical-align: middle; border-bottom: 1px dashed #eee; }
+        .product-link { color: var(--primary-blue); font-weight: 700; transition: color 0.2s; }
+        .product-link:hover { color: var(--accent-orange); }
+        .price-text { color: var(--accent-orange); font-weight: 700; }
+        .quantity-input { border-radius: 50px; border: 1px solid #dee2e6; padding: 5px 10px; font-weight: 600; color: var(--primary-blue); }
+        .quantity-input:focus { border-color: var(--accent-orange); box-shadow: 0 0 0 0.2rem rgba(243, 112, 33, 0.25); }
+        .btn-custom-orange { background-color: var(--accent-orange); color: white; border: none; font-weight: 700; border-radius: 50px; padding: 12px 20px; text-transform: uppercase; transition: all 0.3s; box-shadow: 0 4px 15px rgba(243, 112, 33, 0.3); }
+        .btn-custom-orange:hover { background-color: #d35400; color: white; transform: translateY(-2px); }
+        .btn-outline-custom { color: var(--secondary-blue); border: 2px solid #dee2e6; background: transparent; font-weight: 600; border-radius: 50px; padding: 10px 20px; transition: all 0.3s; }
+        .btn-outline-custom:hover { border-color: var(--secondary-blue); background: var(--secondary-blue); color: white; }
+        .form-check-input { cursor: pointer; width: 1.2em; height: 1.2em; }
+        .form-check-input:checked { background-color: var(--accent-orange); border-color: var(--accent-orange); }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="page-wrapper">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb py-2 px-3 bg-white rounded-pill shadow-sm d-inline-flex border border-light mb-4">
+                <li class="breadcrumb-item"><a href="/"><i class="fas fa-home me-1"></i>Trang chủ</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Giỏ hàng</li>
+            </ol>
+        </nav>
+
+        <h3 class="mb-4 fw-bold" style="color: var(--primary-blue);"><i class="fas fa-shopping-cart me-2"></i>GIỎ HÀNG CỦA BẠN</h3>
+
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i> <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <form id="checkoutForm" action="/checkout" method="get"></form>
+
+        <div th:if="${cart == null or #lists.isEmpty(cart.cartDetails)}" class="cart-card text-center py-5">
+            <img src="https://cdni.iconscout.com/illustration/premium/thumb/empty-cart-2130356-1800917.png" width="200" alt="Empty Cart" style="opacity: 0.8;">
+            <h4 class="fw-bold mt-3 text-secondary">Giỏ hàng đang trống</h4>
+            <p class="text-muted mb-4">Hãy dạo một vòng xem có gì ưng ý không nhé!</p>
+            <a href="/" class="btn btn-custom-orange px-5">
+                <i class="fas fa-arrow-right me-2"></i>Tiếp tục mua sắm
+            </a>
+        </div>
+
+        <div th:if="${cart != null and not #lists.isEmpty(cart.cartDetails)}" class="row g-4">
+            <div class="col-lg-8">
+                <div class="cart-card">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead>
+                            <tr>
+                                <th width="50" class="text-center">
+                                    <input class="form-check-input" type="checkbox" id="selectAll" onclick="toggleAll(this)">
+                                </th>
+                                <th>Sản phẩm</th>
+                                <th class="text-center">Đơn giá</th>
+                                <th class="text-center">Số lượng</th>
+                                <th class="text-center">Thành tiền</th>
+                                <th width="50"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="item : ${cart.cartDetails}" class="cart-item-row">
+                                <td class="text-center">
+                                    <input type="checkbox" name="selectedItems"
+                                           th:value="${item.cartDetailId}"
+                                           form="checkoutForm"
+                                           class="form-check-input item-checkbox"
+                                           th:data-price="${item.product.salePrice}"
+                                           onchange="updateTotalPrice()">
+                                </td>
+
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-white p-1 border rounded me-3" style="width: 70px; height: 70px; flex-shrink: 0;">
+                                            <img th:if="${not #lists.isEmpty(item.product.images)}"
+                                                 th:src="${item.product.images[0].url}"
+                                                 class="w-100 h-100 object-fit-contain">
+                                            <img th:if="${#lists.isEmpty(item.product.images)}"
+                                                 src="https://via.placeholder.com/70"
+                                                 class="w-100 h-100 object-fit-contain">
+                                        </div>
+                                        <div>
+                                            <a th:href="@{'/product/' + ${item.product.slug}}"
+                                               class="product-link text-decoration-none d-block mb-1"
+                                               th:text="${item.product.productName}">Tên Laptop</a>
+                                            <small class="text-muted" th:text="'Kho: ' + ${item.product.stock}"></small>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="text-center text-muted fw-bold"
+                                    th:text="${#numbers.formatDecimal(item.product.salePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+
+                                <td class="text-center">
+                                    <form th:action="@{/cart/update}" method="post" class="d-flex justify-content-center">
+                                        <input type="hidden" name="id" th:value="${item.cartDetailId}">
+                                        <input type="number" name="quantity" th:value="${item.quantity}" min="0" max="100"
+                                               class="form-control quantity-input text-center" style="width: 70px;"
+                                               onchange="this.form.submit()">
+                                    </form>
+                                </td>
+
+                                <td class="text-center price-text"
+                                    th:text="${#numbers.formatDecimal(item.product.salePrice * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                </td>
+
+                                <td class="text-center">
+                                    <a th:href="@{'/cart/remove/' + ${item.cartDetailId}}"
+                                       class="btn btn-sm btn-light text-danger rounded-circle shadow-sm"
+                                       title="Xóa"
+                                       style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;"
+                                       onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="cart-card p-4 sticky-top" style="top: 20px; z-index: 10;">
+                    <h5 class="fw-bold mb-4 pb-2 border-bottom text-uppercase" style="color: var(--secondary-blue); font-size: 1rem; letter-spacing: 0.5px;">
+                        Tổng quan đơn hàng
+                    </h5>
+
+                    <div th:if="${param.error}" class="alert alert-danger py-2 text-center mb-3 small rounded-3 border-0 bg-danger text-white">
+                        <i class="fas fa-exclamation-circle me-1"></i> Vui lòng chọn ít nhất 1 sản phẩm!
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Tạm tính (Đã chọn):</span>
+                        <span id="total-price-display" class="fw-bold fs-5 text-dark">0 đ</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-4 small">
+                        <span class="text-muted"><i class="fas fa-truck me-1"></i>Phí vận chuyển:</span>
+                        <span class="text-success fw-bold">Miễn phí</span>
+                    </div>
+
+                    <div class="alert alert-light border border-dashed rounded-3 mb-4 p-2 small text-muted text-center">
+                        <i class="fas fa-info-circle me-1"></i> Chọn sản phẩm bên trái để thanh toán
+                    </div>
+
+                    <button type="submit" form="checkoutForm" class="btn btn-custom-orange w-100 btn-lg mb-3 shadow">
+                        TIẾN HÀNH THANH TOÁN <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+
+                    <a href="/" class="btn btn-outline-custom w-100">
+                        <i class="fas fa-chevron-left me-1"></i> Tiếp tục mua sắm
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+    // Hàm format tiền tệ VNĐ (Ví dụ: 1000000 -> 1.000.000 đ)
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+    }
+
+    // Hàm tính tổng tiền dựa trên các checkbox được chọn
+    function updateTotalPrice() {
+        let total = 0;
+        const checkboxes = document.querySelectorAll('.item-checkbox:checked');
+
+        checkboxes.forEach(checkbox => {
+            // Lấy giá từ data-price
+            const price = parseFloat(checkbox.getAttribute('data-price'));
+
+            // Tìm ô input số lượng trong cùng dòng (tr)
+            const row = checkbox.closest('tr');
+            const quantityInput = row.querySelector('.quantity-input');
+            const quantity = parseInt(quantityInput.value);
+
+            if (!isNaN(price) && !isNaN(quantity)) {
+                total += price * quantity;
+            }
+        });
+
+        // Cập nhật giao diện
+        document.getElementById('total-price-display').innerText = formatCurrency(total);
+    }
+
+    // Hàm chọn tất cả / bỏ chọn tất cả
+    function toggleAll(source) {
+        const checkboxes = document.querySelectorAll('.item-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = source.checked;
+        });
+        // Tính lại tiền sau khi chọn all
+        updateTotalPrice();
+    }
+
+    // Gọi hàm tính tiền 1 lần khi trang vừa load xong
+    document.addEventListener("DOMContentLoaded", function() {
+        updateTotalPrice();
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

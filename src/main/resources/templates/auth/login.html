@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng nhập - ChaosCoders</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            background-color: #f4f6f8;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .login-card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+            overflow: hidden;
+            width: 100%;
+            max-width: 450px;
+            background: white;
+        }
+
+        /* Icon User ở trên */
+        .icon-header {
+            width: 80px;
+            height: 80px;
+            background: #fff3e0; /* Cam nhạt */
+            color: #f37021;       /* Cam đậm */
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 32px;
+            box-shadow: 0 5px 15px rgba(243, 112, 33, 0.2);
+        }
+
+        /* Input bo tròn */
+        .form-control {
+            border-radius: 50px;
+            padding: 12px 25px;
+            border: 1px solid #e0e0e0;
+            background-color: #f9f9f9;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(243, 112, 33, 0.1);
+            border-color: #f37021;
+        }
+
+        /* Nút màu cam (Primary) */
+        .btn-primary {
+            background-color: #f37021;
+            border-color: #f37021;
+            border-radius: 50px;
+            font-weight: 700;
+            padding: 12px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #e66010;
+            border-color: #e66010;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(243, 112, 33, 0.3);
+        }
+
+        /* Nút Google */
+        .btn-google {
+            background-color: #fff;
+            color: #ea4335;
+            border: 1px solid #ea4335;
+            border-radius: 50px;
+            font-weight: 600;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-google:hover {
+            background-color: #ea4335;
+            color: white;
+            box-shadow: 0 5px 15px rgba(234, 67, 53, 0.2);
+        }
+
+        /* Links */
+        .text-link {
+            color: #6c757d;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+        .text-link:hover {
+            color: #f37021;
+            text-decoration: underline;
+        }
+
+        .divider-text {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #adb5bd;
+            font-size: 0.85rem;
+            margin: 20px 0;
+        }
+        .divider-text::before, .divider-text::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .divider-text span {
+            padding: 0 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container p-3">
+    <div class="card login-card mx-auto">
+        <div class="card-body p-4 p-md-5">
+
+            <div class="icon-header">
+                <i class="fas fa-user-circle"></i>
+            </div>
+
+            <h3 class="text-center fw-bold text-dark mb-2">Đăng nhập</h3>
+            <p class="text-center text-muted small mb-4">Chào mừng bạn quay trở lại!</p>
+
+            <div th:if="${param.error}" class="alert alert-danger rounded-4 border-0 shadow-sm small d-flex align-items-center mb-4" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i> Email hoặc mật khẩu không đúng!
+            </div>
+
+            <div th:if="${param.registerSuccess}" class="alert alert-success rounded-4 border-0 shadow-sm small d-flex align-items-center mb-4" role="alert">
+                <i class="fas fa-check-circle me-2"></i> Đăng ký thành công! Vui lòng đăng nhập.
+            </div>
+
+            <form th:action="@{/perform_login}" method="post">
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-muted ms-3">Email</label>
+                    <input type="email" name="email" class="form-control" placeholder="nhapemail@example.com" required>
+                </div>
+
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label fw-bold small text-muted ms-3 mb-0">Mật khẩu</label>
+                        <a th:href="@{/forgot-password}" class="text-link small text-primary" style="font-size: 0.8rem;">Quên mật khẩu?</a>
+                    </div>
+                    <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 mb-3">
+                    Đăng nhập <i class="fas fa-sign-in-alt ms-2"></i>
+                </button>
+            </form>
+
+            <div class="divider-text">
+                <span>Hoặc tiếp tục với</span>
+            </div>
+
+            <a href="/oauth2/authorization/google" class="btn btn-google w-100 mb-4">
+                <i class="fab fa-google me-2"></i> Google
+            </a>
+
+            <div class="text-center">
+                <span class="text-muted small">Chưa có tài khoản?</span>
+                <a th:href="@{/register}" class="text-link ms-1 text-primary">Đăng ký ngay</a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

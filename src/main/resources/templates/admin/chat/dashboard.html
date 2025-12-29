@@ -1,0 +1,678 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="vi" xmlns:th="http://www.thymeleaf.org"-->
+<!--      th:replace="~{fragments/admin_layout :: layout(~{:: .content-body})}">-->
+<!--<head>-->
+<!--    <title>Hỗ trợ khách hàng - ChaosCoders</title>-->
+<!--</head>-->
+<!--<body>-->
+
+<!--<div class="content-body">-->
+
+<!--    <style>-->
+<!--        .chat-layout-card {-->
+<!--            background: white;-->
+<!--            border-radius: 20px;-->
+<!--            overflow: hidden;-->
+<!--            box-shadow: 0 10px 30px rgba(0,0,0,0.05);-->
+<!--            height: 80vh; /* Chiều cao cố định */-->
+<!--            display: flex;-->
+<!--            border: 1px solid #f0f0f0;-->
+<!--        }-->
+
+<!--        /* -&#45;&#45; CỘT TRÁI: DANH SÁCH -&#45;&#45; */-->
+<!--        .user-list-panel {-->
+<!--            width: 320px;-->
+<!--            border-right: 1px solid #f0f0f0;-->
+<!--            display: flex;-->
+<!--            flex-direction: column;-->
+<!--            background: #fff;-->
+<!--        }-->
+
+<!--        .user-list-header {-->
+<!--            padding: 20px;-->
+<!--            border-bottom: 1px solid #f0f0f0;-->
+<!--            font-weight: 700;-->
+<!--            color: #0f2027;-->
+<!--            background: #fcfcfc;-->
+<!--        }-->
+
+<!--        .user-scroll-container {-->
+<!--            flex: 1;-->
+<!--            overflow-y: auto;-->
+<!--        }-->
+
+<!--        .user-item {-->
+<!--            padding: 15px 20px;-->
+<!--            border-bottom: 1px solid #f9f9f9;-->
+<!--            cursor: pointer;-->
+<!--            display: flex;-->
+<!--            align-items: center;-->
+<!--            transition: all 0.2s ease;-->
+<!--        }-->
+
+<!--        .user-item:hover { background-color: #f8f9fa; }-->
+
+<!--        .user-item.active {-->
+<!--            background-color: #fff3e0; /* Cam nhạt */-->
+<!--            border-left: 4px solid #f37021; /* Cam đậm */-->
+<!--        }-->
+
+<!--        .user-avatar-circle {-->
+<!--            width: 45px; height: 45px;-->
+<!--            background: linear-gradient(135deg, #203a43, #2c5364);-->
+<!--            color: white;-->
+<!--            border-radius: 50%;-->
+<!--            display: flex; align-items: center; justify-content: center;-->
+<!--            font-weight: bold;-->
+<!--            margin-right: 15px;-->
+<!--            flex-shrink: 0;-->
+<!--            font-size: 1.1rem;-->
+<!--            box-shadow: 0 3px 6px rgba(0,0,0,0.1);-->
+<!--        }-->
+
+<!--        /* -&#45;&#45; CỘT PHẢI: KHUNG CHAT -&#45;&#45; */-->
+<!--        .chat-main-panel {-->
+<!--            flex: 1;-->
+<!--            display: flex;-->
+<!--            flex-direction: column;-->
+<!--            background: #f9fafb;-->
+<!--        }-->
+
+<!--        .chat-top-bar {-->
+<!--            height: 70px;-->
+<!--            background: white;-->
+<!--            border-bottom: 1px solid #eee;-->
+<!--            display: flex; align-items: center;-->
+<!--            padding: 0 25px;-->
+<!--            font-weight: 600;-->
+<!--        }-->
+
+<!--        .chat-messages-area {-->
+<!--            flex: 1;-->
+<!--            padding: 25px;-->
+<!--            overflow-y: auto;-->
+<!--            display: flex;-->
+<!--            flex-direction: column;-->
+<!--            gap: 12px;-->
+<!--        }-->
+
+<!--        /* Bong bóng tin nhắn */-->
+<!--        .msg-bubble {-->
+<!--            padding: 12px 18px;-->
+<!--            border-radius: 18px;-->
+<!--            max-width: 70%;-->
+<!--            font-size: 0.95rem;-->
+<!--            line-height: 1.5;-->
+<!--            position: relative;-->
+<!--            word-wrap: break-word;-->
+<!--            box-shadow: 0 2px 5px rgba(0,0,0,0.03);-->
+<!--        }-->
+
+<!--        .msg-user {-->
+<!--            align-self: flex-start;-->
+<!--            background: white;-->
+<!--            color: #333;-->
+<!--            border-bottom-left-radius: 2px;-->
+<!--            border: 1px solid #eee;-->
+<!--        }-->
+
+<!--        .msg-admin {-->
+<!--            align-self: flex-end;-->
+<!--            background: linear-gradient(45deg, #f37021, #ff9f43); /* Gradient Cam */-->
+<!--            color: white;-->
+<!--            border-bottom-right-radius: 2px;-->
+<!--            box-shadow: 0 3px 8px rgba(243, 112, 33, 0.2);-->
+<!--        }-->
+
+<!--        .chat-input-wrapper {-->
+<!--            padding: 20px;-->
+<!--            background: white;-->
+<!--            border-top: 1px solid #eee;-->
+<!--            display: flex;-->
+<!--            gap: 10px;-->
+<!--        }-->
+
+<!--        /* Scrollbar đẹp */-->
+<!--        ::-webkit-scrollbar { width: 6px; }-->
+<!--        ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 10px; }-->
+<!--        ::-webkit-scrollbar-track { background: transparent; }-->
+<!--    </style>-->
+
+<!--    <div class="d-flex justify-content-between align-items-center mb-4 pt-2">-->
+<!--        <div>-->
+<!--            <h2 class="fw-bold text-dark mb-0">Hỗ trợ khách hàng</h2>-->
+<!--            <small class="text-muted"> </small>-->
+<!--        </div>-->
+<!--        <span class="badge bg-success rounded-pill px-3 py-2 shadow-sm">-->
+<!--            <i class="fas fa-circle me-1" style="font-size: 8px;"></i>Hệ thống Online-->
+<!--        </span>-->
+<!--    </div>-->
+
+<!--    <div class="chat-layout-card">-->
+
+<!--        <div class="user-list-panel">-->
+<!--            <div class="user-list-header">-->
+<!--                <i class="fas fa-list-alt me-2 text-secondary"></i>Hội thoại gần đây-->
+<!--            </div>-->
+
+<!--            <div class="user-scroll-container">-->
+<!--                <div th:each="user : ${users}"-->
+<!--                     class="user-item"-->
+<!--                     th:data-id="${user.userId}"-->
+<!--                     th:data-name="${user.fullname}"-->
+<!--                     onclick="selectUser(this.getAttribute('data-id'), this.getAttribute('data-name'), this)">-->
+
+<!--                    <div class="user-avatar-circle" th:text="${#strings.substring(user.fullname, 0, 1)}">A</div>-->
+<!--                    <div style="overflow: hidden;">-->
+<!--                        <div th:text="${user.fullname}" class="fw-bold text-dark text-truncate">Tên Khách</div>-->
+<!--                        <small class="text-muted text-truncate d-block" th:text="${user.email}">email...</small>-->
+<!--                    </div>-->
+<!--                </div>-->
+
+<!--                <div th:if="${#lists.isEmpty(users)}" class="text-center p-5 text-muted opacity-75">-->
+<!--                    <i class="far fa-comments fa-2x mb-2"></i>-->
+<!--                    <p class="small">Chưa có tin nhắn nào.</p>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+
+<!--        <div class="chat-main-panel">-->
+<!--            <div class="chat-top-bar">-->
+<!--                <div id="chatHeaderTitle" class="d-flex align-items-center text-muted">-->
+<!--                    <i class="fas fa-arrow-left me-2"></i>Chọn khách hàng để bắt đầu chat-->
+<!--                </div>-->
+<!--            </div>-->
+
+<!--            <div class="chat-messages-area" id="chatHistory">-->
+<!--                <div class="h-100 d-flex flex-column align-items-center justify-content-center text-muted opacity-25">-->
+<!--                    <i class="fas fa-comment-dots fa-5x mb-3"></i>-->
+<!--                    <p class="fs-5">Chào Admin, chúc một ngày tốt lành!</p>-->
+<!--                </div>-->
+<!--            </div>-->
+
+<!--            <div class="chat-input-wrapper">-->
+<!--                <input type="text" id="msgInput" class="form-control rounded-pill border-0 bg-light px-4 py-2"-->
+<!--                       placeholder="Nhập tin nhắn..." disabled onkeypress="handleEnter(event)"-->
+<!--                       style="font-size: 0.95rem;">-->
+
+<!--                <button class="btn btn-primary rounded-circle shadow-sm"-->
+<!--                        style="width: 45px; height: 45px; background: #f37021; border: none; flex-shrink: 0;"-->
+<!--                        onclick="sendMsg()" id="sendBtn" disabled>-->
+<!--                    <i class="fas fa-paper-plane"></i>-->
+<!--                </button>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+
+<!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>-->
+<!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>-->
+
+<!--    <script th:inline="javascript">-->
+<!--        var stompClient = null;-->
+
+<!--        // [QUAN TRỌNG] Chỉ có ID 1 là Admin (LOGIC CŨ)-->
+<!--        var MAIN_ADMIN_ID = 1;-->
+
+<!--        var selectedUserId = null;-->
+<!--        var currentSubscription = null;-->
+
+<!--        function connect() {-->
+<!--            var socket = new SockJS('/ws');-->
+<!--            stompClient = Stomp.over(socket);-->
+<!--            stompClient.debug = null;-->
+<!--            stompClient.connect({}, function () { console.log('Admin Connected'); });-->
+<!--        }-->
+
+<!--        window.selectUser = function(userIdStr, fullname, element) {-->
+<!--            var userId = parseInt(userIdStr);-->
+<!--            selectedUserId = userId;-->
+
+<!--            // Update UI Header (Có thêm avatar nhỏ cho đẹp)-->
+<!--            document.getElementById('chatHeaderTitle').innerHTML = `-->
+<!--                <div class="d-flex align-items-center">-->
+<!--                    <div class="user-avatar-circle" style="width: 35px; height: 35px; font-size: 14px; margin-right: 10px;">-->
+<!--                        ${fullname.charAt(0)}-->
+<!--                    </div>-->
+<!--                    <div class="fw-bold text-dark">${fullname}</div>-->
+<!--                </div>`;-->
+
+<!--            document.getElementById('msgInput').disabled = false;-->
+<!--            document.getElementById('sendBtn').disabled = false;-->
+<!--            document.getElementById('msgInput').focus();-->
+
+<!--            document.querySelectorAll('.user-item').forEach(el => el.classList.remove('active'));-->
+<!--            element.classList.add('active');-->
+
+<!--            // Load Lịch Sử (Logic Cũ)-->
+<!--            fetch('/api/chat/history/' + userId)-->
+<!--                .then(res => res.json())-->
+<!--                .then(data => {-->
+<!--                    var box = document.getElementById('chatHistory');-->
+<!--                    box.innerHTML = '';-->
+
+<!--                    if(!data || data.length === 0) {-->
+<!--                        box.innerHTML = '<div class="text-center text-muted mt-5 small">Chưa có lịch sử tin nhắn.</div>';-->
+<!--                        return;-->
+<!--                    }-->
+
+<!--                    data.forEach(msg => {-->
+<!--                        // Check null an toàn-->
+<!--                        var senderId = msg.sender ? msg.sender.userId : 0;-->
+
+<!--                        // Nếu người gửi là ID 1 -> Admin (Phải), còn lại là User (Trái)-->
+<!--                        var type = (senderId === MAIN_ADMIN_ID) ? 'msg-admin' : 'msg-user'; // Class mới-->
+<!--                        appendMessage(msg.content, type);-->
+<!--                    });-->
+<!--                    scrollToBottom();-->
+<!--                });-->
+
+<!--            // WebSocket Subscribe (Logic Cũ)-->
+<!--            if (currentSubscription) currentSubscription.unsubscribe();-->
+<!--            if (stompClient && stompClient.connected) {-->
+<!--                currentSubscription = stompClient.subscribe('/topic/messages/' + userId, function (msg) {-->
+<!--                    var body = JSON.parse(msg.body);-->
+<!--                    var senderId = body.sender ? body.sender.userId : 0;-->
+
+<!--                    // Nếu tin nhắn KHÔNG PHẢI của mình (ID 1) -> Thì là của Khách (User)-->
+<!--                    if (senderId !== MAIN_ADMIN_ID) {-->
+<!--                        appendMessage(body.content, 'msg-user');-->
+<!--                    }-->
+<!--                });-->
+<!--            }-->
+<!--        };-->
+
+<!--        window.sendMsg = function() {-->
+<!--            var input = document.getElementById('msgInput');-->
+<!--            var content = input.value.trim();-->
+<!--            if (!content || !selectedUserId) return;-->
+
+<!--            // Hiển thị ngay bên phải (Admin)-->
+<!--            appendMessage(content, 'msg-admin');-->
+
+<!--            // Gửi API-->
+<!--            fetch('/api/chat/send', {-->
+<!--                method: 'POST',-->
+<!--                headers: { 'Content-Type': 'application/json' },-->
+<!--                body: JSON.stringify({ receiverId: selectedUserId, content: content })-->
+<!--            });-->
+
+<!--            input.value = '';-->
+<!--            scrollToBottom();-->
+<!--        };-->
+
+<!--        function appendMessage(content, type) {-->
+<!--            var box = document.getElementById('chatHistory');-->
+<!--            // Xóa placeholder nếu có-->
+<!--            if(box.querySelector('.opacity-25') || box.querySelector('.text-muted')) {-->
+<!--                // Kiểm tra kỹ hơn để không xóa nhầm tin nhắn-->
+<!--                if(!box.querySelector('.msg-bubble')) box.innerHTML = '';-->
+<!--            }-->
+
+<!--            var div = document.createElement('div');-->
+<!--            div.className = 'msg-bubble ' + type; // Sử dụng class mới msg-bubble + type-->
+<!--            div.innerText = content;-->
+<!--            box.appendChild(div);-->
+<!--        }-->
+
+<!--        function scrollToBottom() {-->
+<!--            var box = document.getElementById('chatHistory');-->
+<!--            box.scrollTop = box.scrollHeight;-->
+<!--        }-->
+
+<!--        window.handleEnter = function(e) { if (e.key === 'Enter') sendMsg(); };-->
+
+<!--        connect();-->
+<!--    </script>-->
+
+<!--</div>-->
+<!--</body>-->
+<!--</html>-->
+
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin_layout :: layout(~{:: .content-body})}">
+<head>
+    <title>Hỗ trợ khách hàng - ChaosCoders</title>
+</head>
+<body>
+
+<div class="content-body">
+
+    <style>
+        .chat-layout-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            height: 80vh; /* Chiều cao cố định */
+            display: flex;
+            border: 1px solid #f0f0f0;
+        }
+
+        /* --- CỘT TRÁI: DANH SÁCH --- */
+        .user-list-panel {
+            width: 320px;
+            border-right: 1px solid #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+        }
+
+        .user-list-header {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            font-weight: 700;
+            color: #0f2027;
+            background: #fcfcfc;
+        }
+
+        .user-scroll-container {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .user-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f9f9f9;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .user-item:hover { background-color: #f8f9fa; }
+
+        .user-item.active {
+            background-color: #fff3e0; /* Cam nhạt */
+            border-left: 4px solid #f37021; /* Cam đậm */
+        }
+
+        .user-avatar-circle {
+            width: 45px; height: 45px;
+            background: linear-gradient(135deg, #203a43, #2c5364);
+            color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+            font-size: 1.1rem;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+
+        /* --- CỘT PHẢI: KHUNG CHAT --- */
+        .chat-main-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f9fafb;
+        }
+
+        .chat-top-bar {
+            height: 70px;
+            background: white;
+            border-bottom: 1px solid #eee;
+            display: flex; align-items: center;
+            padding: 0 25px;
+            font-weight: 600;
+        }
+
+        .chat-messages-area {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Bong bóng tin nhắn */
+        .msg-bubble {
+            padding: 12px 18px;
+            border-radius: 18px;
+            max-width: 70%;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            position: relative;
+            word-wrap: break-word;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        }
+
+        .msg-user {
+            align-self: flex-start;
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 2px;
+            border: 1px solid #eee;
+        }
+
+        .msg-admin {
+            align-self: flex-end;
+            background: linear-gradient(45deg, #f37021, #ff9f43); /* Gradient Cam */
+            color: white;
+            border-bottom-right-radius: 2px;
+            box-shadow: 0 3px 8px rgba(243, 112, 33, 0.2);
+        }
+
+        .chat-input-wrapper {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Scrollbar đẹp */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+    </style>
+
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-2">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Hỗ trợ khách hàng</h2>
+            <small class="text-muted"> </small>
+        </div>
+        <span class="badge bg-success rounded-pill px-3 py-2 shadow-sm">
+            <i class="fas fa-circle me-1" style="font-size: 8px;"></i>Hệ thống Online
+        </span>
+    </div>
+
+    <div class="chat-layout-card">
+
+        <div class="user-list-panel">
+            <div class="user-list-header">
+                <i class="fas fa-list-alt me-2 text-secondary"></i>Hội thoại gần đây
+            </div>
+
+            <div class="user-scroll-container">
+                <div th:each="user : ${users}"
+                     class="user-item"
+                     th:classappend="${user.userId == targetUserId} ? 'active' : ''"
+                     th:data-id="${user.userId}"
+                     th:data-name="${user.fullname}"
+                     onclick="selectUser(this.getAttribute('data-id'), this.getAttribute('data-name'), this)">
+
+                    <div class="user-avatar-circle" th:text="${#strings.substring(user.fullname, 0, 1)}">A</div>
+                    <div style="overflow: hidden;">
+                        <div th:text="${user.fullname}" class="fw-bold text-dark text-truncate">Tên Khách</div>
+                        <small class="text-muted text-truncate d-block" th:text="${user.email}">email...</small>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(users)}" class="text-center p-5 text-muted opacity-75">
+                    <i class="far fa-comments fa-2x mb-2"></i>
+                    <p class="small">Chưa có tin nhắn nào.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-main-panel">
+            <div class="chat-top-bar">
+                <div id="chatHeaderTitle" class="d-flex align-items-center text-muted">
+                    <i class="fas fa-arrow-left me-2"></i>Chọn khách hàng để bắt đầu chat
+                </div>
+            </div>
+
+            <div class="chat-messages-area" id="chatHistory">
+                <div class="h-100 d-flex flex-column align-items-center justify-content-center text-muted opacity-25">
+                    <i class="fas fa-comment-dots fa-5x mb-3"></i>
+                    <p class="fs-5">Chào Admin, chúc một ngày tốt lành!</p>
+                </div>
+            </div>
+
+            <div class="chat-input-wrapper">
+                <input type="text" id="msgInput" class="form-control rounded-pill border-0 bg-light px-4 py-2"
+                       placeholder="Nhập tin nhắn..." disabled onkeypress="handleEnter(event)"
+                       style="font-size: 0.95rem;">
+
+                <button class="btn btn-primary rounded-circle shadow-sm"
+                        style="width: 45px; height: 45px; background: #f37021; border: none; flex-shrink: 0;"
+                        onclick="sendMsg()" id="sendBtn" disabled>
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+    <script th:inline="javascript">
+        var stompClient = null;
+        var MAIN_ADMIN_ID = 1;
+        var selectedUserId = null;
+        var currentSubscription = null;
+
+        var initialMessages = /*[[${messages}]]*/ [];
+        var initialTargetId = /*[[${targetUserId}]]*/ null;
+
+        function connect() {
+            var socket = new SockJS('/ws');
+            stompClient = Stomp.over(socket);
+            stompClient.debug = null;
+            stompClient.connect({}, function () {
+                console.log('Admin Connected');
+
+                if(initialTargetId) {
+                    var userEl = document.querySelector(`.user-item[data-id='${initialTargetId}']`);
+                    var userName = userEl ? userEl.getAttribute('data-name') : 'Khách hàng';
+                    selectUser(initialTargetId, userName, userEl);
+                }
+            });
+        }
+
+        // --- 1. HÀM FORMAT THỜI GIAN + NGÀY ---
+        function formatTime(timestamp) {
+            if (!timestamp) timestamp = new Date();
+            var date = new Date(timestamp);
+
+            // Format: 10:30 25/12/2023
+            return date.toLocaleString('vi-VN', {
+                hour: '2-digit', minute:'2-digit',
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+        }
+
+        window.selectUser = function(userIdStr, fullname, element) {
+            var userId = parseInt(userIdStr);
+            selectedUserId = userId;
+
+            document.getElementById('chatHeaderTitle').innerHTML = `
+            <div class="d-flex align-items-center">
+                <div class="user-avatar-circle" style="width: 35px; height: 35px; font-size: 14px; margin-right: 10px;">
+                    ${fullname.charAt(0)}
+                </div>
+                <div class="fw-bold text-dark">${fullname}</div>
+            </div>`;
+
+            document.getElementById('msgInput').disabled = false;
+            document.getElementById('sendBtn').disabled = false;
+            document.getElementById('msgInput').focus();
+
+            document.querySelectorAll('.user-item').forEach(el => el.classList.remove('active'));
+            if(element) element.classList.add('active');
+
+            fetch('/api/chat/history/' + userId)
+                .then(res => res.json())
+                .then(data => {
+                    var box = document.getElementById('chatHistory');
+                    box.innerHTML = '';
+
+                    if(!data || data.length === 0) {
+                        box.innerHTML = '<div class="text-center text-muted mt-5 small">Chưa có lịch sử tin nhắn.</div>';
+                        return;
+                    }
+
+                    data.forEach(msg => {
+                        var senderId = msg.sender ? msg.sender.userId : 0;
+                        var type = (senderId === MAIN_ADMIN_ID) ? 'msg-admin' : 'msg-user';
+                        appendMessage(msg.content, type, msg.timestamp);
+                    });
+                    scrollToBottom();
+                });
+
+            if (currentSubscription) currentSubscription.unsubscribe();
+            if (stompClient && stompClient.connected) {
+                currentSubscription = stompClient.subscribe('/topic/messages/' + userId, function (msg) {
+                    var body = JSON.parse(msg.body);
+                    var senderId = body.sender ? body.sender.userId : 0;
+
+                    if (senderId !== MAIN_ADMIN_ID) {
+                        appendMessage(body.content, 'msg-user', body.timestamp);
+                        scrollToBottom();
+                    }
+                });
+            }
+        };
+
+        window.sendMsg = function() {
+            var input = document.getElementById('msgInput');
+            var content = input.value.trim();
+            if (!content || !selectedUserId) return;
+
+            appendMessage(content, 'msg-admin', new Date().toISOString());
+
+            fetch('/api/chat/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ receiverId: selectedUserId, content: content })
+            });
+
+            input.value = '';
+            scrollToBottom();
+        };
+
+        function appendMessage(content, type, timestamp) {
+            var box = document.getElementById('chatHistory');
+            if(box.querySelector('.opacity-25') || box.querySelector('.text-muted')) {
+                if(!box.querySelector('.msg-bubble')) box.innerHTML = '';
+            }
+
+            var timeStr = formatTime(timestamp);
+            var div = document.createElement('div');
+            div.className = 'msg-bubble ' + type;
+
+            div.innerHTML = `
+                <span>${content}</span>
+                <div class="text-end" style="font-size: 0.65rem; opacity: 0.7; margin-top: 4px; ${type === 'msg-admin' ? 'color: #eee;' : 'color: #888;'}">
+                    ${timeStr}
+                </div>
+            `;
+
+            box.appendChild(div);
+        }
+
+        function scrollToBottom() {
+            var box = document.getElementById('chatHistory');
+            if(box) box.scrollTop = box.scrollHeight;
+        }
+
+        window.handleEnter = function(e) { if (e.key === 'Enter') sendMsg(); };
+
+        connect();
+    </script>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cửa hàng - ChaosCoders</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* --- TONE MÀU CHỦ ĐẠO (Đồng bộ) --- */
+        :root {
+            --primary-blue: #0f2027;
+            --secondary-blue: #203a43;
+            --accent-orange: #f37021;
+            --light-bg: #f8f9fa;
+            --soft-blue-bg: #c4dff6;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Wrapper nền xanh loang */
+        .page-wrapper {
+            background: linear-gradient(180deg, var(--soft-blue-bg) 0%, #ffffff 40%, #ffffff 100%);
+            min-height: 100vh;
+            padding-top: 2rem;
+            padding-bottom: 3rem;
+        }
+
+        /* BREADCRUMB */
+        .breadcrumb-item a { color: var(--secondary-blue); text-decoration: none; font-weight: 500; }
+        .breadcrumb-item.active { color: var(--accent-orange); }
+
+        /* --- STYLE CHO BỘ LỌC (FILTER) --- */
+        .filter-card {
+            background: white;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(15, 32, 39, 0.08); /* Đổ bóng nhẹ */
+            overflow: hidden;
+        }
+
+        .filter-header {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex; align-items: center;
+        }
+
+        .filter-body { padding: 20px; }
+
+        .filter-group { margin-bottom: 25px; }
+
+        .filter-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--secondary-blue);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #eee;
+        }
+
+        /* Custom Checkbox/Radio cho đẹp hơn */
+        .form-check-input:checked {
+            background-color: var(--accent-orange);
+            border-color: var(--accent-orange);
+        }
+        .form-check-label {
+            color: #555;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .form-check-label:hover { color: var(--accent-orange); }
+
+        /* --- STYLE SẢN PHẨM (Copy từ Home) --- */
+        .product-card {
+            transition: all 0.3s ease;
+            height: 100%;
+            border: none;
+            border-radius: 15px;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+            border-bottom: 4px solid var(--accent-orange);
+        }
+
+        .card-img-top {
+            height: 200px;
+            object-fit: contain;
+            padding: 20px;
+            transition: transform 0.3s;
+        }
+        .product-card:hover .card-img-top { transform: scale(1.05); }
+
+        .price { color: var(--accent-orange); font-weight: 800; font-size: 1.2rem; }
+
+        /* Buttons */
+        .btn-custom-orange {
+            background-color: var(--accent-orange);
+            color: white;
+            border: none;
+            font-weight: 600;
+            border-radius: 50px;
+            padding: 8px 20px;
+            transition: all 0.3s;
+        }
+        .btn-custom-orange:hover {
+            background-color: #d35400;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(243, 112, 33, 0.4);
+        }
+
+        .btn-reset-filter {
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            background: white;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-reset-filter:hover {
+            background: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="page-wrapper">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb py-2 px-3 bg-white rounded-pill shadow-sm d-inline-flex border border-light mb-4">
+                <li class="breadcrumb-item"><a href="/"><i class="fas fa-home me-1"></i>Trang chủ</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Cửa hàng</li>
+            </ol>
+        </nav>
+
+        <div class="row g-4">
+            <div class="col-lg-3">
+                <div class="filter-card sticky-top" style="top: 20px; z-index: 10;">
+                    <div class="filter-header">
+                        <i class="fas fa-filter me-2"></i> Bộ lọc tìm kiếm
+                    </div>
+                    <div class="filter-body">
+                        <form action="/store" method="get" id="filterForm">
+
+                            <div class="filter-group">
+                                <h6 class="filter-title">Danh mục</h6>
+                                <div class="form-check" th:each="cat : ${categories}" th:if="${cat.categoryName != 'Laptop'}">
+                                    <input class="form-check-input" type="radio" name="category"
+                                           th:value="${cat.categoryId}"
+                                           th:checked="${selectedCategory == cat.categoryId}"
+                                           th:id="'cat-' + ${cat.categoryId}"
+                                           onchange="this.form.submit()">
+                                    <label class="form-check-label" th:for="'cat-' + ${cat.categoryId}" th:text="${cat.categoryName}"></label>
+                                </div>
+                            </div>
+
+                            <div class="filter-group">
+                                <h6 class="filter-title">Hãng sản xuất</h6>
+                                <select class="form-select border-0 bg-light fw-bold text-secondary" name="brand" onchange="this.form.submit()" style="border-radius: 10px;">
+                                    <option value="">-- Tất cả hãng --</option>
+                                    <option th:each="b : ${brands}"
+                                            th:value="${b.brandId}"
+                                            th:text="${b.brandName}"
+                                            th:selected="${selectedBrand == b.brandId}"></option>
+                                </select>
+                            </div>
+
+                            <div class="filter-group">
+                                <h6 class="filter-title">Mức giá</h6>
+                                <div class="d-flex flex-column gap-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="price" value="" id="price-all"
+                                               th:checked="${selectedPrice == null}" onchange="this.form.submit()">
+                                        <label class="form-check-label" for="price-all">Tất cả mức giá</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="price" value="under-10" id="price-1"
+                                               th:checked="${selectedPrice == 'under-10'}" onchange="this.form.submit()">
+                                        <label class="form-check-label" for="price-1">Dưới 10 triệu</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="price" value="10-20" id="price-2"
+                                               th:checked="${selectedPrice == '10-20'}" onchange="this.form.submit()">
+                                        <label class="form-check-label" for="price-2">10 - 20 triệu</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="price" value="20-30" id="price-3"
+                                               th:checked="${selectedPrice == '20-30'}" onchange="this.form.submit()">
+                                        <label class="form-check-label" for="price-3">20 - 30 triệu</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="price" value="over-30" id="price-4"
+                                               th:checked="${selectedPrice == 'over-30'}" onchange="this.form.submit()">
+                                        <label class="form-check-label" for="price-4">Trên 30 triệu</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="filter-group">
+                                <h6 class="filter-title">Đánh giá</h6>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="rating" value="5" id="rate-5"
+                                           th:checked="${selectedRating == 5}" onchange="this.form.submit()">
+                                    <label class="form-check-label text-warning small" for="rate-5">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i> (5 sao)
+                                    </label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="rating" value="4" id="rate-4"
+                                           th:checked="${selectedRating == 4}" onchange="this.form.submit()">
+                                    <label class="form-check-label text-warning small" for="rate-4">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star text-secondary opacity-25"></i> (4 sao trở lên)
+                                    </label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="rating" value="3" id="rate-3"
+                                           th:checked="${selectedRating == 3}" onchange="this.form.submit()">
+                                    <label class="form-check-label text-warning small" for="rate-3">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star text-secondary opacity-25"></i><i class="far fa-star text-secondary opacity-25"></i> (3 sao trở lên)
+                                    </label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="rating" value="2" id="rate-2"
+                                           th:checked="${selectedRating == 2}" onchange="this.form.submit()">
+                                    <label class="form-check-label text-warning small" for="rate-2">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star text-secondary opacity-25"></i><i class="far fa-star text-secondary opacity-25"></i><i class="far fa-star text-secondary opacity-25"></i> (2 sao trở lên)
+                                    </label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="rating" value="1" id="rate-1"
+                                           th:checked="${selectedRating == 1}" onchange="this.form.submit()">
+                                    <label class="form-check-label text-warning small" for="rate-1">
+                                        <i class="fas fa-star"></i><i class="far fa-star text-secondary opacity-25"></i><i class="far fa-star text-secondary opacity-25"></i><i class="far fa-star text-secondary opacity-25"></i><i class="far fa-star text-secondary opacity-25"></i> (1 sao trở lên)
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-3 border-top">
+                                <a href="/store" class="btn btn-reset-filter w-100">
+                                    <i class="fas fa-sync-alt me-2"></i>Xóa bộ lọc
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded-4 shadow-sm border-start border-5 border-primary">
+                    <h5 class="mb-0 fw-bold text-secondary">
+                        Kết quả: <span class="text-primary" th:text="${products.size()}"></span> sản phẩm
+                    </h5>
+                </div>
+
+                <div class="row row-cols-1 row-cols-md-3 g-4">
+                    <div class="col" th:each="p : ${products}">
+                        <div class="card h-100 product-card">
+                            <a th:href="@{'/product/' + ${p.slug}}" class="text-decoration-none d-block text-center pt-3">
+                                <img th:if="${not #lists.isEmpty(p.images)}"
+                                     th:src="${p.images[0].url}" class="card-img-top" alt="Laptop">
+                                <img th:if="${#lists.isEmpty(p.images)}"
+                                     src="https://via.placeholder.com/300x200?text=No+Image" class="card-img-top" alt="No Image">
+                            </a>
+
+                            <div class="card-body d-flex flex-column">
+                                <h6 class="card-title text-truncate mb-3">
+                                    <a th:href="@{'/product/' + ${p.slug}}" class="text-dark text-decoration-none fw-bold" th:text="${p.productName}">Tên Laptop</a>
+                                </h6>
+
+                                <div class="mt-auto">
+                                    <div class="mb-2">
+                                        <span class="price" th:text="${#numbers.formatDecimal(p.salePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                        <br>
+                                        <small class="text-muted text-decoration-line-through small"
+                                               th:if="${p.salePrice < p.originalPrice}"
+                                               th:text="${#numbers.formatDecimal(p.originalPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></small>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mb-3 small">
+                                        <div class="text-warning">
+                                            <span th:if="${p.rating > 0}">
+                                                <i class="fas fa-star"></i> <span th:text="${p.rating}"></span>
+                                            </span>
+                                            <span th:if="${p.rating == 0}" class="text-muted opacity-50"><i class="far fa-star"></i></span>
+                                        </div>
+                                        <span class="badge bg-light text-secondary border">Có sẵn</span>
+                                    </div>
+
+                                    <a th:href="@{'/product/' + ${p.slug}}" class="btn btn-custom-orange w-100">
+                                        <i class="fas fa-shopping-cart me-1"></i> Xem chi tiết
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(products)}" class="text-center mt-5 p-5 bg-white rounded-4 shadow-sm">
+                    <img src="https://cdn-icons-png.flaticon.com/512/6134/6134065.png" width="100" class="mb-3 opacity-50">
+                    <h5 class="text-muted fw-bold">Không tìm thấy sản phẩm nào!</h5>
+                    <p class="text-muted small">Hãy thử thay đổi bộ lọc hoặc tìm kiếm từ khóa khác.</p>
+                    <a href="/store" class="btn btn-outline-primary rounded-pill mt-2">Xem tất cả sản phẩm</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

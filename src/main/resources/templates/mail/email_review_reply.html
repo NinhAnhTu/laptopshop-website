@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .container { background: #fff; padding: 30px; border-radius: 8px; max-width: 600px; margin: 0 auto; }
+        .header { color: #f37021; font-size: 24px; font-weight: bold; margin-bottom: 20px; text-align: center; }
+        .box { background: #eee; padding: 15px; margin: 10px 0; border-left: 4px solid #f37021; }
+        .btn { display: inline-block; background: #f37021; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">CHAOSCODERS SHOP</div>
+    <p>Xin chào <strong th:text="${review.user.fullname}">Khách hàng</strong>,</p>
+    <p>Cảm ơn bạn đã đánh giá sản phẩm <strong th:text="${review.product.productName}">Sản phẩm</strong>.</p>
+
+    <p>Shop vừa phản hồi đánh giá của bạn:</p>
+
+    <div style="font-style: italic; color: #555;">
+        " <span th:text="${review.comment}">Review của khách</span> "
+    </div>
+
+    <div class="box">
+        <strong>Shop trả lời:</strong><br>
+        <span th:text="${review.reply.content}">Nội dung trả lời</span>
+    </div>
+
+    <div style="text-align: center;">
+        <a th:href="@{'http://localhost:8080/product/' + ${review.product.slug}}" class="btn">Xem chi tiết</a>
+    </div>
+</div>
+</body>
+</html>

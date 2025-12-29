@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${product.productName}">Chi tiết sản phẩm</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* --- TONE MÀU CHỦ ĐẠO --- */
+        :root {
+            --primary-blue: #0f2027;
+            --secondary-blue: #203a43;
+            --accent-orange: #f37021;
+            --light-bg: #f8f9fa;
+            --soft-blue-bg: #c4dff6;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+
+        html {
+            scroll-behavior: smooth; /* Trượt mượt khi bấm xem đánh giá */
+        }
+
+        .page-wrapper {
+            background: linear-gradient(180deg, var(--soft-blue-bg) 0%, #ffffff 40%, #ffffff 100%);
+            min-height: 100vh;
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        .breadcrumb-item a { color: var(--secondary-blue); text-decoration: none; font-weight: 500; }
+        .breadcrumb-item.active { color: var(--accent-orange); }
+
+        .main-image-container {
+            border-radius: 20px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 8px 25px rgba(15, 32, 39, 0.1);
+            border: 1px solid rgba(255,255,255,0.5);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .thumb-img {
+            width: 80px; height: 80px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid white;
+            border-radius: 10px;
+            transition: all 0.3s;
+            background: white;
+            padding: 5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .thumb-img:hover, .thumb-img.active-thumb {
+            border-color: var(--accent-orange);
+            transform: translateY(-3px);
+        }
+
+        .product-title {
+            color: var(--primary-blue);
+            font-weight: 800;
+            font-size: 2rem;
+            line-height: 1.2;
+            text-shadow: 1px 1px 0px rgba(255,255,255,1);
+        }
+
+        .price-tag {
+            color: var(--accent-orange);
+            font-size: 2.2rem;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(243, 112, 33, 0.1);
+        }
+
+        .specs-box {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(15, 32, 39, 0.08);
+            border-left: 5px solid var(--secondary-blue);
+        }
+        .spec-item {
+            display: grid;
+            grid-template-columns: 130px 1fr;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px dashed #eee;
+            font-size: 0.95rem;
+            align-items: center;
+        }
+        .spec-item:last-child { border-bottom: none; }
+        .spec-label {
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+        .spec-value {
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .btn-custom-orange {
+            background-color: var(--accent-orange);
+            color: white;
+            border: none;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 12px 20px;
+            border-radius: 50px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(243, 112, 33, 0.3);
+        }
+        .btn-custom-orange:hover:not(:disabled) {
+            background-color: #d35400;
+            transform: translateY(-2px);
+            color: white;
+        }
+        .btn-custom-orange:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .review-section-wrapper {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 8px 25px rgba(15, 32, 39, 0.08);
+            margin-top: 3rem;
+        }
+
+        .review-card {
+            background: var(--light-bg);
+            border-radius: 15px;
+            border: none;
+            transition: transform 0.2s;
+        }
+
+        .avatar-circle {
+            width: 45px; height: 45px;
+            background-color: var(--soft-blue-bg);
+            color: var(--primary-blue);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 1.2rem;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="page-wrapper">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb py-2 px-3 bg-white rounded-pill shadow-sm d-inline-flex border border-light">
+                <li class="breadcrumb-item"><a href="/"><i class="fas fa-home me-1"></i>Trang chủ</a></li>
+                <li class="breadcrumb-item"><a href="/store" th:text="${product.category.categoryName}">Laptop</a></li>
+                <li class="breadcrumb-item active" aria-current="page" th:text="${product.productName}">Tên máy</li>
+            </ol>
+        </nav>
+
+        <div class="row g-5 mt-2">
+            <div class="col-md-6 col-lg-5">
+                <div id="productCarousel" class="carousel slide main-image-container" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        <div th:each="img, iterStat : ${product.images}"
+                             class="carousel-item"
+                             th:classappend="${iterStat.first} ? 'active' : ''">
+                            <img th:src="${img.url}" class="d-block w-100"
+                                 style="height: 400px; object-fit: contain;" alt="Product Image"
+                                 onerror="this.src='https://via.placeholder.com/400x400?text=No+Image'">
+                        </div>
+                        <div th:if="${#lists.isEmpty(product.images)}" class="carousel-item active">
+                            <img src="https://via.placeholder.com/400x400?text=No+Image" class="d-block w-100" style="height: 400px; object-fit: contain;">
+                        </div>
+                    </div>
+
+                    <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev" th:if="${not #lists.isEmpty(product.images) and product.images.size() > 1}">
+                        <span class="carousel-control-prev-icon bg-dark rounded-circle p-3" aria-hidden="true" style="background-size: 50%;"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next" th:if="${not #lists.isEmpty(product.images) and product.images.size() > 1}">
+                        <span class="carousel-control-next-icon bg-dark rounded-circle p-3" aria-hidden="true" style="background-size: 50%;"></span>
+                    </button>
+                </div>
+
+                <div class="d-flex overflow-auto pb-2 justify-content-center" th:if="${not #lists.isEmpty(product.images) and product.images.size() > 1}">
+                    <img th:each="img, iterStat : ${product.images}"
+                         th:src="${img.url}"
+                         class="thumb-img mx-1"
+                         th:classappend="${iterStat.first} ? 'active-thumb'"
+                         th:onclick="'bsCarousel.to(' + ${iterStat.index} + '); setActiveThumb(this)'">
+                </div>
+
+                <script>
+                    var myCarousel = document.getElementById('productCarousel')
+                    var bsCarousel = new bootstrap.Carousel(myCarousel)
+                    function setActiveThumb(el) {
+                        document.querySelectorAll('.thumb-img').forEach(img => img.classList.remove('active-thumb'));
+                        el.classList.add('active-thumb');
+                    }
+                    myCarousel.addEventListener('slide.bs.carousel', function (event) {
+                        var index = event.to;
+                        var thumbs = document.querySelectorAll('.thumb-img');
+                        if(thumbs[index]) setActiveThumb(thumbs[index]);
+                    })
+                </script>
+            </div>
+
+            <div class="col-md-6 col-lg-7">
+                <h1 class="product-title mb-2" th:text="${product.productName}">Tên Laptop</h1>
+
+                <div class="d-flex align-items-center mb-4">
+                    <span class="badge bg-primary rounded-pill me-3 px-3 py-2 shadow-sm" th:text="${product.brand.brandName}">Brand</span>
+                    <div class="text-warning me-2">
+                        <span class="fw-bold" th:text="${product.rating}">4.5</span>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <a href="#reviews" class="text-secondary text-decoration-underline small">Xem đánh giá</a>
+                </div>
+
+                <div class="d-flex align-items-end mb-4 bg-white p-3 rounded-4 shadow-sm" style="width: fit-content;">
+                    <span class="price-tag me-3" th:text="${#numbers.formatDecimal(product.salePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                    <span class="text-muted text-decoration-line-through fs-5 mb-2"
+                          th:if="${product.salePrice < product.originalPrice}"
+                          th:text="${#numbers.formatDecimal(product.originalPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                    <span class="badge bg-danger ms-3 mb-3"
+                          th:if="${product.salePrice < product.originalPrice}"
+                          th:text="'-' + ${#numbers.formatInteger((product.originalPrice - product.salePrice) * 100 / product.originalPrice, 0)} + '%'"></span>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="specs-box">
+                            <h6 class="mb-3 fw-bold text-uppercase border-bottom pb-2" style="letter-spacing: 1px;">
+                                <i class="fas fa-microchip me-2 text-primary"></i>Thông số kỹ thuật
+                            </h6>
+                            <div class="spec-item"><span class="spec-label">CPU</span><span class="spec-value" th:text="${product.cpu}"></span></div>
+                            <div class="spec-item"><span class="spec-label">RAM</span><span class="spec-value" th:text="${product.ram}"></span></div>
+                            <div class="spec-item"><span class="spec-label">Ổ cứng</span><span class="spec-value" th:text="${product.storage}"></span></div>
+                            <div class="spec-item"><span class="spec-label">Màn hình</span><span class="spec-value" th:text="${product.screen} + ' inch'"></span></div>
+                            <div class="spec-item"><span class="spec-label">Card đồ họa</span><span class="spec-value" th:text="${product.gpu}"></span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-light d-flex align-items-center mb-4 border-0 shadow-sm" style="background-color: rgba(255,255,255,0.7);">
+                    <div class="rounded-circle bg-success text-white p-2 me-3"><i class="fas fa-shield-alt"></i></div>
+                    <div>
+                        <h6 class="mb-0 fw-bold text-success">Bảo hành chính hãng</h6>
+                        <small class="mb-0 text-muted" th:text="${product.warrantyPolicy.policyName} + ': ' + ${product.warrantyPolicy.description}"></small>
+                    </div>
+                </div>
+
+                <form action="/cart/add" method="post" class="mt-auto">
+                    <input type="hidden" name="productId" th:value="${product.productId}">
+                    <div class="d-flex align-items-center mb-4">
+                        <label class="me-3 fw-bold">Số lượng:</label>
+                        <div class="input-group shadow-sm" style="width: 140px;">
+                            <button class="btn btn-white border" type="button" onclick="this.parentNode.querySelector('input[type=number]').stepDown()">-</button>
+                            <input type="number" name="quantity" value="1" min="1" max="10" class="form-control text-center border-start-0 border-end-0">
+                            <button class="btn btn-white border" type="button" onclick="this.parentNode.querySelector('input[type=number]').stepUp()">+</button>
+                        </div>
+                        <span class="ms-3 text-muted small" th:text="'(' + ${product.stock} + ' sản phẩm có sẵn)'"></span>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-custom-orange btn-lg py-3" th:disabled="${product.stock <= 0}">
+                            <i class="fas fa-cart-plus me-2"></i>
+                            <span th:text="${product.stock > 0 ? 'THÊM VÀO GIỎ HÀNG NGAY' : 'TẠM HẾT HÀNG'}"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="reviews" class="review-section-wrapper">
+            <div class="d-flex align-items-center mb-4 pb-2 border-bottom">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                    <i class="fas fa-comments fa-lg"></i>
+                </div>
+                <h4 class="fw-bold m-0" style="color: var(--primary-blue);">ĐÁNH GIÁ TỪ KHÁCH HÀNG</h4>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-7 mb-4 mb-lg-0">
+                    <div th:if="${reviews.totalElements == 0}" class="text-center py-5 bg-light rounded-4">
+                        <i class="fas fa-comment-slash fa-3x text-muted opacity-25 mb-3"></i>
+                        <p class="text-muted">Chưa có đánh giá nào.</p>
+                    </div>
+
+                    <div th:each="review : ${reviews.content}" class="review-card p-3 mb-3">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0 me-3">
+                                <div class="avatar-circle" th:text="${#strings.substring(review.user.fullname, 0, 1).toUpperCase()}">U</div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="fw-bold mb-0" th:text="${review.user.fullname}">User Name</h6>
+                                        <div class="text-warning small mb-1">
+                                            <span th:each="i : ${#numbers.sequence(1, 5)}">
+                                                <i class="fas fa-star" th:classappend="${i <= review.rating} ? '' : 'text-muted opacity-25'"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted" th:text="${#temporals.format(review.createdAt, 'dd/MM/yyyy')}"></small>
+                                </div>
+
+                                <p class="card-text text-dark mt-2" th:text="${review.comment}"></p>
+
+                                <div th:if="${review.isVerifiedPurchase}" class="badge bg-white text-success border border-success mt-1 rounded-pill">
+                                    <i class="fas fa-check-circle me-1"></i> Đã mua hàng
+                                </div>
+
+                                <div th:if="${review.reply != null}" class="mt-3 p-3 rounded-3"
+                                     style="background-color: #f8f9fa; border-left: 4px solid #f37021;">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="badge me-2" style="background-color: #f37021;">Shop phản hồi</span>
+                                        <small class="text-muted" th:text="${#temporals.format(review.reply.replyDate, 'dd/MM/yyyy HH:mm')}"></small>
+                                    </div>
+                                    <p class="mb-0 small text-dark fst-italic" th:text="${review.reply.content}">
+                                        Nội dung trả lời
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <nav th:if="${totalPages > 1}" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                                <a class="page-link shadow-sm" th:href="@{/product/__${product.slug}__#reviews(page=${currentPage - 1})}"><i class="fas fa-chevron-left"></i></a>
+                            </li>
+                            <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}" th:classappend="${i == currentPage} ? 'active'">
+                                <a class="page-link shadow-sm" th:href="@{/product/__${product.slug}__#reviews(page=${i})}" th:text="${i}"></a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                                <a class="page-link shadow-sm" th:href="@{/(page=${currentPage + 1}, keyword=${keyword})}"><i class="fas fa-chevron-right"></i></a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="card border-0 shadow-sm" style="border-radius: 20px; overflow: hidden;">
+                        <div class="card-header bg-primary text-white py-3">
+                            <h5 class="card-title mb-0"><i class="fas fa-pen-nib me-2"></i>VIẾT ĐÁNH GIÁ</h5>
+                        </div>
+                        <div class="card-body p-4 bg-white">
+                            <div sec:authorize="!isAuthenticated()" class="text-center py-4">
+                                <p class="text-muted">Vui lòng đăng nhập để gửi đánh giá.</p>
+                                <a href="/login" class="btn btn-outline-primary rounded-pill px-4">Đăng nhập ngay</a>
+                            </div>
+
+                            <form sec:authorize="isAuthenticated()" action="/review/add" method="post">
+                                <input type="hidden" name="productId" th:value="${product.productId}">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-uppercase text-muted">Mức độ hài lòng</label>
+                                    <select name="rating" class="form-select border-0 bg-light fw-bold text-warning" style="height: 50px;">
+                                        <option value="5">★★★★★ - Tuyệt vời</option>
+                                        <option value="4">★★★★☆ - Tốt</option>
+                                        <option value="3">★★★☆☆ - Bình thường</option>
+                                        <option value="2">★★☆☆☆ - Tệ</option>
+                                        <option value="1">★☆☆☆☆ - Rất tệ</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-uppercase text-muted">Nội dung</label>
+                                    <textarea name="comment" class="form-control bg-light border-0" rows="4" placeholder="Chia sẻ cảm nhận..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-custom-orange w-100 py-2">GỬI ĐÁNH GIÁ</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

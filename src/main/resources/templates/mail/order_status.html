@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cập nhật trạng thái đơn hàng</title>
+    <style>
+        /* CSS Reset & Basics */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f8; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; width: 100% !important; }
+
+        /* Main Container */
+        .email-container { display: block; max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 16px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); overflow: hidden; }
+
+        /* Header */
+        .header { background-color: #f37021; color: #ffffff; padding: 30px 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
+
+        /* Content Body */
+        .content { padding: 30px; color: #333333; line-height: 1.6; }
+
+        /* Status Box */
+        .status-box { background-color: #fff3e0; border: 1px dashed #f37021; padding: 20px; text-align: center; border-radius: 12px; margin: 20px 0; }
+        .status-label { font-size: 14px; color: #666; display: block; margin-bottom: 5px; }
+        .status-text { color: #f37021; font-weight: bold; font-size: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Product Table */
+        .product-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 25px; font-size: 14px; }
+        .product-table th { background-color: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #eee; font-weight: bold; color: #555; }
+        .product-table td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: top; }
+        .product-table .price { text-align: right; white-space: nowrap; font-weight: 600; }
+        .product-table .qty { text-align: center; }
+
+        /* Review Button */
+        .btn-review { display: inline-block; background-color: #ffffff; color: #f37021; border: 1px solid #f37021; padding: 6px 12px; text-decoration: none; font-size: 12px; font-weight: bold; border-radius: 20px; transition: all 0.3s; }
+        .btn-review:hover { background-color: #f37021; color: #ffffff; }
+
+        /* Totals Section */
+        .total-section { width: 100%; border-top: 2px dashed #eee; padding-top: 15px; margin-bottom: 25px; }
+        .total-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; color: #555; }
+        .final-total { display: flex; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid #eee; font-size: 18px; font-weight: bold; color: #f37021; }
+
+        /* Info Box */
+        .info-box { background-color: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 20px; font-size: 14px; }
+        .info-title { font-weight: bold; color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; font-size: 15px; display: block; }
+        .info-row { margin-bottom: 8px; display: block; }
+        .info-label { font-weight: bold; color: #666; margin-right: 5px; }
+
+        /* Button Main */
+        .btn-main { display: block; width: 200px; margin: 30px auto 0; background-color: #f37021; color: #ffffff; text-align: center; padding: 12px 0; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 14px; }
+
+        /* Footer */
+        .footer { background-color: #f1f1f1; padding: 20px; text-align: center; font-size: 12px; color: #888; border-radius: 0 0 16px 16px; }
+    </style>
+</head>
+<body>
+
+<div class="email-container">
+    <div class="header">
+        <h1>CHAOSCODERS SHOP</h1>
+    </div>
+
+    <div class="content">
+        <p>Xin chào <strong th:text="${order.shippingName}" style="color: #333;">Khách hàng</strong>,</p>
+        <p>Đơn hàng <strong>#<span th:text="${order.orderId}">123</span></strong> của bạn vừa được cập nhật trạng thái mới:</p>
+
+        <div class="status-box">
+            <span class="status-label">Trạng thái hiện tại:</span>
+            <span class="status-text" th:text="${order.status}">ĐANG GIAO HÀNG</span>
+        </div>
+
+        <table class="product-table">
+            <thead>
+            <tr>
+                <th width="45%">Sản phẩm</th>
+                <th width="10%" class="qty">SL</th>
+                <th width="25%" class="price">Thành tiền</th>
+                <th width="20%" style="text-align: center;">Đánh giá</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="detail : ${order.orderDetails}">
+                <td>
+                    <div style="font-weight: bold; color: #333;" th:text="${detail.product.productName}">Dell XPS 13</div>
+                    <small style="color: #888;" th:text="'Mã SP: ' + ${detail.product.productId}">#101</small>
+                </td>
+                <td class="qty" th:text="${detail.quantity}">1</td>
+                <td class="price" th:text="${#numbers.formatDecimal(detail.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                <td style="text-align: center;">
+                    <a th:if="${order.status == 'Đã giao'}"
+                       th:href="@{'http://localhost:8080/product/' + ${detail.product.slug} + '#reviews'}"
+                       class="btn-review">
+                        Đánh giá
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="total-section">
+            <div class="total-row">
+                <span>Tạm tính:</span>
+                <span style="font-weight: bold;" th:text="${#numbers.formatDecimal(order.totalProductsPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">20.000.000 đ</span>
+            </div>
+            <div class="total-row">
+                <span>Phí vận chuyển:</span>
+                <span style="font-weight: bold;" th:text="${#numbers.formatDecimal(order.shippingFee, 0, 'COMMA', 0, 'POINT')} + ' đ'">30.000 đ</span>
+            </div>
+            <div class="total-row" th:if="${order.discountAmount > 0}">
+                <span>Giảm giá (Voucher):</span>
+                <span style="color: #28a745; font-weight: bold;" th:text="'- ' + ${#numbers.formatDecimal(order.discountAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">- 0 đ</span>
+            </div>
+            <div class="final-total">
+                <span>TỔNG THANH TOÁN:</span>
+                <span th:text="${#numbers.formatDecimal(order.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">20.030.000 đ</span>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <span class="info-title">Thông tin nhận hàng</span>
+            <div class="info-row">
+                <span class="info-label">Người nhận:</span>
+                <span th:text="${order.shippingName}">Nguyen Van A</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Điện thoại:</span>
+                <span th:text="${order.shippingPhone}">0909...</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Địa chỉ:</span>
+                <span th:text="${order.shippingAddress} + ', ' + ${order.shippingCity.cityName}">123 Đường A, TP.HCM</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Ngày đặt:</span>
+                <span th:text="${#temporals.format(order.createdAt, 'dd-MM-yyyy HH:mm')}">12-12-2024</span>
+            </div>
+            <div class="info-row" th:if="${order.note != null && order.note != ''}">
+                <span class="info-label">Ghi chú:</span>
+                <span style="font-style: italic;" th:text="${order.note}">...</span>
+            </div>
+        </div>
+
+        <a href="http://localhost:8080/account" class="btn-main">Xem chi tiết đơn hàng</a>
+    </div>
+
+    <div class="footer">
+        <p>Bạn nhận được email này vì đã mua hàng tại ChaosCoders Shop.</p>
+        <p>&copy; 2025 ChaosCoders Shop. Mọi quyền được bảo lưu.</p>
+        <p style="margin-top: 10px;">
+            <a href="#" style="color: #999; text-decoration: none; margin: 0 5px;">Trang chủ</a> |
+            <a href="#" style="color: #999; text-decoration: none; margin: 0 5px;">Liên hệ</a>
+        </p>
+    </div>
+</div>
+
+</body>
+</html>

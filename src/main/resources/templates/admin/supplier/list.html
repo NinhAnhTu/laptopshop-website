@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin_layout :: layout(~{:: .content-body})}">
+<head>
+    <title>Quản lý nhà cung cấp - ChaosCoders</title>
+</head>
+<body>
+
+<div class="content-body">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Quản lý nhà cung cấp</h2>
+            <small class="text-muted"></small>
+        </div>
+        <a href="/admin/suppliers/create" class="btn btn-primary rounded-pill px-4 fw-bold"
+           style="background-color: #f37021; border-color: #f37021;">
+            <i class="fas fa-plus me-2"></i>Thêm nhà cung cấp
+        </a>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm rounded-3" role="alert">
+        <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold text-secondary">Danh sách đối tác</h6>
+            <span class="badge bg-light text-dark border rounded-pill px-3"
+                  th:text="${suppliers.size()} + ' đối tác'">0 đối tác</span>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-secondary text-uppercase small">
+                    <tr>
+                        <th class="ps-4 py-3">ID</th>
+                        <th class="py-3">Nhà cung cấp</th>
+                        <th class="py-3">Người liên hệ</th>
+                        <th class="py-3">Thông tin liên lạc</th>
+                        <th class="text-end pe-4 py-3">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${suppliers.isEmpty()}">
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <div class="opacity-50 mb-3">
+                                <i class="fas fa-truck-moving fa-3x"></i>
+                            </div>
+                            <p class="mb-0">Chưa có nhà cung cấp nào.</p>
+                        </td>
+                    </tr>
+
+                    <tr th:each="sup : ${suppliers}">
+                        <td class="ps-4 text-muted fw-bold" th:text="'#' + ${sup.supplierId}">#1</td>
+
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-3 fw-bold border border-primary-subtle"
+                                     style="width: 45px; height: 45px; font-size: 1.2rem;">
+                                    <span th:text="${#strings.substring(sup.supplierName, 0, 1)}">F</span>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold text-dark" th:text="${sup.supplierName}">FPT Trading</h6>
+                                    <small class="text-muted">Đối tác tin cậy</small>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <span class="fw-bold text-dark"><i class="fas fa-user-tie me-2 text-secondary"></i><span th:text="${sup.contactName}">Mr. A</span></span>
+                        </td>
+
+                        <td>
+                            <div class="d-flex flex-column">
+                                <small class="mb-1"><i class="fas fa-envelope me-2 text-muted" style="width: 15px;"></i><span th:text="${sup.email}">abc@fpt.com</span></small>
+                                <small><i class="fas fa-phone me-2 text-muted" style="width: 15px;"></i><span th:text="${sup.phone}">098...</span></small>
+                            </div>
+                        </td>
+
+                        <td class="text-end pe-4">
+                            <a th:href="@{'/admin/suppliers/edit/' + ${sup.supplierId}}"
+                               class="btn btn-outline-warning btn-sm rounded-circle me-1"
+                               title="Chỉnh sửa" data-bs-toggle="tooltip">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a th:href="@{'/admin/suppliers/delete/' + ${sup.supplierId}}"
+                               class="btn btn-outline-danger btn-sm rounded-circle"
+                               onclick="return confirm('Bạn có chắc chắn muốn xóa nhà cung cấp này? Sẽ ảnh hưởng đến sản phẩm liên quan.');"
+                               title="Xóa" data-bs-toggle="tooltip">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card-footer bg-white py-3 border-top-0"></div>
+    </div>
+</div>
+
+<script>
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
+
+</body>
+</html>

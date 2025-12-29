@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin_layout :: layout(~{:: .content-body})}">
+<head>
+    <title>Cập nhật sản phẩm - ChaosCoders</title>
+</head>
+<body>
+
+<div class="content-body">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Cập nhật sản phẩm</h2>
+            <small class="text-muted">Chỉnh sửa thông tin chi tiết sản phẩm</small>
+        </div>
+        <a href="/admin/products" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4">
+            <form th:action="@{/admin/products/update/{id}(id=${productId})}"
+                  th:object="${productDTO}"
+                  method="post"
+                  enctype="multipart/form-data">
+
+                <div class="row g-4">
+
+                    <div class="col-lg-8">
+                        <h6 class="fw-bold text-secondary text-uppercase mb-3">
+                            <i class="fas fa-info-circle me-2"></i>Thông tin chung
+                        </h6>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Tên sản phẩm <span class="text-danger">*</span></label>
+                            <input type="text" th:field="*{productName}" class="form-control py-2 fw-bold" placeholder="VD: Dell XPS 13 9310" required>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-muted">Giá gốc (VNĐ)</label>
+                                <div class="input-group">
+                                    <input type="number" th:field="*{originalPrice}" class="form-control py-2" required>
+                                    <span class="input-group-text bg-light text-muted">đ</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-muted">Giá bán (VNĐ)</label>
+                                <div class="input-group">
+                                    <input type="number" th:field="*{salePrice}" class="form-control py-2 fw-bold text-danger" required>
+                                    <span class="input-group-text bg-light text-muted">đ</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold text-secondary text-uppercase mb-3 mt-4">
+                            <i class="fas fa-microchip me-2"></i>Cấu hình chi tiết
+                        </h6>
+
+                        <div class="row g-3 bg-light p-3 rounded-4 border border-dashed">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">CPU</label>
+                                <input type="text" th:field="*{cpu}" class="form-control" placeholder="VD: Core i7 1165G7">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">RAM</label>
+                                <input type="text" th:field="*{ram}" class="form-control" placeholder="VD: 16GB LPDDR4x">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Ổ cứng (Storage)</label>
+                                <input type="text" th:field="*{storage}" class="form-control" placeholder="VD: 512GB NVMe SSD">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Card đồ họa (GPU)</label>
+                                <input type="text" th:field="*{gpu}" class="form-control" placeholder="VD: Intel Iris Xe">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Màn hình (inch)</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.1" th:field="*{screen}" class="form-control" placeholder="13.4">
+                                    <span class="input-group-text bg-white text-muted">inch</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 border-start-lg">
+                        <h6 class="fw-bold text-secondary text-uppercase mb-3">
+                            <i class="fas fa-tags me-2"></i>Phân loại & Kho
+                        </h6>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Danh mục</label>
+                            <select th:field="*{categoryId}" class="form-select py-2">
+                                <option th:each="cat : ${categories}" th:value="${cat.categoryId}" th:text="${cat.categoryName}"></option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Thương hiệu</label>
+                            <select th:field="*{brandId}" class="form-select py-2">
+                                <option th:each="b : ${brands}" th:value="${b.brandId}" th:text="${b.brandName}"></option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Nhà cung cấp</label>
+                            <select th:field="*{supplierId}" class="form-select py-2">
+                                <option th:each="s : ${suppliers}" th:value="${s.supplierId}" th:text="${s.supplierName}"></option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Bảo hành</label>
+                            <select th:field="*{warrantyPolicyId}" class="form-select py-2">
+                                <option th:each="w : ${warranties}" th:value="${w.warrantyId}" th:text="${w.policyName}"></option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-muted">Số lượng tồn kho</label>
+                            <input type="number" th:field="*{stock}" class="form-control py-2 fw-bold" min="0">
+                            <div class="form-text small"><i class="fas fa-info-circle me-1"></i> Có thể nhập thêm Serial ở trang Inventory.</div>
+                        </div>
+
+                        <hr class="text-muted opacity-25">
+
+                        <h6 class="fw-bold text-secondary text-uppercase mb-3">
+                            <i class="fas fa-images me-2"></i>Hình ảnh
+                        </h6>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Ảnh đại diện mới</label>
+                            <input type="file" th:field="*{imageFile}" class="form-control" accept="image/*">
+                            <small class="text-muted d-block mt-1 fst-italic">
+                                (Bỏ trống nếu muốn giữ ảnh cũ)
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Thêm ảnh chi tiết</label>
+                            <input type="file" th:field="*{detailFiles}" class="form-control" accept="image/*" multiple>
+                            <small class="text-muted d-block mt-1 fst-italic">
+                                (Ảnh chọn ở đây sẽ được thêm vào danh sách hiện có)
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                    <a href="/admin/products" class="btn btn-light rounded-pill px-4 fw-bold">Hủy bỏ</a>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold"
+                            style="background-color: #f37021; border-color: #f37021;">
+                        <i class="fas fa-save me-2"></i>Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
