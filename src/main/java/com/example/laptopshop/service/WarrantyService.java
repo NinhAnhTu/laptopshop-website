@@ -16,4 +16,7 @@ public interface WarrantyService {
     void activateWarranty(Order order);
     void scanAndExpireWarranties();
     void sendWarrantyExpiryReminders();
+    Warranty getById(Long id);
+    void save(Warranty warranty);
+    void deleteById(Long id);
 }

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin_layout :: layout(~{:: .policy-content})}">
+<head>
+    <title>Chính sách Bảo Hành - ChaosCoders</title>
+</head>
+<body>
+
+<div class="policy-content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark">Chính sách Bảo Hành</h2>
+        <a th:href="@{/admin/warranty-policies/create}" class="btn btn-primary shadow-sm">
+            <i class="fas fa-plus me-1"></i> Thêm Chính Sách
+        </a>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên chính sách</th>
+                        <th>Thời hạn (Tháng)</th>
+                        <th>Mô tả</th>
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="p : ${policies}">
+                        <td th:text="${p.warrantyId}"></td>
+                        <td class="fw-bold text-primary" th:text="${p.policyName}"></td>
+                        <td><span class="badge bg-info" th:text="${p.durationMonths} + ' Tháng'"></span></td>
+                        <td th:text="${p.description}"></td>
+                        <td class="text-center">
+                            <a th:href="@{/admin/warranty-policies/edit/{id}(id=${p.warrantyId})}" class="btn btn-sm btn-outline-primary" title="Sửa">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a th:href="@{/admin/warranty-policies/delete/{id}(id=${p.warrantyId})}" class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('Bạn có chắc chắn muốn xóa chính sách này?');" title="Xóa">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(policies)}">
+                        <td colspan="5" class="text-center text-muted py-4">Chưa có chính sách bảo hành nào.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

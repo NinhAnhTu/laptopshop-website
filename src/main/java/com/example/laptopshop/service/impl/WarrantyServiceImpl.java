@@ -29,6 +29,22 @@ public class WarrantyServiceImpl implements WarrantyService {
 
         return warrantyRepository.searchWarranty(searchKey);
     }
+    @Override
+    public Warranty getById(Long id) {
+        return warrantyRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    @Transactional
+    public void save(Warranty warranty) {
+        warrantyRepository.save(warranty);
+    }
+
+    @Override
+    @Transactional
+    public void deleteById(Long id) {
+        warrantyRepository.deleteById(id);
+    }
 
     @Override
     @Transactional

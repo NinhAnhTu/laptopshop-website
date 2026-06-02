@@ -184,10 +184,16 @@
             <i class="fas fa-star-half-alt"></i> Quản lý Đánh giá
         </a>
 
+        <a th:href="@{/admin/warranty-policies}" class="sidebar-link"
+           th:classappend="${activePage == 'warranty-policies'} ? 'active'">
+            <i class="fas fa-file-contract"></i> Chính sách bảo hành
+        </a>
+
         <a th:href="@{/admin/warranties}" class="sidebar-link"
            th:classappend="${activePage == 'warranties'} ? 'active'">
             <i class="fas fa-shield-alt"></i> Bảo hành
         </a>
+
         <a th:href="@{/admin/chat}" class="sidebar-link"
            th:classappend="${activePage == 'chat'} ? 'active'">
             <i class="fas fa-comments"></i> Hỗ trợ Chat

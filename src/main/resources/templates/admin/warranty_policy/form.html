@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin_layout :: layout(~{:: .policy-form})}">
+<head>
+  <title>Cập nhật Chính sách - ChaosCoders</title>
+</head>
+<body>
+
+<div class="policy-form">
+  <h2 class="fw-bold text-dark mb-4" th:text="${policy.warrantyId == null ? 'Thêm mới Chính Sách' : 'Cập nhật Chính Sách'}"></h2>
+
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-4">
+      <form th:action="@{/admin/warranty-policies/save}" th:object="${policy}" method="post">
+        <input type="hidden" th:field="*{warrantyId}" />
+
+        <div class="row g-4">
+          <div class="col-md-8">
+            <label class="form-label fw-bold">Tên chính sách <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" th:field="*{policyName}" required placeholder="Ví dụ: Bảo hành VIP 24 tháng...">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Thời hạn (Số tháng) <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" th:field="*{durationMonths}" required min="1" placeholder="Ví dụ: 12">
+          </div>
+
+          <div class="col-md-12">
+            <label class="form-label fw-bold">Mô tả chi tiết</label>
+            <textarea class="form-control" th:field="*{description}" rows="4" placeholder="Nhập các điều khoản, quy định bảo hành..."></textarea>
+          </div>
+        </div>
+
+        <div class="mt-4 border-top pt-4 text-end">
+          <a th:href="@{/admin/warranty-policies}" class="btn btn-light me-2">Quay lại</a>
+          <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> Lưu chính sách</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

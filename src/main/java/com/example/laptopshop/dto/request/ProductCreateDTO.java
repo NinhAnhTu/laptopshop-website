@@ -31,4 +31,27 @@ public class ProductCreateDTO {
     private MultipartFile imageFile;
 
     private List<MultipartFile> detailFiles;
+
+    // Thong so cho linh kien roi
+    private String ramCapacity;
+    private String ramType;
+    private String busSpeed;
+
+    private String storageCapacity;
+    private String storageType;
+    private String formFactor;
+    private String readSpeed;
+    private String writeSpeed;
+
+    private String socketType;
+    private Integer cores;
+    private Integer threads;
+    private String baseClock;
+    private String boostClock;
+    private String tdp;
+
+    private String gpuChip;
+    private String vram;
+    private String vramType;
+    private String powerRecommended;
 }

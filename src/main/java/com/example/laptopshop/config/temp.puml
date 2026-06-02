@@ -1,0 +1,96 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle hollow
+
+' --- ĐỊNH NGHĨA CÁC ACTOR ---
+actor "Người dùng" as User
+actor "Khách hàng" as Customer
+actor "Admin" as Admin
+actor "Hệ thống AI / System" as AI <<Automated>>
+actor "VNPAY" as VNPAY <<External>>
+actor "Google" as Google <<External>>
+
+' Khách hàng kế thừa từ Người dùng
+User <|-- Customer
+
+' --- ĐỊNH NGHĨA CÁC PACKAGE VÀ USE CASE ---
+rectangle "Hệ thống Quản lý Kinh doanh Laptop & Linh kiện" {
+
+    package "Xác thực & Bảo mật" {
+        usecase "Đăng nhập" as UC_Login
+        usecase "Đăng nhập Google OAuth2" as UC_OAuth2
+    }
+
+    package "Tương tác & Mua sắm (Frontend)" {
+        ' ĐỊNH NGHĨA CHÍNH XÁC UC_SEARCH Ở ĐÂY
+        usecase "Tìm kiếm sản phẩm (Live Search)" as UC_Search
+        usecase "Thêm sản phẩm vào giỏ hàng" as UC_Cart
+        usecase "Xem đề xuất sản phẩm" as UC_Recommend
+        usecase "Thanh toán trực tuyến" as UC_Pay
+        usecase "Đánh giá sản phẩm" as UC_Review
+        usecase "Chat trực tuyến" as UC_Chat
+        usecase "Tư vấn qua Chatbot AI" as UC_Chatbot
+    }
+
+    package "Hệ thống tự động (AI & System)" {
+        usecase "Gửi Email tự động" as UC_Email #LightYellow
+        usecase "Quản lý đánh giá tự động (AI)" as UC_AIReview #LightYellow
+    }
+
+    package "Quản trị Hệ thống (Backend)" {
+        usecase "Quản lý tồn kho (Serial/IMEI)" as UC_Inventory #LightGreen
+        usecase "Quản lý danh mục" as UC_Category #LightGreen
+        usecase "Quản lý Laptop" as UC_Laptop #LightGreen
+        usecase "Quản lý Linh kiện" as UC_Component #LightGreen
+        usecase "Quản lý Nhà cung cấp" as UC_Supplier #LightGreen
+        usecase "Quản lý Thương hiệu" as UC_Brand #LightGreen
+        usecase "Quản lý CS bảo hành" as UC_Warranty #LightGreen
+        usecase "Quản lý CT giảm giá" as UC_Discount #LightGreen
+        usecase "Xem báo cáo số liệu" as UC_Report #LightGreen
+    }
+}
+
+' --- THIẾT LẬP MỐI QUAN HỆ ---
+
+' FR01: Xác thực
+User --> UC_Login
+Admin --> UC_Login
+UC_Login <.. UC_OAuth2 : <<extend>>
+UC_OAuth2 --> Google
+
+' Mua sắm & Tương tác
+' DÒNG NÀY BÂY GIỜ SẼ HỢP LỆ VÌ UC_SEARCH ĐÃ ĐƯỢC ĐỊNH NGHĨA
+User --> UC_Search
+User --> UC_Cart
+Customer --> UC_Pay
+Customer --> UC_Recommend
+Customer --> UC_Review
+Customer --> UC_Chat
+Customer --> UC_Chatbot
+
+UC_Pay --> VNPAY
+
+' Admin Tương tác & Quản lý
+Admin --> UC_Chat
+Admin --> UC_Inventory
+Admin --> UC_Category
+Admin --> UC_Laptop
+Admin --> UC_Component
+Admin --> UC_Supplier
+Admin --> UC_Brand
+Admin --> UC_Warranty
+Admin --> UC_Discount
+Admin --> UC_Report
+
+' Hệ thống tự động & AI
+AI --> UC_Chatbot
+AI --> UC_AIReview
+AI --> UC_Email
+
+' Ràng buộc các hệ thống ngầm
+UC_Review <.. UC_AIReview : <<extend>>
+UC_AIReview <.. UC_Email : <<extend>> (Cảnh báo Admin)
+UC_Pay <.. UC_Email : <<extend>> (Gửi hóa đơn)
+
+@enduml
