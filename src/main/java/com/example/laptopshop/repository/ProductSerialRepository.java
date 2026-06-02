@@ -20,4 +20,10 @@ public interface ProductSerialRepository extends JpaRepository<ProductSerial, Lo
 
     // Đếm số lượng tồn kho thực tế của 1 sản phẩm
     long countByProduct_ProductIdAndStatus(Long productId, String status);
+
+    // Tìm serial đã gán cho 1 đơn hàng cụ thể
+    List<ProductSerial> findByOrderOrderId(Long orderId);
+
+    // Tìm các serial đang còn trống (AVAILABLE) của 1 sản phẩm
+    List<ProductSerial> findByProductProductIdAndStatus(Long productId, String status);
 }

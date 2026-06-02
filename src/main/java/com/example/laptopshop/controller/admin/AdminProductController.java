@@ -27,6 +27,11 @@ public class AdminProductController {
     private final SupplierRepository supplierRepository;
     private final WarrantyPolicyRepository warrantyPolicyRepository;
 
+    private final SpecRamRepository specRamRepository;
+    private final SpecStorageRepository specStorageRepository;
+    private final SpecCpuRepository specCpuRepository;
+    private final SpecVgaRepository specVgaRepository;
+
     // --- 1. DANH SÁCH SẢN PHẨM ---
     @GetMapping("/products")
     public String listProducts(Model model,
@@ -95,7 +100,42 @@ public class AdminProductController {
         if (product.getCategory() != null) dto.setCategoryId(product.getCategory().getCategoryId());
         if (product.getSupplier() != null) dto.setSupplierId(product.getSupplier().getSupplierId());
         if (product.getWarrantyPolicy() != null) dto.setWarrantyPolicyId(product.getWarrantyPolicy().getWarrantyId());
-
+// --- ĐOẠN CODE THÊM MỚI: KÉO DỮ LIỆU LINH KIỆN LÊN FORM ---
+        if (product.getCategory() != null) {
+            Long catId = product.getCategory().getCategoryId();
+            if (catId == 6L) {
+                specRamRepository.findById(id).ifPresent(ram -> {
+                    dto.setRamCapacity(ram.getCapacity());
+                    dto.setRamType(ram.getRamType());
+                    dto.setBusSpeed(ram.getBusSpeed());
+                });
+            } else if (catId == 7L) {
+                specStorageRepository.findById(id).ifPresent(storage -> {
+                    dto.setStorageCapacity(storage.getCapacity());
+                    dto.setStorageType(storage.getStorageType());
+                    dto.setFormFactor(storage.getFormFactor());
+                    dto.setReadSpeed(storage.getReadSpeed());
+                    dto.setWriteSpeed(storage.getWriteSpeed());
+                });
+            } else if (catId == 8L) {
+                specCpuRepository.findById(id).ifPresent(cpu -> {
+                    dto.setSocketType(cpu.getSocketType());
+                    dto.setCores(cpu.getCores());
+                    dto.setThreads(cpu.getThreads());
+                    dto.setBaseClock(cpu.getBaseClock());
+                    dto.setBoostClock(cpu.getBoostClock());
+                    dto.setTdp(cpu.getTdp());
+                });
+            } else if (catId == 9L) {
+                specVgaRepository.findById(id).ifPresent(vga -> {
+                    dto.setGpuChip(vga.getGpuChip());
+                    dto.setPowerRecommended(vga.getPowerRecommended());
+                    dto.setVram(vga.getVram());
+                    dto.setVramType(vga.getVramType());
+                });
+            }
+        }
+        // ---------------------------------------------------------
         model.addAttribute("productDTO", dto);
         model.addAttribute("productId", id);
         model.addAttribute("brands", brandRepository.findAll());

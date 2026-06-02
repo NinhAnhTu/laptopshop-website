@@ -58,7 +58,7 @@
                             <i class="fas fa-microchip me-2"></i>Cấu hình chi tiết
                         </h6>
 
-                        <div class="row g-3 bg-light p-3 rounded-4 border border-dashed">
+                        <div id="specs-laptop" class="specs-block row g-3 bg-light p-3 rounded-4 border border-dashed">
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-muted">CPU</label>
                                 <input type="text" th:field="*{cpu}" class="form-control" placeholder="VD: Core i7 1165G7">
@@ -82,6 +82,36 @@
                                     <span class="input-group-text bg-white text-muted">inch</span>
                                 </div>
                             </div>
+                        </div>
+
+                        <div id="specs-ram" class="specs-block row g-3 bg-light p-3 rounded-4 border border-dashed d-none">
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Dung lượng</label><input type="text" th:field="*{ramCapacity}" class="form-control" placeholder="VD: 16GB"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Loại RAM</label><input type="text" th:field="*{ramType}" class="form-control" placeholder="VD: DDR4"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Bus Speed</label><input type="text" th:field="*{busSpeed}" class="form-control" placeholder="VD: 3200MHz"></div>
+                        </div>
+
+                        <div id="specs-storage" class="specs-block row g-3 bg-light p-3 rounded-4 border border-dashed d-none">
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">Dung lượng</label><input type="text" th:field="*{storageCapacity}" class="form-control" placeholder="VD: 500GB"></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">Loại ổ cứng</label><input type="text" th:field="*{storageType}" class="form-control" placeholder="VD: SSD"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Chuẩn giao tiếp</label><input type="text" th:field="*{formFactor}" class="form-control" placeholder="VD: M.2 NVMe"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Tốc độ đọc</label><input type="text" th:field="*{readSpeed}" class="form-control" placeholder="VD: 3500 MB/s"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Tốc độ ghi</label><input type="text" th:field="*{writeSpeed}" class="form-control" placeholder="VD: 3000 MB/s"></div>
+                        </div>
+
+                        <div id="specs-cpu" class="specs-block row g-3 bg-light p-3 rounded-4 border border-dashed d-none">
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Socket</label><input type="text" th:field="*{socketType}" class="form-control" placeholder="VD: LGA1700"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Số nhân</label><input type="number" th:field="*{cores}" class="form-control" placeholder="VD: 6"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Số luồng</label><input type="number" th:field="*{threads}" class="form-control" placeholder="VD: 12"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Xung nhịp cơ bản</label><input type="text" th:field="*{baseClock}" class="form-control" placeholder="VD: 2.5 GHz"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Xung nhịp tối đa</label><input type="text" th:field="*{boostClock}" class="form-control" placeholder="VD: 4.4 GHz"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Công suất (TDP)</label><input type="text" th:field="*{tdp}" class="form-control" placeholder="VD: 65W"></div>
+                        </div>
+
+                        <div id="specs-vga" class="specs-block row g-3 bg-light p-3 rounded-4 border border-dashed d-none">
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">GPU Chip</label><input type="text" th:field="*{gpuChip}" class="form-control" placeholder="VD: RTX 3060"></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">Nguồn đề xuất</label><input type="text" th:field="*{powerRecommended}" class="form-control" placeholder="VD: 550W"></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">Dung lượng VRAM</label><input type="text" th:field="*{vram}" class="form-control" placeholder="VD: 12GB"></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">Loại VRAM</label><input type="text" th:field="*{vramType}" class="form-control" placeholder="VD: GDDR6"></div>
                         </div>
                     </div>
 
@@ -159,6 +189,43 @@
         </div>
     </div>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Lấy dropdown Danh mục thông qua id do Thymeleaf tự sinh ra
+            const categorySelect = document.getElementById('categoryId');
+
+            if (!categorySelect) return;
+
+            function updateSpecsForm() {
+                // 1. Ẩn tất cả các khối cấu hình (những div có class specs-block)
+                document.querySelectorAll('.specs-block').forEach(el => el.classList.add('d-none'));
+
+                // 2. Lấy ID danh mục đang chọn
+                const catId = parseInt(categorySelect.value);
+
+                // 3. Hiển thị khối tương ứng dựa theo ID trong DB
+                if ([1, 2, 3, 4].includes(catId)) { // Laptop / Macbook
+                    document.getElementById('specs-laptop').classList.remove('d-none');
+                } else if (catId === 6) { // RAM
+                    document.getElementById('specs-ram').classList.remove('d-none');
+                } else if (catId === 7) { // SSD/HDD
+                    document.getElementById('specs-storage').classList.remove('d-none');
+                } else if (catId === 8) { // CPU
+                    document.getElementById('specs-cpu').classList.remove('d-none');
+                } else if (catId === 9) { // VGA
+                    document.getElementById('specs-vga').classList.remove('d-none');
+                } else {
+                    document.getElementById('specs-laptop').classList.remove('d-none');
+                }
+            }
+
+            // Chạy ngay lần đầu khi tải trang
+            updateSpecsForm();
+
+            // Lắng nghe thao tác thay đổi danh mục của Admin
+            categorySelect.addEventListener('change', updateSpecsForm);
+        });
+    </script>
 </div>
 
 </body>

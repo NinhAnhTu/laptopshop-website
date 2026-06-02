@@ -1,8 +1,7 @@
 package com.example.laptopshop.service.impl;
 
 import com.example.laptopshop.dto.request.ProductCreateDTO;
-import com.example.laptopshop.entity.Product;
-import com.example.laptopshop.entity.ProductImage;
+import com.example.laptopshop.entity.*;
 import com.example.laptopshop.repository.*;
 import com.example.laptopshop.service.ProductService;
 import com.example.laptopshop.util.UploadService;
@@ -28,6 +27,11 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepository;
     private final SupplierRepository supplierRepository;
     private final WarrantyPolicyRepository warrantyPolicyRepository;
+
+    private final SpecRamRepository specRamRepository;
+    private final SpecStorageRepository specStorageRepository;
+    private final SpecCpuRepository specCpuRepository;
+    private final SpecVgaRepository specVgaRepository;
 
     private final UploadService uploadService;
 
@@ -73,7 +77,46 @@ public class ProductServiceImpl implements ProductService {
         product.setWarrantyPolicy(warrantyPolicyRepository.findById(dto.getWarrantyPolicyId()).orElse(null));
 
         Product savedProduct = productRepository.save(product);
-
+// --- ĐOẠN CODE THÊM MỚI: LƯU THÔNG SỐ LINH KIỆN TƯƠNG ỨNG ---
+        Long catId = dto.getCategoryId();
+        if (catId != null) {
+            if (catId == 6L) { // RAM
+                SpecRam ram = new SpecRam();
+                ram.setProductId(savedProduct.getProductId());
+                ram.setCapacity(dto.getRamCapacity());
+                ram.setRamType(dto.getRamType());
+                ram.setBusSpeed(dto.getBusSpeed());
+                specRamRepository.save(ram);
+            } else if (catId == 7L) { // SSD/HDD
+                SpecStorage storage = new SpecStorage();
+                storage.setProductId(savedProduct.getProductId());
+                storage.setCapacity(dto.getStorageCapacity());
+                storage.setStorageType(dto.getStorageType());
+                storage.setFormFactor(dto.getFormFactor());
+                storage.setReadSpeed(dto.getReadSpeed());
+                storage.setWriteSpeed(dto.getWriteSpeed());
+                specStorageRepository.save(storage);
+            } else if (catId == 8L) { // CPU
+                SpecCpu cpu = new SpecCpu();
+                cpu.setProductId(savedProduct.getProductId());
+                cpu.setSocketType(dto.getSocketType());
+                cpu.setCores(dto.getCores());
+                cpu.setThreads(dto.getThreads());
+                cpu.setBaseClock(dto.getBaseClock());
+                cpu.setBoostClock(dto.getBoostClock());
+                cpu.setTdp(dto.getTdp());
+                specCpuRepository.save(cpu);
+            } else if (catId == 9L) { // VGA
+                SpecVga vga = new SpecVga();
+                vga.setProductId(savedProduct.getProductId());
+                vga.setGpuChip(dto.getGpuChip());
+                vga.setPowerRecommended(dto.getPowerRecommended());
+                vga.setVram(dto.getVram());
+                vga.setVramType(dto.getVramType());
+                specVgaRepository.save(vga);
+            }
+        }
+        // -------------------------------------------------------------
         // 1. Xử lý ảnh Thumbnail
         if (dto.getImageFile() != null && !dto.getImageFile().isEmpty()) {
             String imageUrl = uploadService.handleSaveUploadFile(dto.getImageFile(), "products");
@@ -125,7 +168,47 @@ public class ProductServiceImpl implements ProductService {
 
         // Lưu thông tin text trước
         Product savedProduct = productRepository.save(product);
-
+// --- ĐOẠN CODE THÊM MỚI: CẬP NHẬT THÔNG SỐ LINH KIỆN ---
+        Long catId = dto.getCategoryId();
+        if (catId != null) {
+            if (catId == 6L) {
+                // Tìm record cũ, nếu ko có thì tạo mới
+                SpecRam ram = specRamRepository.findById(id).orElse(new SpecRam());
+                ram.setProductId(id);
+                ram.setCapacity(dto.getRamCapacity());
+                ram.setRamType(dto.getRamType());
+                ram.setBusSpeed(dto.getBusSpeed());
+                specRamRepository.save(ram);
+            } else if (catId == 7L) {
+                SpecStorage storage = specStorageRepository.findById(id).orElse(new SpecStorage());
+                storage.setProductId(id);
+                storage.setCapacity(dto.getStorageCapacity());
+                storage.setStorageType(dto.getStorageType());
+                storage.setFormFactor(dto.getFormFactor());
+                storage.setReadSpeed(dto.getReadSpeed());
+                storage.setWriteSpeed(dto.getWriteSpeed());
+                specStorageRepository.save(storage);
+            } else if (catId == 8L) {
+                SpecCpu cpu = specCpuRepository.findById(id).orElse(new SpecCpu());
+                cpu.setProductId(id);
+                cpu.setSocketType(dto.getSocketType());
+                cpu.setCores(dto.getCores());
+                cpu.setThreads(dto.getThreads());
+                cpu.setBaseClock(dto.getBaseClock());
+                cpu.setBoostClock(dto.getBoostClock());
+                cpu.setTdp(dto.getTdp());
+                specCpuRepository.save(cpu);
+            } else if (catId == 9L) {
+                SpecVga vga = specVgaRepository.findById(id).orElse(new SpecVga());
+                vga.setProductId(id);
+                vga.setGpuChip(dto.getGpuChip());
+                vga.setPowerRecommended(dto.getPowerRecommended());
+                vga.setVram(dto.getVram());
+                vga.setVramType(dto.getVramType());
+                specVgaRepository.save(vga);
+            }
+        }
+        // --------------------------------------------------------
         if (dto.getImageFile() != null && !dto.getImageFile().isEmpty()) {
             String imageUrl = uploadService.handleSaveUploadFile(dto.getImageFile(), "products");
 

@@ -30,6 +30,11 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
     <div class="row g-4">
 
         <div class="col-lg-8">
@@ -43,8 +48,9 @@
                             <thead class="bg-light text-secondary small text-uppercase">
                             <tr>
                                 <th class="ps-4 py-3">Sản phẩm</th>
-                                <th class="text-center">Đơn giá</th>
                                 <th class="text-center">Số lượng</th>
+                                <th class="text-center">Serial (S/N)</th>
+                                <th class="text-center">Đơn giá</th>
                                 <th class="text-end pe-4">Thành tiền</th>
                             </tr>
                             </thead>
@@ -64,11 +70,54 @@
                                         </div>
                                     </div>
                                 </td>
+
+                                <td class="text-center fw-bold">
+                                    <span th:text="${item.quantity}">1</span>
+                                </td>
+
+                                <td class="text-center align-middle">
+
+                                    <div th:if="${assignedSerials != null and assignedSerials.get(item.product.productId) != null}">
+                                        <div th:each="serial : ${assignedSerials.get(item.product.productId)}"
+                                             class="badge bg-success-subtle text-success border border-success rounded-pill px-2 py-1 mb-1 d-inline-flex align-items-center me-1">
+                                            <span th:text="${serial.serialNumber}" class="me-2 fw-bold"></span>
+
+                                            <form action="/admin/orders/remove-serial" method="post" class="d-inline m-0">
+                                                <input type="hidden" name="orderId" th:value="${order.orderId}">
+                                                <input type="hidden" name="serialId" th:value="${serial.serialId}">
+                                                <button type="submit" class="btn-close" style="font-size: 0.5rem;" title="Xóa gán, trả lại kho"></button>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                    <div th:with="assignedCount=${assignedSerials != null and assignedSerials.get(item.product.productId) != null ? assignedSerials.get(item.product.productId).size() : 0}">
+
+                                        <form th:if="${assignedCount < item.quantity}" action="/admin/orders/assign-serial" method="post" class="mt-2 d-flex flex-column align-items-center gap-2">
+                                            <input type="hidden" name="orderId" th:value="${order.orderId}">
+                                            <input type="hidden" name="productId" th:value="${item.product.productId}">
+
+                                            <div class="input-group input-group-sm" style="max-width: 200px;">
+                                                <select name="serialNumber" class="form-select" required>
+                                                    <option value="">-- Chọn Serial trống --</option>
+                                                    <option th:if="${availableSerials != null and availableSerials.get(item.product.productId) != null}"
+                                                            th:each="avail : ${availableSerials.get(item.product.productId)}"
+                                                            th:value="${avail.serialNumber}"
+                                                            th:text="${avail.serialNumber}"></option>
+                                                </select>
+                                                <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i></button>
+                                            </div>
+                                        </form>
+
+                                        <small th:if="${assignedCount < item.quantity}" class="text-danger d-block mt-1 fw-bold">
+                                            Cần gán thêm [[${item.quantity - assignedCount}]] serial
+                                        </small>
+                                        <small th:if="${assignedCount == item.quantity}" class="text-success d-block mt-1 fw-bold">
+                                            <i class="fas fa-check-circle"></i> Đã đủ Serial
+                                        </small>
+                                    </div>
+                                </td>
                                 <td class="text-center text-muted">
                                     <span th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT')}">20.000.000</span> đ
-                                </td>
-                                <td class="text-center fw-bold">
-                                    x<span th:text="${item.quantity}">1</span>
                                 </td>
                                 <td class="text-end pe-4 fw-bold text-dark">
                                     <span th:text="${#numbers.formatDecimal(item.totalPrice, 0, 'COMMA', 0, 'POINT')}">20.000.000</span> đ

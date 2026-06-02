@@ -1,47 +1,40 @@
-2026-06-02T00:01:35.178+07:00  INFO 25140 --- [SpringApplicationShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
-2026-06-02T00:01:35.233+07:00  INFO 25140 --- [SpringApplicationShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@4009e480]]
-2026-06-02T00:01:35.234+07:00  INFO 25140 --- [SpringApplicationShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
-2026-06-02T00:01:35.425+07:00  INFO 25140 --- [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
-2026-06-02T00:01:35.465+07:00  INFO 25140 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
-2026-06-02T00:01:35.482+07:00  INFO 25140 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
-2026-06-02T20:45:52.042+07:00  INFO 29168 --- [restartedMain] c.e.laptopshop.LaptopshopApplication     : Starting LaptopshopApplication using Java 17.0.12 with PID 29168 (D:\MY DOCUMENTS\3rd_year\2nd_sem\Software Project Management\Project\laptopshop-website\target\classes started by ASUS Vivobook in D:\MY DOCUMENTS\3rd_year\2nd_sem\Software Project Management\Project\laptopshop-website)
-2026-06-02T20:45:52.045+07:00  INFO 29168 --- [restartedMain] c.e.laptopshop.LaptopshopApplication     : No active profile set, falling back to 1 default profile: "default"
-2026-06-02T20:45:52.089+07:00  INFO 29168 --- [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
-2026-06-02T20:45:52.089+07:00  INFO 29168 --- [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
-2026-06-02T20:45:53.025+07:00  INFO 29168 --- [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-06-02T20:45:53.148+07:00  INFO 29168 --- [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 104 ms. Found 24 JPA repository interfaces.
-2026-06-02T20:45:53.648+07:00  INFO 29168 --- [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8080 (http)
-2026-06-02T20:45:53.655+07:00  INFO 29168 --- [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-06-02T20:45:53.655+07:00  INFO 29168 --- [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.15]
-2026-06-02T20:45:53.698+07:00  INFO 29168 --- [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2026-06-02T20:45:53.698+07:00  INFO 29168 --- [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1609 ms
-2026-06-02T20:45:53.845+07:00  INFO 29168 --- [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2026-06-02T20:45:53.925+07:00  INFO 29168 --- [restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.2.13.Final
-2026-06-02T20:45:53.927+07:00  INFO 29168 --- [restartedMain] org.hibernate.cfg.Environment            : HHH000406: Using bytecode reflection optimizer
-2026-06-02T20:45:54.171+07:00  INFO 29168 --- [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-06-02T20:45:54.191+07:00  INFO 29168 --- [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-06-02T20:45:54.526+07:00  INFO 29168 --- [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@883f51f
-2026-06-02T20:45:54.527+07:00  INFO 29168 --- [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2026-06-02T20:45:54.631+07:00  WARN 29168 --- [restartedMain] org.hibernate.orm.deprecation            : HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2026-06-02T20:45:54.632+07:00  WARN 29168 --- [restartedMain] org.hibernate.orm.deprecation            : HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
-2026-06-02T20:45:55.516+07:00  INFO 29168 --- [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-06-02T20:45:55.518+07:00  INFO 29168 --- [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-06-02T20:45:55.754+07:00  INFO 29168 --- [restartedMain] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
-2026-06-02T20:45:56.855+07:00  WARN 29168 --- [restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2026-06-02T20:45:57.091+07:00  INFO 29168 --- [restartedMain] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@157cda48, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@d5cb4fc, org.springframework.security.web.context.SecurityContextHolderFilter@3a14e520, org.springframework.security.web.header.HeaderWriterFilter@6a42f30, org.springframework.security.web.authentication.logout.LogoutFilter@6bb498c6, org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter@495a2c4f, org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter@6399a22c, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@515692ec, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@3ac8e9c0, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@47137e0e, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@23faffb9, org.springframework.security.web.access.ExceptionTranslationFilter@3f517f26, org.springframework.security.web.access.intercept.AuthorizationFilter@7dd61c92]
-2026-06-02T20:45:57.307+07:00  INFO 29168 --- [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
-2026-06-02T20:45:57.334+07:00  INFO 29168 --- [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8080 (http) with context path ''
-2026-06-02T20:45:57.335+07:00  INFO 29168 --- [restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
-2026-06-02T20:45:57.336+07:00  INFO 29168 --- [restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@8440a39]]
-2026-06-02T20:45:57.336+07:00  INFO 29168 --- [restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
-2026-06-02T20:45:57.343+07:00  INFO 29168 --- [restartedMain] c.e.laptopshop.LaptopshopApplication     : Started LaptopshopApplication in 5.611 seconds (process running for 6.287)
-2026-06-02T20:46:12.466+07:00  INFO 29168 --- [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-06-02T20:46:12.466+07:00  INFO 29168 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2026-06-02T20:46:12.470+07:00  INFO 29168 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 4 ms
-2026-06-02T20:46:42.206+07:00  WARN 29168 --- [http-nio-8080-exec-8] o.a.c.util.SessionIdGeneratorBase        : Creation of SecureRandom instance for session ID generation using [SHA1PRNG] took [101] milliseconds.
-2026-06-02T20:46:57.126+07:00  INFO 29168 --- [MessageBroker-1] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 0 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(0)-CONNECTED(0)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], sockJsScheduler[pool size = 4, active threads = 1, queued tasks = 3, completed tasks = 0]
-2026-06-02T20:46:57.457+07:00  INFO 29168 --- [http-nio-8080-exec-4] .s.a.AnnotationAsyncExecutionInterceptor : More than one TaskExecutor bean found within the context, and none is named 'taskExecutor'. Mark one of them as primary or name it 'taskExecutor' (possibly as an alias) in order to use it for async processing: [clientInboundChannelExecutor, clientOutboundChannelExecutor, brokerChannelExecutor]
-2026-06-02T20:47:02.027+07:00 ERROR 29168 --- [SimpleAsyncTaskExecutor-1] .a.i.SimpleAsyncUncaughtExceptionHandler : Unexpected exception occurred invoking async method: public void com.example.laptopshop.service.impl.EmailServiceImpl.sendOrderStatusEmail(com.example.laptopshop.entity.Order)
+2026-06-03T00:15:30.847+07:00  INFO 8564 --- [restartedMain] c.e.laptopshop.LaptopshopApplication     : Starting LaptopshopApplication using Java 17.0.12 with PID 8564 (D:\3th_2nd_sem\DP\Laptop shop\laptopshop-website\target\classes started by Admin in D:\3th_2nd_sem\DP\Laptop shop\laptopshop-website)
+2026-06-03T00:15:30.850+07:00  INFO 8564 --- [restartedMain] c.e.laptopshop.LaptopshopApplication     : No active profile set, falling back to 1 default profile: "default"
+2026-06-03T00:15:30.878+07:00  INFO 8564 --- [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-06-03T00:15:30.878+07:00  INFO 8564 --- [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-06-03T00:15:31.263+07:00  INFO 8564 --- [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-06-03T00:15:31.335+07:00  INFO 8564 --- [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 67 ms. Found 28 JPA repository interfaces.
+2026-06-03T00:15:31.661+07:00  INFO 8564 --- [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8080 (http)
+2026-06-03T00:15:31.666+07:00  INFO 8564 --- [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-06-03T00:15:31.666+07:00  INFO 8564 --- [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.15]
+2026-06-03T00:15:31.695+07:00  INFO 8564 --- [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-06-03T00:15:31.695+07:00  INFO 8564 --- [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 816 ms
+2026-06-03T00:15:31.787+07:00  INFO 8564 --- [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-06-03T00:15:31.811+07:00  INFO 8564 --- [restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.2.13.Final
+2026-06-03T00:15:31.813+07:00  INFO 8564 --- [restartedMain] org.hibernate.cfg.Environment            : HHH000406: Using bytecode reflection optimizer
+2026-06-03T00:15:31.955+07:00  INFO 8564 --- [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-06-03T00:15:31.968+07:00  INFO 8564 --- [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-06-03T00:15:32.046+07:00  INFO 8564 --- [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@cd81c6c
+2026-06-03T00:15:32.047+07:00  INFO 8564 --- [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-06-03T00:15:32.069+07:00  WARN 8564 --- [restartedMain] org.hibernate.orm.deprecation            : HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-06-03T00:15:32.069+07:00  WARN 8564 --- [restartedMain] org.hibernate.orm.deprecation            : HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2026-06-03T00:15:32.706+07:00  INFO 8564 --- [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-06-03T00:15:32.708+07:00  INFO 8564 --- [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-06-03T00:15:32.882+07:00  INFO 8564 --- [restartedMain] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-06-03T00:15:33.711+07:00  WARN 8564 --- [restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-06-03T00:15:33.869+07:00  INFO 8564 --- [restartedMain] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@681b450c, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@770c9051, org.springframework.security.web.context.SecurityContextHolderFilter@12db534b, org.springframework.security.web.header.HeaderWriterFilter@d62fb44, org.springframework.security.web.authentication.logout.LogoutFilter@41b82d6d, org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter@5a08b01e, org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter@1b50d4, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@1f8a250c, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@6bef7f0f, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@20df389e, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@2dcbf394, org.springframework.security.web.access.ExceptionTranslationFilter@61566f05, org.springframework.security.web.access.intercept.AuthorizationFilter@58fd6a2e]
+2026-06-03T00:15:34.027+07:00  INFO 8564 --- [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-06-03T00:15:34.048+07:00  INFO 8564 --- [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8080 (http) with context path ''
+2026-06-03T00:15:34.049+07:00  INFO 8564 --- [restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
+2026-06-03T00:15:34.050+07:00  INFO 8564 --- [restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@52ef3e94]]
+2026-06-03T00:15:34.050+07:00  INFO 8564 --- [restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
+2026-06-03T00:15:34.056+07:00  INFO 8564 --- [restartedMain] c.e.laptopshop.LaptopshopApplication     : Started LaptopshopApplication in 3.501 seconds (process running for 3.815)
+2026-06-03T00:15:38.357+07:00  INFO 8564 --- [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-06-03T00:15:38.357+07:00  INFO 8564 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-06-03T00:15:38.358+07:00  INFO 8564 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-06-03T00:16:30.695+07:00  INFO 8564 --- [http-nio-8080-exec-1] .s.a.AnnotationAsyncExecutionInterceptor : More than one TaskExecutor bean found within the context, and none is named 'taskExecutor'. Mark one of them as primary or name it 'taskExecutor' (possibly as an alias) in order to use it for async processing: [clientInboundChannelExecutor, clientOutboundChannelExecutor, brokerChannelExecutor]
+2026-06-03T00:16:33.895+07:00  INFO 8564 --- [MessageBroker-10] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 9 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(9)-CONNECTED(9)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 24, active threads = 0, queued tasks = 0, completed tasks = 81], outboundChannel[pool size = 18, active threads = 0, queued tasks = 0, completed tasks = 18], sockJsScheduler[pool size = 12, active threads = 1, queued tasks = 4, completed tasks = 8]
+2026-06-03T00:16:34.510+07:00 ERROR 8564 --- [SimpleAsyncTaskExecutor-1] .a.i.SimpleAsyncUncaughtExceptionHandler : Unexpected exception occurred invoking async method: public void com.example.laptopshop.service.impl.EmailServiceImpl.sendOrderStatusEmail(com.example.laptopshop.entity.Order)
 
 org.springframework.mail.MailAuthenticationException: Authentication failed
 	at org.springframework.mail.javamail.JavaMailSenderImpl.doSend(JavaMailSenderImpl.java:440) ~[spring-context-support-6.0.13.jar:6.0.13]
@@ -59,7 +52,7 @@ org.springframework.mail.MailAuthenticationException: Authentication failed
 	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264) ~[na:na]
 	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
 Caused by: jakarta.mail.AuthenticationFailedException: 535-5.7.8 Username and Password not accepted. For more information, go to
-535 5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-84214affe1dsm13129021b3a.1 - gsmtp
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-2c109d21434sm35308505ad.14 - gsmtp
 
 	at com.sun.mail.smtp.SMTPTransport$Authenticator.authenticate(SMTPTransport.java:979) ~[jakarta.mail-1.1.0.jar:na]
 	at com.sun.mail.smtp.SMTPTransport.authenticate(SMTPTransport.java:890) ~[jakarta.mail-1.1.0.jar:na]
@@ -69,35 +62,7 @@ Caused by: jakarta.mail.AuthenticationFailedException: 535-5.7.8 Username and Pa
 	at org.springframework.mail.javamail.JavaMailSenderImpl.doSend(JavaMailSenderImpl.java:437) ~[spring-context-support-6.0.13.jar:6.0.13]
 	... 13 common frames omitted
 
-2026-06-02T20:49:33.728+07:00 ERROR 29168 --- [SimpleAsyncTaskExecutor-2] .a.i.SimpleAsyncUncaughtExceptionHandler : Unexpected exception occurred invoking async method: public void com.example.laptopshop.service.impl.EmailServiceImpl.sendReviewReplyEmail(com.example.laptopshop.entity.Review)
-
-org.springframework.mail.MailAuthenticationException: Authentication failed
-	at org.springframework.mail.javamail.JavaMailSenderImpl.doSend(JavaMailSenderImpl.java:440) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.send(JavaMailSenderImpl.java:361) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.send(JavaMailSenderImpl.java:356) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at com.example.laptopshop.service.impl.EmailServiceImpl.sendReviewReplyEmail(EmailServiceImpl.java:280) ~[classes/:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
-	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:343) ~[spring-aop-6.0.13.jar:6.0.13]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.0.13.jar:6.0.13]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.0.13.jar:6.0.13]
-	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:115) ~[spring-aop-6.0.13.jar:6.0.13]
-	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264) ~[na:na]
-	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
-Caused by: jakarta.mail.AuthenticationFailedException: 535-5.7.8 Username and Password not accepted. For more information, go to
-535 5.7.8  https://support.google.com/mail/?p=BadCredentials 41be03b00d2f7-c85772df0fasm12497850a12.30 - gsmtp
-
-	at com.sun.mail.smtp.SMTPTransport$Authenticator.authenticate(SMTPTransport.java:979) ~[jakarta.mail-1.1.0.jar:na]
-	at com.sun.mail.smtp.SMTPTransport.authenticate(SMTPTransport.java:890) ~[jakarta.mail-1.1.0.jar:na]
-	at com.sun.mail.smtp.SMTPTransport.protocolConnect(SMTPTransport.java:794) ~[jakarta.mail-1.1.0.jar:na]
-	at jakarta.mail.Service.connect(Service.java:342) ~[jakarta.mail-1.1.0.jar:na]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.connectTransport(JavaMailSenderImpl.java:518) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.doSend(JavaMailSenderImpl.java:437) ~[spring-context-support-6.0.13.jar:6.0.13]
-	... 13 common frames omitted
-
-2026-06-02T20:56:08.436+07:00 ERROR 29168 --- [SimpleAsyncTaskExecutor-3] .a.i.SimpleAsyncUncaughtExceptionHandler : Unexpected exception occurred invoking async method: public void com.example.laptopshop.service.impl.EmailServiceImpl.sendOrderStatusEmail(com.example.laptopshop.entity.Order)
+2026-06-03T00:17:02.639+07:00 ERROR 8564 --- [SimpleAsyncTaskExecutor-2] .a.i.SimpleAsyncUncaughtExceptionHandler : Unexpected exception occurred invoking async method: public void com.example.laptopshop.service.impl.EmailServiceImpl.sendOrderStatusEmail(com.example.laptopshop.entity.Order)
 
 org.springframework.mail.MailAuthenticationException: Authentication failed
 	at org.springframework.mail.javamail.JavaMailSenderImpl.doSend(JavaMailSenderImpl.java:440) ~[spring-context-support-6.0.13.jar:6.0.13]
@@ -115,7 +80,7 @@ org.springframework.mail.MailAuthenticationException: Authentication failed
 	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264) ~[na:na]
 	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
 Caused by: jakarta.mail.AuthenticationFailedException: 535-5.7.8 Username and Password not accepted. For more information, go to
-535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-2bf3125ff09sm119742125ad.84 - gsmtp
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials 41be03b00d2f7-c8589d055c7sm10973067a12.9 - gsmtp
 
 	at com.sun.mail.smtp.SMTPTransport$Authenticator.authenticate(SMTPTransport.java:979) ~[jakarta.mail-1.1.0.jar:na]
 	at com.sun.mail.smtp.SMTPTransport.authenticate(SMTPTransport.java:890) ~[jakarta.mail-1.1.0.jar:na]
@@ -125,149 +90,9 @@ Caused by: jakarta.mail.AuthenticationFailedException: 535-5.7.8 Username and Pa
 	at org.springframework.mail.javamail.JavaMailSenderImpl.doSend(JavaMailSenderImpl.java:437) ~[spring-context-support-6.0.13.jar:6.0.13]
 	... 13 common frames omitted
 
-2026-06-02T20:57:39.737+07:00 ERROR 29168 --- [SimpleAsyncTaskExecutor-4] .a.i.SimpleAsyncUncaughtExceptionHandler : Unexpected exception occurred invoking async method: public void com.example.laptopshop.service.impl.EmailServiceImpl.sendOrderStatusEmail(com.example.laptopshop.entity.Order)
-
-org.springframework.mail.MailAuthenticationException: Authentication failed
-	at org.springframework.mail.javamail.JavaMailSenderImpl.doSend(JavaMailSenderImpl.java:440) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.send(JavaMailSenderImpl.java:361) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.send(JavaMailSenderImpl.java:356) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at com.example.laptopshop.service.impl.EmailServiceImpl.sendOrderStatusEmail(EmailServiceImpl.java:53) ~[classes/:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
-	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:343) ~[spring-aop-6.0.13.jar:6.0.13]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.0.13.jar:6.0.13]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.0.13.jar:6.0.13]
-	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:115) ~[spring-aop-6.0.13.jar:6.0.13]
-	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264) ~[na:na]
-	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
-Caused by: jakarta.mail.AuthenticationFailedException: 535-5.7.8 Username and Password not accepted. For more information, go to
-535 5.7.8  https://support.google.com/mail/?p=BadCredentials 41be03b00d2f7-c858108940bsm11334751a12.5 - gsmtp
-
-	at com.sun.mail.smtp.SMTPTransport$Authenticator.authenticate(SMTPTransport.java:979) ~[jakarta.mail-1.1.0.jar:na]
-	at com.sun.mail.smtp.SMTPTransport.authenticate(SMTPTransport.java:890) ~[jakarta.mail-1.1.0.jar:na]
-	at com.sun.mail.smtp.SMTPTransport.protocolConnect(SMTPTransport.java:794) ~[jakarta.mail-1.1.0.jar:na]
-	at jakarta.mail.Service.connect(Service.java:342) ~[jakarta.mail-1.1.0.jar:na]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.connectTransport(JavaMailSenderImpl.java:518) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.doSend(JavaMailSenderImpl.java:437) ~[spring-context-support-6.0.13.jar:6.0.13]
-	... 13 common frames omitted
-
-2026-06-02T20:57:45.542+07:00 ERROR 29168 --- [SimpleAsyncTaskExecutor-5] .a.i.SimpleAsyncUncaughtExceptionHandler : Unexpected exception occurred invoking async method: public void com.example.laptopshop.service.impl.EmailServiceImpl.sendOrderStatusEmail(com.example.laptopshop.entity.Order)
-
-org.springframework.mail.MailAuthenticationException: Authentication failed
-	at org.springframework.mail.javamail.JavaMailSenderImpl.doSend(JavaMailSenderImpl.java:440) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.send(JavaMailSenderImpl.java:361) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.send(JavaMailSenderImpl.java:356) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at com.example.laptopshop.service.impl.EmailServiceImpl.sendOrderStatusEmail(EmailServiceImpl.java:53) ~[classes/:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
-	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:343) ~[spring-aop-6.0.13.jar:6.0.13]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.0.13.jar:6.0.13]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.0.13.jar:6.0.13]
-	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:115) ~[spring-aop-6.0.13.jar:6.0.13]
-	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264) ~[na:na]
-	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
-Caused by: jakarta.mail.AuthenticationFailedException: 535-5.7.8 Username and Password not accepted. For more information, go to
-535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-2bf239e7024sm137651705ad.6 - gsmtp
-
-	at com.sun.mail.smtp.SMTPTransport$Authenticator.authenticate(SMTPTransport.java:979) ~[jakarta.mail-1.1.0.jar:na]
-	at com.sun.mail.smtp.SMTPTransport.authenticate(SMTPTransport.java:890) ~[jakarta.mail-1.1.0.jar:na]
-	at com.sun.mail.smtp.SMTPTransport.protocolConnect(SMTPTransport.java:794) ~[jakarta.mail-1.1.0.jar:na]
-	at jakarta.mail.Service.connect(Service.java:342) ~[jakarta.mail-1.1.0.jar:na]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.connectTransport(JavaMailSenderImpl.java:518) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.doSend(JavaMailSenderImpl.java:437) ~[spring-context-support-6.0.13.jar:6.0.13]
-	... 13 common frames omitted
-
-2026-06-02T20:57:58.761+07:00 ERROR 29168 --- [SimpleAsyncTaskExecutor-7] .a.i.SimpleAsyncUncaughtExceptionHandler : Unexpected exception occurred invoking async method: public void com.example.laptopshop.service.impl.EmailServiceImpl.sendOrderStatusEmail(com.example.laptopshop.entity.Order)
-
-org.springframework.mail.MailAuthenticationException: Authentication failed
-	at org.springframework.mail.javamail.JavaMailSenderImpl.doSend(JavaMailSenderImpl.java:440) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.send(JavaMailSenderImpl.java:361) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.send(JavaMailSenderImpl.java:356) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at com.example.laptopshop.service.impl.EmailServiceImpl.sendOrderStatusEmail(EmailServiceImpl.java:53) ~[classes/:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
-	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:343) ~[spring-aop-6.0.13.jar:6.0.13]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.0.13.jar:6.0.13]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.0.13.jar:6.0.13]
-	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:115) ~[spring-aop-6.0.13.jar:6.0.13]
-	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264) ~[na:na]
-	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
-Caused by: jakarta.mail.AuthenticationFailedException: 535-5.7.8 Username and Password not accepted. For more information, go to
-535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-2bf23c0b794sm132579035ad.58 - gsmtp
-
-	at com.sun.mail.smtp.SMTPTransport$Authenticator.authenticate(SMTPTransport.java:979) ~[jakarta.mail-1.1.0.jar:na]
-	at com.sun.mail.smtp.SMTPTransport.authenticate(SMTPTransport.java:890) ~[jakarta.mail-1.1.0.jar:na]
-	at com.sun.mail.smtp.SMTPTransport.protocolConnect(SMTPTransport.java:794) ~[jakarta.mail-1.1.0.jar:na]
-	at jakarta.mail.Service.connect(Service.java:342) ~[jakarta.mail-1.1.0.jar:na]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.connectTransport(JavaMailSenderImpl.java:518) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.doSend(JavaMailSenderImpl.java:437) ~[spring-context-support-6.0.13.jar:6.0.13]
-	... 13 common frames omitted
-
-2026-06-02T20:58:06.644+07:00 ERROR 29168 --- [SimpleAsyncTaskExecutor-8] .a.i.SimpleAsyncUncaughtExceptionHandler : Unexpected exception occurred invoking async method: public void com.example.laptopshop.service.impl.EmailServiceImpl.sendOrderStatusEmail(com.example.laptopshop.entity.Order)
-
-org.springframework.mail.MailAuthenticationException: Authentication failed
-	at org.springframework.mail.javamail.JavaMailSenderImpl.doSend(JavaMailSenderImpl.java:440) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.send(JavaMailSenderImpl.java:361) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.send(JavaMailSenderImpl.java:356) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at com.example.laptopshop.service.impl.EmailServiceImpl.sendOrderStatusEmail(EmailServiceImpl.java:53) ~[classes/:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
-	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:343) ~[spring-aop-6.0.13.jar:6.0.13]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.0.13.jar:6.0.13]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.0.13.jar:6.0.13]
-	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:115) ~[spring-aop-6.0.13.jar:6.0.13]
-	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264) ~[na:na]
-	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
-Caused by: jakarta.mail.AuthenticationFailedException: 535-5.7.8 Username and Password not accepted. For more information, go to
-535 5.7.8  https://support.google.com/mail/?p=BadCredentials 98e67ed59e1d1-36dd91846f8sm3328876a91.4 - gsmtp
-
-	at com.sun.mail.smtp.SMTPTransport$Authenticator.authenticate(SMTPTransport.java:979) ~[jakarta.mail-1.1.0.jar:na]
-	at com.sun.mail.smtp.SMTPTransport.authenticate(SMTPTransport.java:890) ~[jakarta.mail-1.1.0.jar:na]
-	at com.sun.mail.smtp.SMTPTransport.protocolConnect(SMTPTransport.java:794) ~[jakarta.mail-1.1.0.jar:na]
-	at jakarta.mail.Service.connect(Service.java:342) ~[jakarta.mail-1.1.0.jar:na]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.connectTransport(JavaMailSenderImpl.java:518) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.doSend(JavaMailSenderImpl.java:437) ~[spring-context-support-6.0.13.jar:6.0.13]
-	... 13 common frames omitted
-
-2026-06-02T20:58:13.090+07:00 ERROR 29168 --- [SimpleAsyncTaskExecutor-9] .a.i.SimpleAsyncUncaughtExceptionHandler : Unexpected exception occurred invoking async method: public void com.example.laptopshop.service.impl.EmailServiceImpl.sendOrderStatusEmail(com.example.laptopshop.entity.Order)
-
-org.springframework.mail.MailAuthenticationException: Authentication failed
-	at org.springframework.mail.javamail.JavaMailSenderImpl.doSend(JavaMailSenderImpl.java:440) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.send(JavaMailSenderImpl.java:361) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.send(JavaMailSenderImpl.java:356) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at com.example.laptopshop.service.impl.EmailServiceImpl.sendOrderStatusEmail(EmailServiceImpl.java:53) ~[classes/:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
-	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:343) ~[spring-aop-6.0.13.jar:6.0.13]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.0.13.jar:6.0.13]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.0.13.jar:6.0.13]
-	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:115) ~[spring-aop-6.0.13.jar:6.0.13]
-	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264) ~[na:na]
-	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
-Caused by: jakarta.mail.AuthenticationFailedException: 535-5.7.8 Username and Password not accepted. For more information, go to
-535 5.7.8  https://support.google.com/mail/?p=BadCredentials 98e67ed59e1d1-36dd9751ea1sm3136007a91.12 - gsmtp
-
-	at com.sun.mail.smtp.SMTPTransport$Authenticator.authenticate(SMTPTransport.java:979) ~[jakarta.mail-1.1.0.jar:na]
-	at com.sun.mail.smtp.SMTPTransport.authenticate(SMTPTransport.java:890) ~[jakarta.mail-1.1.0.jar:na]
-	at com.sun.mail.smtp.SMTPTransport.protocolConnect(SMTPTransport.java:794) ~[jakarta.mail-1.1.0.jar:na]
-	at jakarta.mail.Service.connect(Service.java:342) ~[jakarta.mail-1.1.0.jar:na]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.connectTransport(JavaMailSenderImpl.java:518) ~[spring-context-support-6.0.13.jar:6.0.13]
-	at org.springframework.mail.javamail.JavaMailSenderImpl.doSend(JavaMailSenderImpl.java:437) ~[spring-context-support-6.0.13.jar:6.0.13]
-	... 13 common frames omitted
-
-2026-06-02T21:15:30.325+07:00  INFO 29168 --- [SpringApplicationShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
-2026-06-02T21:15:30.339+07:00  INFO 29168 --- [SpringApplicationShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@8440a39]]
-2026-06-02T21:15:30.340+07:00  INFO 29168 --- [SpringApplicationShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
-2026-06-02T21:15:30.730+07:00  INFO 29168 --- [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
-2026-06-02T21:15:30.825+07:00  INFO 29168 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
-2026-06-02T21:15:30.843+07:00  INFO 29168 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-06-03T00:18:00.340+07:00  INFO 8564 --- [SpringApplicationShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-06-03T00:18:00.341+07:00  INFO 8564 --- [SpringApplicationShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@52ef3e94]]
+2026-06-03T00:18:00.341+07:00  INFO 8564 --- [SpringApplicationShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-06-03T00:18:00.356+07:00  INFO 8564 --- [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-06-03T00:18:00.359+07:00  INFO 8564 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-06-03T00:18:00.363+07:00  INFO 8564 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
