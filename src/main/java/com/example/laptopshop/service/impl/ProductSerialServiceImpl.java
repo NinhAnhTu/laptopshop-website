@@ -8,10 +8,9 @@ import com.example.laptopshop.service.ProductSerialService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.example.laptopshop.entity.enums.SerialStatus;
 import java.time.LocalDateTime;
 import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class ProductSerialServiceImpl implements ProductSerialService {
@@ -45,7 +44,7 @@ public class ProductSerialServiceImpl implements ProductSerialService {
             // Tạo mới Serial
             ProductSerial ps = new ProductSerial();
             ps.setSerialNumber(cleanSn);
-            ps.setStatus("AVAILABLE"); // Trạng thái sẵn sàng
+            ps.setStatus(SerialStatus.AVAILABLE); // Trạng thái sẵn sàng
             ps.setImportDate(LocalDateTime.now());
             ps.setProduct(product);
 
@@ -57,6 +56,40 @@ public class ProductSerialServiceImpl implements ProductSerialService {
         productRepository.save(product);
     }
 
+    @Override
+    @Transactional
+    public void updateSerialStatus(Long serialId, SerialStatus newStatus) {
+        ProductSerial ps = productSerialRepository.findById(serialId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy mã Serial này"));
+
+        SerialStatus oldStatus = ps.getStatus();
+
+        // CHỐT CHẶN AN TOÀN: Máy đã bán thì không được đổi trạng thái tự phát ở đây
+        if (oldStatus == SerialStatus.SOLD || newStatus == SerialStatus.SOLD) {
+            throw new RuntimeException("Không thể tự ý thay đổi trạng thái của máy đã bán!");
+        }
+
+        if (oldStatus == newStatus) return; // Không có sự thay đổi thì bỏ qua
+
+        Product product = ps.getProduct();
+
+        // LOGIC BIẾN ĐỘNG KHO THỜI GIAN THỰC
+        if (oldStatus == SerialStatus.AVAILABLE && newStatus == SerialStatus.DEFECTIVE) {
+            // Máy chuyển sang lỗi -> Giảm 1 tồn kho bán hàng
+            if (product.getStock() > 0) {
+                product.setStock(product.getStock() - 1);
+            }
+        } else if (oldStatus == SerialStatus.DEFECTIVE && newStatus == SerialStatus.AVAILABLE) {
+            // Máy lỗi đã sửa xong -> Cộng lại 1 vào kho bán hàng
+            product.setStock(product.getStock() + 1);
+        }
+
+        // Cập nhật trạng thái mới cho Serial
+        ps.setStatus(newStatus);
+
+        productSerialRepository.save(ps);
+        productRepository.save(product); // Đồng bộ lại số lượng kho mới của sản phẩm
+    }
     @Override
     @Transactional
     public void deleteSerial(Long serialId) {

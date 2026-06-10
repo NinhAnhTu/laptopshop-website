@@ -1,6 +1,7 @@
 package com.example.laptopshop.repository;
 
 import com.example.laptopshop.entity.ProductSerial;
+import com.example.laptopshop.entity.enums.SerialStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -25,5 +26,5 @@ public interface ProductSerialRepository extends JpaRepository<ProductSerial, Lo
     List<ProductSerial> findByOrderOrderId(Long orderId);
 
     // Tìm các serial đang còn trống (AVAILABLE) của 1 sản phẩm
-    List<ProductSerial> findByProductProductIdAndStatus(Long productId, String status);
+    List<ProductSerial> findByProductProductIdAndStatus(Long productId, SerialStatus status);
 }

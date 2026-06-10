@@ -50,11 +50,11 @@ public class HomeController {
             }
         }
 
-        List<Product> bestSellers = productService.getTopSellingProducts(4);
+        List<Product> bestSellers = productService.getTopSellingActiveProducts(4);
         model.addAttribute("bestSellers", bestSellers);
 
         int pageSize = 8;
-        Page<Product> productPage = productService.getAllProducts(keyword, page, pageSize);
+        Page<Product> productPage = productService.getActiveProducts(keyword, page, pageSize);
 
         List<Product> products = productPage.getContent();
 

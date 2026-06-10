@@ -21,9 +21,4 @@ public class Supplier {
     private String address;
     private String phone;
     private String email;
-
-    // Một nhà cung cấp cung cấp nhiều sản phẩm
-    @OneToMany(mappedBy = "supplier")
-    @JsonIgnore
-    private List<Product> products;
 }

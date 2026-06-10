@@ -3,6 +3,7 @@ package com.example.laptopshop.controller.admin;
 import com.example.laptopshop.entity.Order;
 import com.example.laptopshop.entity.OrderDetail;
 import com.example.laptopshop.entity.ProductSerial;
+import com.example.laptopshop.entity.enums.SerialStatus;
 import com.example.laptopshop.repository.ProductSerialRepository;
 import com.example.laptopshop.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +11,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +57,7 @@ public class AdminOrderController {
         Map<Long, List<ProductSerial>> availableMap = new HashMap<>();
         for (OrderDetail detail : order.getOrderDetails()) {
             Long pId = detail.getProduct().getProductId();
-            List<ProductSerial> avails = productSerialRepository.findByProductProductIdAndStatus(pId, "AVAILABLE");
+            List<ProductSerial> avails = productSerialRepository.findByProductProductIdAndStatus(pId, SerialStatus.AVAILABLE);
             availableMap.put(pId, avails);
         }
 
@@ -91,9 +91,12 @@ public class AdminOrderController {
 
         Order order = orderService.getOrderById(orderId);
 
-        if (serial != null && order != null && "AVAILABLE".equals(serial.getStatus())) {
+        if (serial != null && order != null && serial.getStatus() == SerialStatus.AVAILABLE) {
             serial.setOrder(order);
-            serial.setStatus("SOLD"); // Đổi trạng thái trong kho thành Đã bán
+
+            // Sửa 2: Đổi từ SerialStatus.AVAILABLE thành SerialStatus.SOLD (Vì máy đã được bán)
+            serial.setStatus(SerialStatus.SOLD);
+
             productSerialRepository.save(serial);
             redirectAttributes.addFlashAttribute("successMessage", "Gán Serial [" + serialNumber + "] thành công!");
         } else {
@@ -111,7 +114,7 @@ public class AdminOrderController {
         ProductSerial serial = productSerialRepository.findById(serialId).orElse(null);
         if (serial != null && serial.getOrder() != null && serial.getOrder().getOrderId().equals(orderId)) {
             serial.setOrder(null); // Gỡ khỏi đơn hàng
-            serial.setStatus("AVAILABLE"); // Trả lại kho
+            serial.setStatus(SerialStatus.AVAILABLE); // Trả lại kho
             productSerialRepository.save(serial);
             redirectAttributes.addFlashAttribute("successMessage", "Đã gỡ Serial [" + serial.getSerialNumber() + "] trả lại kho!");
         }

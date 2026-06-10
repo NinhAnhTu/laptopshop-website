@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin_layout :: layout(~{:: .content-body})}">
+<head>
+    <title>Quản lý Serial - ChaosCoders</title>
+</head>
+<body>
+
+<div class="content-body">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1 small text-muted">
+                    <li class="breadcrumb-item"><a href="/admin/products" class="text-decoration-none text-muted">Sản phẩm</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Danh sách Serial</li>
+                </ol>
+            </nav>
+            <h3 class="fw-bold text-dark m-0">
+                Kho máy: <span class="text-primary" th:text="${product.productName}"></span>
+            </h3>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary rounded-pill px-3 py-2 fs-6">
+                <i class="fas fa-boxes me-2"></i>Tổng tồn: <span th:text="${product.stock}">0</span>
+            </span>
+            <a href="/admin/products" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại Sản phẩm
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm rounded-3" role="alert">
+        <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-header bg-white border-bottom-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold text-secondary mb-0"><i class="fas fa-barcode me-2"></i>Danh sách Serial</h5>
+            <div>
+                <small class="text-danger fst-italic me-3">* Mọi thao tác thêm Serial mới phải thông qua Phiếu Nhập Kho</small>
+                <span class="badge bg-light text-dark border rounded-pill px-3" th:text="${#lists.size(serials)} + ' items'"></span>
+            </div>
+        </div>
+
+        <div class="card-body p-0 mt-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 py-3">Serial Number</th>
+                        <th class="py-3">Trạng thái</th>
+                        <th class="py-3">Đơn hàng</th>
+                        <th class="text-end pe-4 py-3" style="width: 200px;">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="s : ${serials}">
+                        <td class="ps-4">
+                            <span class="font-monospace fw-bold text-primary bg-light px-2 py-1 rounded border"
+                                  th:text="${s.serialNumber}">SN123</span>
+                        </td>
+
+                        <td>
+                            <span th:if="${s.status.name() == 'AVAILABLE'}" class="badge bg-success-subtle text-success rounded-pill px-3">
+                                <i class="fas fa-check-circle me-1"></i>Sẵn sàng bán
+                            </span>
+
+                            <span th:if="${s.status.name() == 'SOLD'}" class="badge bg-secondary-subtle text-secondary rounded-pill px-3">
+                                <i class="fas fa-shopping-cart me-1"></i>Đã bán
+                            </span>
+
+                            <span th:if="${s.status.name() == 'DEFECTIVE'}" class="badge bg-danger-subtle text-danger rounded-pill px-3">
+                                <i class="fas fa-times-circle me-1"></i>Máy lỗi
+                            </span>
+                        </td>
+
+                        <td>
+                            <span th:if="${s.order != null}">
+                                <a th:class="btn btn-outline-info btn-sm rounded-pill px-3" style="font-size: 0.8rem;"
+                                   th:href="@{'/admin/orders/view/' + ${s.order.orderId}}">
+                                    <i class="fas fa-receipt me-1"></i>#<span th:text="${s.order.orderId}"></span>
+                                </a>
+                            </span>
+                            <span th:unless="${s.order != null}" class="text-muted small fst-italic opacity-50">Chưa bán</span>
+                        </td>
+
+                        <td class="text-end pe-4">
+                            <form th:if="${s.status.name() != 'SOLD'}" th:action="@{/admin/products/serials/update-status}" method="post" class="d-inline-block">
+                                <input type="hidden" name="serialId" th:value="${s.serialId}">
+                                <input type="hidden" name="productId" th:value="${product.productId}">
+                                <select name="status" class="form-select form-select-sm rounded-pill px-3 py-1 text-center font-semibold text-secondary"
+                                        style="font-size: 0.8rem; width: 160px; cursor: pointer;"
+                                        onchange="if(confirm('Bạn có chắc chắn muốn đổi trạng thái cho máy này không? Hệ thống sẽ tự tính toán lại tồn kho.')) this.form.submit(); else location.reload();">
+                                    <option value="AVAILABLE" th:selected="${s.status.name() == 'AVAILABLE'}">🟢 Sẵn sàng</option>
+                                    <option value="DEFECTIVE" th:selected="${s.status.name() == 'DEFECTIVE'}">🔴 Máy lỗi</option>
+                                </select>
+                            </form>
+                            <span th:if="${s.status.name() == 'SOLD'}" class="text-muted small fst-italic opacity-70">
+                                <i class="fas fa-lock me-1"></i>Đã khóa dữ liệu
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr th:if="${#lists.isEmpty(serials)}">
+                        <td colspan="4" class="text-center py-5 text-muted">
+                            <div class="opacity-50 mb-3"><i class="fas fa-barcode fa-3x"></i></div>
+                            <p class="mb-1">Sản phẩm này chưa có Serial nào.</p>
+                            <small>Sản phẩm chỉ có Serial sau khi được tạo Phiếu nhập kho.</small>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

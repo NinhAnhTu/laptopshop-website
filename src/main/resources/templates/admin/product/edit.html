@@ -135,23 +135,25 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold small text-muted">Nhà cung cấp</label>
-                            <select th:field="*{supplierId}" class="form-select py-2">
-                                <option th:each="s : ${suppliers}" th:value="${s.supplierId}" th:text="${s.supplierName}"></option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
                             <label class="form-label fw-bold small text-muted">Bảo hành</label>
                             <select th:field="*{warrantyPolicyId}" class="form-select py-2">
                                 <option th:each="w : ${warranties}" th:value="${w.warrantyId}" th:text="${w.policyName}"></option>
                             </select>
                         </div>
-
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Hiển thị</label>
+                            <select th:field="*{isActive}" class="form-select py-2">
+                                <option value="true">Đang bán</option>
+                                <option value="false">Tạm ẩn</option>
+                            </select>
+                        </div>
                         <div class="mb-4">
-                            <label class="form-label fw-bold small text-muted">Số lượng tồn kho</label>
-                            <input type="number" th:field="*{stock}" class="form-control py-2 fw-bold" min="0">
-                            <div class="form-text small"><i class="fas fa-info-circle me-1"></i> Có thể nhập thêm Serial ở trang Inventory.</div>
+                            <label class="form-label fw-bold small text-muted">Số lượng</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-secondary-subtle"><i class="fas fa-boxes text-primary"></i></span>
+                                <input type="number" th:value="${productDTO.stock}" class="form-control py-2 fw-bold bg-light text-primary" readonly>
+                            </div>
+                            <div class="form-text small text-danger"><i class="fas fa-lock me-1"></i> Tồn kho chỉ được thay đổi thông qua nghiệp vụ nhập kho và bán hàng.</div>
                         </div>
 
                         <hr class="text-muted opacity-25">

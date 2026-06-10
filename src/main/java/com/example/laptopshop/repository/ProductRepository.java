@@ -12,6 +12,9 @@ import java.util.List;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
+    // Dành cho trang chủ (lấy sản phẩm đang bán)
+    Page<Product> findByIsActiveTrue(Pageable pageable);
+    Page<Product> findByProductNameContainingIgnoreCaseAndIsActiveTrue(String name, Pageable pageable);
 
     Product findBySlug(String slug);
     Page<Product> findByProductNameContainingIgnoreCase(String name, Pageable pageable);
@@ -45,17 +48,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                                  @Param("minPrice") Double minPrice,
                                  @Param("maxPrice") Double maxPrice);
 
-    @Query("SELECT p FROM Product p WHERE " +
-            "(:keyword IS NULL OR p.productName LIKE CONCAT('%', :keyword, '%')) AND " +
-            "(:status IS NULL OR " +
-            " (:status = 'in_stock' AND p.stock > 10) OR " +        // Còn nhiều (>10)
-            " (:status = 'low_stock' AND p.stock > 0 AND p.stock <= 10) OR " + // Sắp hết (1-10)
-            " (:status = 'out_of_stock' AND p.stock = 0))")        // Hết hàng (0)
-    List<Product> searchInventory(@Param("keyword") String keyword,
-                                  @Param("status") String status);
-
-    @Query("SELECT od.product FROM OrderDetail od GROUP BY od.product ORDER BY SUM(od.quantity) DESC")
-    List<Product> findTopSellingProducts(Pageable pageable);
+    @Query("SELECT od.product FROM OrderDetail od WHERE od.product.isActive = true GROUP BY od.product ORDER BY SUM(od.quantity) DESC")
+    List<Product> findTopSellingActiveProducts(Pageable pageable);
 
     List<Product> findTop5ByProductNameContainingIgnoreCase(String productName);
 

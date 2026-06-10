@@ -28,10 +28,6 @@ public class Product {
     private Brand brand;
 
     @ManyToOne
-    @JoinColumn(name = "supplier_id")
-    private Supplier supplier;
-
-    @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
 
@@ -52,6 +48,10 @@ public class Product {
     private BigDecimal salePrice;
     private Integer stock;
     private Double rating;
+
+    //Status
+    @Column(name = "is_active")
+    private Boolean isActive;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

@@ -3,7 +3,7 @@ package com.example.laptopshop.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
+import com.example.laptopshop.entity.enums.SerialStatus;
 import java.time.LocalDateTime;
 
 @Entity
@@ -19,8 +19,8 @@ public class ProductSerial {
     @Column(name = "serial_number", unique = true, nullable = false)
     private String serialNumber;
 
-    private String status;
-
+    @Enumerated(EnumType.STRING)
+    private SerialStatus status;
     private LocalDateTime importDate; // Ngày nhập kho
 
     @ManyToOne

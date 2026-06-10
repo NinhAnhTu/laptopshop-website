@@ -1,0 +1,20 @@
+classDiagram
+    direction LR
+    class AdminOrderController {
+        - orderService: OrderService
+        - productSerialRepository: ProductSerialRepository
+        + listOrders(...) String
+        + viewOrder(...) String
+        + assignSerial(...) String
+        + removeSerial(...) String
+    }
+
+    class ProductSerialRepository {
+        <<interface>>
+        + findBySerialNumber(String) Optional~ProductSerial~
+        + findByOrderOrderId(Long) List~ProductSerial~
+        + findByProductProductIdAndStatus(...) List~ProductSerial~
+    }
+
+    %% Quan hệ Association có hướng (Directed Association)
+    AdminOrderController --> ProductSerialRepository : - productSerialRepository

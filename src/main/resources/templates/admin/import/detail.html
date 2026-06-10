@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin_layout :: layout(~{:: .content-body})}">
+<head>
+  <title>Chi tiết phiếu nhập - ChaosCoders</title>
+</head>
+<body>
+
+<div class="content-body">
+
+  <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1 small text-muted">
+          <li class="breadcrumb-item"><a href="/admin/import" class="text-decoration-none text-muted">Nhập kho</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Chi tiết chứng từ</li>
+        </ol>
+      </nav>
+      <h3 class="fw-bold text-dark m-0">
+        Phiếu nhập kho: <span class="text-primary font-monospace">#NK-<span th:text="${receipt.receiptId}"></span></span>
+      </h3>
+    </div>
+    <a href="/admin/import" class="btn btn-outline-secondary rounded-pill px-4">
+      <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+    </a>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rounded-4 bg-white p-4 h-100">
+        <h5 class="fw-bold text-secondary mb-4 border-bottom pb-2">
+          <i class="fas fa-info-circle me-2 text-primary"></i>Thông tin chung
+        </h5>
+
+        <div class="mb-3">
+          <small class="text-muted d-block text-uppercase fw-bold small">Nhà cung cấp đối tác</small>
+          <span class="fw-bold text-dark fs-5" th:text="${receipt.supplier.supplierName}"></span>
+          <div class="small text-muted mt-1">
+            <i class="fas fa-map-marker-alt me-1"></i><span th:text="${receipt.supplier.address}"></span><br>
+            <i class="fas fa-envelope me-1"></i><span th:text="${receipt.supplier.email}"></span>
+          </div>
+        </div>
+
+        <div class="mb-3 border-top pt-3">
+          <small class="text-muted d-block text-uppercase fw-bold small">Thời gian hoàn tất</small>
+          <span class="text-dark fw-bold" th:text="${#temporals.format(receipt.importDate, 'dd/MM/yyyy HH:mm')}"></span>
+        </div>
+
+        <div class="mb-3 border-top pt-3">
+          <small class="text-muted d-block text-uppercase fw-bold small">Kế toán phê duyệt</small>
+          <span class="text-dark fw-bold" th:text="${receipt.createdBy != null ? receipt.createdBy.fullname : 'Hệ thống'}"></span>
+        </div>
+
+        <div class="mb-3 border-top pt-3">
+          <small class="text-muted d-block text-uppercase fw-bold small">Ghi chú kèm theo</small>
+          <p class="text-secondary bg-light p-2 rounded-3 mt-1 small fst-italic"
+             th:text="${receipt.note != null and receipt.note != '' ? receipt.note : 'Không có ghi chú.'}"></p>
+        </div>
+
+        <div class="border-top pt-3 mt-4 text-end">
+          <small class="text-muted d-block text-uppercase fw-bold small text-start">Tổng giá trị đơn nhập</small>
+          <span class="fw-extrabold text-danger fs-3" th:text="${#numbers.formatDecimal(receipt.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm rounded-4 bg-white p-0 overflow-hidden h-100">
+        <div class="p-4 bg-white border-bottom">
+          <h5 class="fw-bold text-secondary m-0">
+            <i class="fas fa-list me-2 text-primary"></i>Danh mục sản phẩm nhập kho
+          </h5>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light text-secondary text-uppercase small">
+            <tr>
+              <th class="ps-4 py-3">Sản phẩm</th>
+              <th class="text-center py-3">Số lượng</th>
+              <th class="text-end py-3">Đơn giá nhập</th>
+              <th class="text-end pe-4 py-3">Thành tiền</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="d : ${receipt.details}">
+              <td class="ps-4">
+                <div class="d-flex align-items-center">
+                  <div class="bg-light border rounded-3 p-2 me-3 text-center" style="width: 40px;">
+                    <i class="fas fa-laptop text-secondary"></i>
+                  </div>
+                  <div>
+                    <span class="fw-bold text-dark" th:text="${d.product.productName}"></span>
+                    <small class="text-muted d-block font-monospace">Mã sản phẩm: #<span th:text="${d.product.productId}"></span></small>
+                  </div>
+                </div>
+              </td>
+              <td class="text-center font-monospace fw-bold">
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill" th:text="${d.quantity}">1</span>
+              </td>
+              <td class="text-end">
+                <span th:text="${#numbers.formatDecimal(d.importPrice, 0, 'COMMA', 0, 'POINT')}"></span>đ
+              </td>
+              <td class="text-end pe-4 fw-bold text-dark">
+                <span th:text="${#numbers.formatDecimal(d.importPrice * d.quantity, 0, 'COMMA', 0, 'POINT')}"></span>đ
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

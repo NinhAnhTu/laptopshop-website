@@ -135,23 +135,26 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold small text-muted">Nhà cung cấp</label>
-                            <select th:field="*{supplierId}" class="form-select py-2">
-                                <option th:each="s : ${suppliers}" th:value="${s.supplierId}" th:text="${s.supplierName}"></option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
                             <label class="form-label fw-bold small text-muted">Bảo hành</label>
                             <select th:field="*{warrantyPolicyId}" class="form-select py-2">
                                 <option th:each="w : ${warranties}" th:value="${w.warrantyId}" th:text="${w.policyName}"></option>
                             </select>
                         </div>
-
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Trạng thái ban đầu</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-secondary-subtle text-secondary border-secondary-subtle"><i class="fas fa-eye-slash"></i></span>
+                                <input type="text" class="form-control py-2 bg-light text-secondary fw-bold" value="Tạm ẩn (Bản nháp)" readonly>
+                            </div>
+                            <div class="form-text small"><i class="fas fa-info-circle me-1 text-primary"></i>Hệ thống sẽ lưu nháp. Bạn có thể bật bán ở trang Cập nhật sau khi kiểm tra kỹ thông tin.</div>
+                        </div>
                         <div class="mb-4">
-                            <label class="form-label fw-bold small text-muted">Số lượng nhập kho</label>
-                            <input type="number" th:field="*{stock}" class="form-control py-2 fw-bold" value="0" min="0">
-                            <div class="form-text small"><i class="fas fa-info-circle me-1"></i> Số lượng ban đầu khi tạo mới.</div>
+                            <label class="form-label fw-bold small text-muted">Số lượng</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-secondary-subtle"><i class="fas fa-boxes"></i></span>
+                                <input type="number" class="form-control py-2 fw-bold bg-light text-secondary" value="0" readonly>
+                            </div>
+                            <div class="form-text small text-danger"><i class="fas fa-lock me-1"></i> Nhập kho để tăng số lượng</div>
                         </div>
 
                         <hr class="text-muted opacity-25">

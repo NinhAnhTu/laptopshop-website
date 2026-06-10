@@ -17,7 +17,6 @@ public class ProductCreateDTO {
 
     private Long brandId;
     private Long categoryId;
-    private Long supplierId;
     private Long warrantyPolicyId;
 
     // Cấu hình
@@ -54,4 +53,7 @@ public class ProductCreateDTO {
     private String vram;
     private String vramType;
     private String powerRecommended;
+
+    //Status
+    private Boolean isActive;
 }

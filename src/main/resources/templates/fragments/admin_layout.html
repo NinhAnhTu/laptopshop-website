@@ -160,9 +160,9 @@
         </a>
 
         <div class="menu-header">Quản lý kho & Đối tác</div>
-        <a th:href="@{/admin/inventory}" class="sidebar-link"
-           th:classappend="${activePage == 'inventory'} ? 'active'">
-            <i class="fas fa-warehouse"></i> Kho hàng
+        <a th:href="@{/admin/import}" class="sidebar-link"
+           th:classappend="${activePage == 'import'} ? 'active'">
+            <i class="fas fa-file-invoice-dollar"></i> Nhập kho
         </a>
         <a th:href="@{/admin/brands}" class="sidebar-link"
            th:classappend="${activePage == 'brands'} ? 'active'">
@@ -181,7 +181,7 @@
 
         <a th:href="@{/admin/reviews}" class="sidebar-link"
            th:classappend="${activePage == 'reviews'} ? 'active'">
-            <i class="fas fa-star-half-alt"></i> Quản lý Đánh giá
+            <i class="fas fa-star-half-alt"></i> Quản lý đánh giá
         </a>
 
         <a th:href="@{/admin/warranty-policies}" class="sidebar-link"

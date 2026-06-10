@@ -53,7 +53,7 @@ public class RecommendationService {
         }
 
         if (recommendedProducts.size() < 4) {
-            List<Product> bestSellers = productRepository.findTopSellingProducts(PageRequest.of(0, 10));
+            List<Product> bestSellers = productRepository.findTopSellingActiveProducts(PageRequest.of(0, 10));
             for (Product p : bestSellers) {
                 if (recommendedProducts.size() >= 4) break;
                 recommendedProducts.add(p);

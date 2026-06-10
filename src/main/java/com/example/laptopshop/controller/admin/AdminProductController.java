@@ -2,9 +2,11 @@ package com.example.laptopshop.controller.admin;
 
 import com.example.laptopshop.dto.request.ProductCreateDTO;
 import com.example.laptopshop.entity.Product;
+import com.example.laptopshop.entity.ProductSerial;
 import com.example.laptopshop.repository.*;
 import com.example.laptopshop.service.BrandService;
 import com.example.laptopshop.service.CategoryService;
+import com.example.laptopshop.service.ProductSerialService;
 import com.example.laptopshop.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -21,17 +23,16 @@ public class AdminProductController {
     private final ProductService productService;
     private final CategoryService categoryService;
     private final BrandService brandService;
-
+    private final ProductSerialService productSerialService;
     private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
-    private final SupplierRepository supplierRepository;
     private final WarrantyPolicyRepository warrantyPolicyRepository;
 
     private final SpecRamRepository specRamRepository;
     private final SpecStorageRepository specStorageRepository;
     private final SpecCpuRepository specCpuRepository;
     private final SpecVgaRepository specVgaRepository;
-
+    private final ProductSerialRepository productSerialRepository;
     // --- 1. DANH SÁCH SẢN PHẨM ---
     @GetMapping("/products")
     public String listProducts(Model model,
@@ -69,7 +70,6 @@ public class AdminProductController {
         model.addAttribute("productDTO", new ProductCreateDTO());
         model.addAttribute("brands", brandRepository.findAll());
         model.addAttribute("categories", categoryRepository.findAll());
-        model.addAttribute("suppliers", supplierRepository.findAll());
         model.addAttribute("warranties", warrantyPolicyRepository.findAll());
         return "admin/product/create";
     }
@@ -95,10 +95,9 @@ public class AdminProductController {
         dto.setStorage(product.getStorage());
         dto.setGpu(product.getGpu());
         dto.setScreen(product.getScreen());
-
+        dto.setIsActive(product.getIsActive());
         if (product.getBrand() != null) dto.setBrandId(product.getBrand().getBrandId());
         if (product.getCategory() != null) dto.setCategoryId(product.getCategory().getCategoryId());
-        if (product.getSupplier() != null) dto.setSupplierId(product.getSupplier().getSupplierId());
         if (product.getWarrantyPolicy() != null) dto.setWarrantyPolicyId(product.getWarrantyPolicy().getWarrantyId());
 // --- ĐOẠN CODE THÊM MỚI: KÉO DỮ LIỆU LINH KIỆN LÊN FORM ---
         if (product.getCategory() != null) {
@@ -140,7 +139,6 @@ public class AdminProductController {
         model.addAttribute("productId", id);
         model.addAttribute("brands", brandRepository.findAll());
         model.addAttribute("categories", categoryRepository.findAll());
-        model.addAttribute("suppliers", supplierRepository.findAll());
         model.addAttribute("warranties", warrantyPolicyRepository.findAll());
 
         return "admin/product/edit";
@@ -160,5 +158,37 @@ public class AdminProductController {
             System.out.println("Lỗi khi xóa: " + e.getMessage());
         }
         return "redirect:/admin/products";
+    }
+    // Trong AdminProductController.java
+
+    @GetMapping("/products/{id}/serials")
+    public String viewProductSerials(@PathVariable Long id, Model model) {
+        Product product = productService.getProductById(id);
+        if (product == null) {
+            return "redirect:/admin/products";
+        }
+
+        // Lấy toàn bộ danh sách Serial của sản phẩm này
+        List<ProductSerial> serials = productSerialRepository.findByProduct_ProductId(id);
+
+        model.addAttribute("product", product);
+        model.addAttribute("serials", serials);
+
+        // Trả về giao diện danh sách Serial
+        return "admin/product/serials";
+    }
+    @PostMapping("/products/serials/update-status")
+    public String updateSerialStatus(@RequestParam("serialId") Long serialId,
+                                     @RequestParam("status") com.example.laptopshop.entity.enums.SerialStatus status,
+                                     @RequestParam("productId") Long productId,
+                                     org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+        try {
+            productSerialService.updateSerialStatus(serialId, status);
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật trạng thái máy thành công! Số lượng tồn kho đã được đồng bộ tự động.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Cập nhật thất bại: " + e.getMessage());
+        }
+        // Quay trở lại đúng trang quản lý serial của sản phẩm hiện tại
+        return "redirect:/admin/products/" + productId + "/serials";
     }
 }

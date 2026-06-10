@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,12 +21,11 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
-
+    private final SimpMessagingTemplate messagingTemplate;
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
     private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
-    private final SupplierRepository supplierRepository;
     private final WarrantyPolicyRepository warrantyPolicyRepository;
 
     private final SpecRamRepository specRamRepository;
@@ -63,17 +63,17 @@ public class ProductServiceImpl implements ProductService {
         product.setProductName(dto.getProductName());
         product.setOriginalPrice(dto.getOriginalPrice());
         product.setSalePrice(dto.getSalePrice());
-        product.setStock(dto.getStock());
+        product.setStock(0);
         product.setCpu(dto.getCpu());
         product.setRam(dto.getRam());
         product.setStorage(dto.getStorage());
         product.setGpu(dto.getGpu());
         product.setScreen(dto.getScreen());
+        product.setIsActive(false);
 
         // Map khóa ngoại
         product.setBrand(brandRepository.findById(dto.getBrandId()).orElse(null));
         product.setCategory(categoryRepository.findById(dto.getCategoryId()).orElse(null));
-        product.setSupplier(supplierRepository.findById(dto.getSupplierId()).orElse(null));
         product.setWarrantyPolicy(warrantyPolicyRepository.findById(dto.getWarrantyPolicyId()).orElse(null));
 
         Product savedProduct = productRepository.save(product);
@@ -153,17 +153,17 @@ public class ProductServiceImpl implements ProductService {
         product.setProductName(dto.getProductName());
         product.setOriginalPrice(dto.getOriginalPrice());
         product.setSalePrice(dto.getSalePrice());
-        product.setStock(dto.getStock());
         product.setCpu(dto.getCpu());
         product.setRam(dto.getRam());
         product.setStorage(dto.getStorage());
         product.setGpu(dto.getGpu());
         product.setScreen(dto.getScreen());
-
+        if (dto.getIsActive() != null) {
+            product.setIsActive(dto.getIsActive());
+        }
         // Cập nhật khóa ngoại
         product.setBrand(brandRepository.findById(dto.getBrandId()).orElse(null));
         product.setCategory(categoryRepository.findById(dto.getCategoryId()).orElse(null));
-        product.setSupplier(supplierRepository.findById(dto.getSupplierId()).orElse(null));
         product.setWarrantyPolicy(warrantyPolicyRepository.findById(dto.getWarrantyPolicyId()).orElse(null));
 
         // Lưu thông tin text trước
@@ -241,6 +241,36 @@ public class ProductServiceImpl implements ProductService {
             }
         }
 
+        // --- BẮN SỰ KIỆN REALTIME CHO KHÁCH HÀNG ---
+        java.util.Map<String, Object> payload = new java.util.HashMap<>();
+        payload.put("productId", savedProduct.getProductId());
+
+        if (Boolean.TRUE.equals(savedProduct.getIsActive())) {
+            // NẾU BẬT ACTIVE -> Gửi thông tin để vẽ Card sản phẩm
+            payload.put("action", "SHOW");
+            payload.put("productName", savedProduct.getProductName());
+            payload.put("slug", savedProduct.getSlug());
+            payload.put("salePrice", savedProduct.getSalePrice());
+
+            // Lấy URL ảnh Thumbnail (hoặc ảnh placeholder nếu chưa có)
+            String thumbUrl = "https://via.placeholder.com/300";
+            if (savedProduct.getImages() != null && !savedProduct.getImages().isEmpty()) {
+                thumbUrl = savedProduct.getImages().stream()
+                        .filter(img -> img.getIsThumbnail() != null && img.getIsThumbnail())
+                        .findFirst()
+                        .map(ProductImage::getUrl)
+                        .orElse(savedProduct.getImages().get(0).getUrl());
+            }
+            payload.put("imageUrl", thumbUrl);
+        } else {
+            // NẾU TẮT ACTIVE -> Gửi lệnh HIDE để Khách hàng ẩn đi
+            payload.put("action", "HIDE");
+        }
+
+        // Bắn vào kênh /topic/product-updates
+        messagingTemplate.convertAndSend("/topic/product-updates", payload);
+        // -------------------------------------------
+
         return savedProduct;
     }
 
@@ -250,16 +280,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<Product> getAllProducts(String keyword, int page, int size) {
+    public Page<Product> getActiveProducts(String keyword, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
-
         if (keyword != null && !keyword.isEmpty()) {
-            // Nếu có từ khóa -> Tìm kiếm
-            return productRepository.findByProductNameContainingIgnoreCase(keyword, pageable);
-        } else {
-            // Nếu không -> Lấy tất cả
-            return productRepository.findAll(pageable);
+            return productRepository.findByProductNameContainingIgnoreCaseAndIsActiveTrue(keyword, pageable);
         }
+        return productRepository.findByIsActiveTrue(pageable);
     }
     @Override
     public List<Product> filterProducts(Long categoryId, Long brandId, String priceRange, Integer rating) {
@@ -289,18 +315,10 @@ public class ProductServiceImpl implements ProductService {
         }
         return productRepository.searchProducts(keyword, categoryId, brandId, minPrice, maxPrice);
     }
-    // Triển khai hàm
+
     @Override
-    public List<Product> searchInventory(String keyword, String status) {
-        if (keyword != null && keyword.trim().isEmpty()) {
-            keyword = null;
-        }
-        return productRepository.searchInventory(keyword, status);
-    }
-    @Override
-    public List<Product> getTopSellingProducts(int limit) {
-        // Lấy trang đầu tiên, số lượng phần tử là limit
-        return productRepository.findTopSellingProducts(PageRequest.of(0, limit));
+    public List<Product> getTopSellingActiveProducts(int limit) {
+        return productRepository.findTopSellingActiveProducts(PageRequest.of(0, limit));
     }
     @Override
     public Page<Product> searchProductsByKeyword(String keyword, int page, int size) {
