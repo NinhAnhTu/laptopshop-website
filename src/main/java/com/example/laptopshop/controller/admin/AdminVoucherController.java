@@ -16,9 +16,18 @@ public class AdminVoucherController {
     private final VoucherService voucherService;
 
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("vouchers", voucherService.getAllVouchers());
-        model.addAttribute("activePage", "vouchers"); // Để active menu sidebar
+    public String list(@RequestParam(required = false) String keyword,
+                       @RequestParam(required = false) String status,
+                       Model model) {
+
+        // Gọi hàm search thay vì getAllVouchers()
+        model.addAttribute("vouchers", voucherService.searchVouchers(keyword, status));
+
+        // Trả lại các giá trị này ra View để Form giữ nguyên chữ vừa gõ/trạng thái vừa chọn
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("status", status);
+
+        model.addAttribute("activePage", "vouchers");
         return "admin/voucher/list";
     }
 

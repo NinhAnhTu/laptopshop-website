@@ -61,32 +61,39 @@ public class OrderServiceImpl implements OrderService {
         ShippingRate rate = shippingRateRepository.findByRegionRegionId(regionId).orElse(null);
         BigDecimal shippingFee = (rate != null) ? rate.getBaseFee() : BigDecimal.valueOf(50000);
 
-        // 4. Xử lý Voucher
+        // 4. Xử lý Voucher (Fix lỗi Race Condition)
         BigDecimal discountAmount = BigDecimal.ZERO;
         Voucher voucher = null;
 
         if (voucherCode != null && !voucherCode.trim().isEmpty()) {
             voucher = voucherRepository.findByCode(voucherCode).orElse(null);
 
-            if (voucher != null && "active".equals(voucher.getStatus())
-                    && voucher.getQuantity() > 0
-                    && LocalDateTime.now().isAfter(voucher.getStartDate())
-                    && LocalDateTime.now().isBefore(voucher.getEndDate())) {
-
-                // Kiểm tra đơn tối thiểu
-                if (totalProductsPrice.compareTo(voucher.getMinOrderValue()) >= 0) {
-                    BigDecimal percent = voucher.getDiscountPercent().divide(BigDecimal.valueOf(100));
-                    discountAmount = totalProductsPrice.multiply(percent);
-
-                    // Giới hạn giảm tối đa
-                    if (discountAmount.compareTo(voucher.getMaxDiscountAmount()) > 0) {
-                        discountAmount = voucher.getMaxDiscountAmount();
-                    }
-
-                    // Trừ số lượng voucher
-                    voucher.setQuantity(voucher.getQuantity() - 1);
-                    voucherRepository.save(voucher);
+            if (voucher != null) {
+                // RÀO CHẮN 1: Bắt lỗi nếu mã bị Admin tắt, hết hạn hoặc hết số lượng
+                if (!"active".equals(voucher.getStatus())
+                        || voucher.getQuantity() <= 0
+                        || LocalDateTime.now().isBefore(voucher.getStartDate())
+                        || LocalDateTime.now().isAfter(voucher.getEndDate())) {
+                    throw new RuntimeException("Rất tiếc, mã giảm giá [" + voucherCode + "] vừa hết lượt sử dụng hoặc bị tạm ngưng!");
                 }
+
+                // RÀO CHẮN 2: Bắt lỗi nếu ai đó hack API đổi số tiền giỏ hàng xuống dưới mức tối thiểu
+                if (totalProductsPrice.compareTo(voucher.getMinOrderValue()) < 0) {
+                    throw new RuntimeException("Đơn hàng không đạt giá trị tối thiểu để sử dụng mã này!");
+                }
+
+                // Nếu qua được các rào chắn -> Tính tiền giảm giá
+                BigDecimal percent = voucher.getDiscountPercent().divide(BigDecimal.valueOf(100));
+                discountAmount = totalProductsPrice.multiply(percent);
+
+                // Giới hạn giảm tối đa
+                if (discountAmount.compareTo(voucher.getMaxDiscountAmount()) > 0) {
+                    discountAmount = voucher.getMaxDiscountAmount();
+                }
+
+                // Trừ số lượng voucher
+                voucher.setQuantity(voucher.getQuantity() - 1);
+                voucherRepository.save(voucher);
             }
         }
 

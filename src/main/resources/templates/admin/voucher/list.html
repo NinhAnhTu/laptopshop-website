@@ -27,7 +27,44 @@
         <i class="fas fa-exclamation-circle me-2"></i> <span th:text="${errorMessage}"></span>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0">
+            <h6 class="fw-bold text-secondary text-uppercase mb-0">
+                <i class="fas fa-filter me-2 text-primary"></i>Bộ lọc tìm kiếm
+            </h6>
+        </div>
+        <div class="card-body p-4">
+            <form action="/admin/vouchers" method="get" class="row g-3">
 
+                <div class="col-md-5">
+                    <label class="form-label fw-bold small text-muted">Từ khóa (Mã Code)</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" name="keyword" class="form-control border-start-0 ps-0"
+                               placeholder="Nhập mã voucher cần tìm..." th:value="${keyword}">
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small text-muted">Trạng thái</label>
+                    <select name="status" class="form-select">
+                        <option value="">-- Tất cả trạng thái --</option>
+                        <option value="active" th:selected="${status == 'active'}">Hoạt động</option>
+                        <option value="inactive" th:selected="${status == 'inactive'}">Đang tắt</option>
+                        <option value="expired" th:selected="${status == 'expired'}">Hết hạn</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold"
+                            style="background-color: #f37021; border-color: #f37021;">
+                        <i class="fas fa-search me-2"></i>Tìm kiếm
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
         <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
             <h6 class="mb-0 fw-bold text-secondary">Danh sách mã khuyến mãi</h6>
@@ -94,13 +131,17 @@
                         </td>
 
                         <td class="text-center">
-                                    <span th:if="${v.status == 'active'}"
-                                          class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3">
-                                        <i class="fas fa-check-circle me-1"></i> Hoạt động
-                                    </span>
-                            <span th:if="${v.status != 'active'}"
+                            <span th:if="${v.status == 'active'}"
+                                  class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3">
+                                <i class="fas fa-check-circle me-1"></i> Hoạt động
+                            </span>
+                            <span th:if="${v.status == 'inactive'}"
                                   class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3">
-                                        <i class="fas fa-pause-circle me-1"></i> Đã tắt/Hết hạn
+                                        <i class="fas fa-pause-circle me-1"></i> Đang tắt
+                                    </span>
+                            <span th:if="${v.status == 'expired'}"
+                                  class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3">
+                                        <i class="fas fa-pause-circle me-1"></i> Hết hạn
                                     </span>
                         </td>
 

@@ -65,26 +65,6 @@ public class VoucherRestController {
             return ResponseEntity.ok(response);
         }
 
-        // Nếu khách chưa đủ doanh số thì không cho dùng các mã VIP này
-        BigDecimal totalSpent = orderService.calculateTotalSpent(user);
-        long vId = voucher.getVoucherId();
-
-        if (vId == 1 && totalSpent.compareTo(new BigDecimal("20000000")) < 0) {
-            response.put("valid", false);
-            response.put("message", "Bạn cần tích lũy mua sắm trên 20 triệu để dùng mã này!");
-            return ResponseEntity.ok(response);
-        }
-        if (vId == 2 && totalSpent.compareTo(new BigDecimal("30000000")) < 0) {
-            response.put("valid", false);
-            response.put("message", "Bạn cần tích lũy mua sắm trên 30 triệu để dùng mã này!");
-            return ResponseEntity.ok(response);
-        }
-        if (vId == 3 && totalSpent.compareTo(new BigDecimal("40000000")) < 0) {
-            response.put("valid", false);
-            response.put("message", "Bạn cần tích lũy mua sắm trên 40 triệu để dùng mã này!");
-            return ResponseEntity.ok(response);
-        }
-
         // 5. Tính toán tổng tiền hàng hiện tại
         Cart cart = cartService.getCartByUser(user);
         BigDecimal currentOrderTotal = BigDecimal.ZERO;
@@ -122,11 +102,7 @@ public class VoucherRestController {
         User user = getUserFromAuthentication(authentication);
         if (user == null) return ResponseEntity.badRequest().body("Chưa đăng nhập");
 
-        BigDecimal totalSpent = orderService.calculateTotalSpent(user);
-
-        boolean level1 = totalSpent.compareTo(new BigDecimal("20000000")) >= 0; // > 20tr
-        boolean level2 = totalSpent.compareTo(new BigDecimal("30000000")) >= 0; // > 30tr
-        boolean level3 = totalSpent.compareTo(new BigDecimal("40000000")) >= 0; // > 40tr
+        // ĐÃ XÓA ĐOẠN LẤY TOTAL SPENT VÀ ĐỊNH NGHĨA LEVEL 1, 2, 3 Ở ĐÂY
 
         Cart cart = cartService.getCartByUser(user);
         BigDecimal currentOrderTotal = BigDecimal.ZERO;
@@ -148,13 +124,7 @@ public class VoucherRestController {
                 .filter(v -> v.getQuantity() > 0)
                 .filter(v -> now.isAfter(v.getStartDate()) && now.isBefore(v.getEndDate()))
 
-                .filter(v -> {
-                    long vid = v.getVoucherId();
-                    if (vid == 1) return level1;
-                    if (vid == 2) return level2;
-                    if (vid == 3) return level3;
-                    return true;
-                })
+                // ĐÃ XÓA ĐOẠN LỌC (filter) CHẶN VOUCHER THEO ID Ở ĐÂY
 
                 .map(v -> {
                     BigDecimal percent = v.getDiscountPercent().divide(BigDecimal.valueOf(100));

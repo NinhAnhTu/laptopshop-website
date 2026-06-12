@@ -8,4 +8,5 @@ public interface BrandService {
     Brand getBrandById(Long id);
     Brand saveBrand(Brand brand);
     void deleteBrand(Long id);
+    List<Brand> searchBrands(String keyword);
 }

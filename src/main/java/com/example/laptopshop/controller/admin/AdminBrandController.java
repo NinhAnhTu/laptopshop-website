@@ -8,27 +8,24 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.UUID;
-
+import com.example.laptopshop.util.UploadService;
 @Controller
 @RequestMapping("/admin/brands")
 @RequiredArgsConstructor
 public class AdminBrandController {
 
     private final BrandService brandService;
-
-    // Đường dẫn lưu ảnh ra thư mục gốc "uploads" để hiện ngay lập tức
-    private final String UPLOAD_DIR = "uploads/brands/";
+    private final UploadService uploadService;
 
     @GetMapping
-    public String listBrands(Model model) {
-        model.addAttribute("brands", brandService.getAllBrands());
+    public String listBrands(@RequestParam(required = false) String keyword, Model model) {
+
+        // Gọi hàm tìm kiếm thay vì lấy tất cả
+        model.addAttribute("brands", brandService.searchBrands(keyword));
+
+        // Trả lại keyword về View để ô input giữ lại chữ vừa gõ
+        model.addAttribute("keyword", keyword);
+
         model.addAttribute("activePage", "brands");
         return "admin/brand/list";
     }
@@ -44,27 +41,16 @@ public class AdminBrandController {
     public String saveBrand(@ModelAttribute("brand") Brand brand,
                             @RequestParam("imageFile") MultipartFile imageFile,
                             RedirectAttributes redirectAttributes) {
-        try {
             if (!imageFile.isEmpty()) {
-                String fileName = UUID.randomUUID().toString() + "_" + imageFile.getOriginalFilename();
-                Path path = Paths.get(UPLOAD_DIR + fileName);
 
-                // Tạo thư mục nếu chưa có
-                if (!Files.exists(Paths.get(UPLOAD_DIR))) {
-                    Files.createDirectories(Paths.get(UPLOAD_DIR));
-                }
+                String logoUrl =
+                        uploadService.handleSaveUploadFile(imageFile, "brands");
 
-                // Lưu file vật lý
-                Files.copy(imageFile.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
-                brand.setLogoUrl("/uploads/brands/" + fileName);
+                brand.setLogoUrl(logoUrl);
+
             }
             brandService.saveBrand(brand);
             redirectAttributes.addFlashAttribute("successMessage", "Lưu thông tin hãng thành công!");
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi upload ảnh: " + e.getMessage());
-        }
 
         return "redirect:/admin/brands";
     }

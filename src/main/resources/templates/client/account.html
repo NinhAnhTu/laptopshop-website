@@ -257,7 +257,7 @@
 
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold text-secondary">Email</label>
-                                        <input type="text" class="form-control bg-light" th:value="${user.email}" disabled>
+                                        <input type="text" name="email" class="form-control bg-light" th:value="${user.email}" readonly>
                                         <div class="form-text small"><i class="fas fa-lock me-1"></i>Email không thể thay đổi</div>
                                     </div>
                                     <div class="col-md-6">
@@ -268,9 +268,20 @@
                                         <label class="form-label fw-bold text-secondary">Số điện thoại</label>
                                         <input type="text" name="phone" class="form-control" th:value="${user.phone}">
                                     </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-secondary">Địa chỉ mặc định</label>
-                                        <input type="text" name="address" class="form-control" th:value="${user.address}" placeholder="Nhập địa chỉ giao hàng của bạn...">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-secondary">Tỉnh / Thành phố</label>
+                                        <select name="cityId" class="form-select" required>
+                                            <option value="" disabled th:selected="${user.city == null}">-- Chọn Tỉnh / Thành phố --</option>
+                                            <option th:each="city : ${cities}"
+                                                    th:value="${city.cityId}"
+                                                    th:text="${city.cityName}"
+                                                    th:selected="${user.city != null and user.city.cityId == city.cityId}">
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-secondary">Địa chỉ chi tiết</label>
+                                        <input type="text" name="address" class="form-control" th:value="${user.address}" placeholder="Số nhà, đường, phường/xã..." required>
                                     </div>
 
                                     <div class="col-12 text-end mt-4">

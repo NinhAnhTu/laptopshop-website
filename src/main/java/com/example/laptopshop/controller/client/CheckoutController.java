@@ -19,6 +19,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -93,7 +94,8 @@ public class CheckoutController {
                              @RequestParam("selectedIds") List<Long> selectedIds,
                              @RequestParam(value = "voucherCode", required = false) String voucherCode,
                              Authentication authentication, // [SỬA] Dùng Authentication
-                             HttpServletRequest request) {
+                             HttpServletRequest request,
+                             RedirectAttributes redirectAttributes) {
 
         User user = getUserFromAuthentication(authentication);
         if (user == null) return "redirect:/login";
@@ -114,7 +116,10 @@ public class CheckoutController {
 
         } catch (Exception e) {
             e.printStackTrace();
-            return "redirect:/checkout?error=true";
+            // [MỚI] Bắt lấy câu thông báo lỗi ở tầng Service và truyền sang file HTML
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            // Trả về trang Giỏ hàng để khách nhìn thấy lỗi và chỉnh sửa lại
+            return "redirect:/cart";
         }
 
         return "redirect:/checkout/success";

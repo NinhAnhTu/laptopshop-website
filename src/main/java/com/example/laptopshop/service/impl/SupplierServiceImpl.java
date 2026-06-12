@@ -33,4 +33,12 @@ public class SupplierServiceImpl implements SupplierService {
     public void deleteSupplier(Long id) {
         supplierRepository.deleteById(id);
     }
+
+    @Override
+    public List<Supplier> searchSuppliers(String keyword) {
+        if (keyword != null && keyword.trim().isEmpty()) {
+            keyword = null; // Chuyển chuỗi rỗng thành null để bỏ qua filter
+        }
+        return supplierRepository.searchSuppliers(keyword);
+    }
 }

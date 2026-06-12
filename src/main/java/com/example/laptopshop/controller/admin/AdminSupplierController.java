@@ -17,8 +17,14 @@ public class AdminSupplierController {
 
     // 1. Danh sách
     @GetMapping
-    public String listSuppliers(Model model) {
-        model.addAttribute("suppliers", supplierService.getAllSuppliers());
+    public String listSuppliers(@RequestParam(required = false) String keyword, Model model) {
+
+        // Gọi hàm tìm kiếm mới thay vì lấy tất cả
+        model.addAttribute("suppliers", supplierService.searchSuppliers(keyword));
+
+        // Trả lại keyword cho HTML để hiển thị lại chữ người dùng vừa gõ
+        model.addAttribute("keyword", keyword);
+
         model.addAttribute("activePage", "suppliers");
         return "admin/supplier/list";
     }

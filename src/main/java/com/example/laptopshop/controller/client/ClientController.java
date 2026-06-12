@@ -1,7 +1,9 @@
 package com.example.laptopshop.controller.client;
 
+import com.example.laptopshop.entity.City;
 import com.example.laptopshop.entity.Order;
 import com.example.laptopshop.entity.User;
+import com.example.laptopshop.repository.CityRepository;
 import com.example.laptopshop.service.OrderService;
 import com.example.laptopshop.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +23,7 @@ public class ClientController {
 
     private final UserService userService;
     private final OrderService orderService;
-
-    // --- 1. TRANG TÀI KHOẢN ---
+    private final CityRepository cityRepository;
     @GetMapping("/account")
     public String myAccount(Model model, Principal principal) {
         if (principal == null) return "redirect:/login";
@@ -38,6 +39,10 @@ public class ClientController {
         List<Order> orders = orderService.getOrdersByUser(user);
         if (orders == null) orders = Collections.emptyList();
 
+        // [MỚI] Load danh sách 34 tỉnh thành và đẩy xuống View
+        List<City> cities = cityRepository.findAll();
+        model.addAttribute("cities", cities);
+
         model.addAttribute("user", user);
         model.addAttribute("orders", orders);
         return "client/account";
@@ -45,7 +50,16 @@ public class ClientController {
 
     // --- 2. CẬP NHẬT THÔNG TIN ---
     @PostMapping("/account/update")
-    public String updateAccount(@ModelAttribute("user") User user, RedirectAttributes redirectAttributes) {
+    public String updateAccount(@ModelAttribute("user") User user,
+                                @RequestParam(value = "cityId", required = false) Long cityId, // [MỚI] Bắt tham số cityId từ form
+                                RedirectAttributes redirectAttributes) {
+
+        // [MỚI] Tìm và set City cho User trước khi lưu
+        if (cityId != null) {
+            City city = cityRepository.findById(cityId).orElse(null);
+            user.setCity(city);
+        }
+
         userService.updateUser(user);
         redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin thành công!");
         return "redirect:/account";

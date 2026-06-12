@@ -41,4 +41,13 @@ public class VoucherServiceImpl implements VoucherService {
     public Voucher findByCode(String code) {
         return voucherRepository.findByCode(code).orElse(null);
     }
+
+    @Override
+    public List<Voucher> searchVouchers(String keyword, String status) {
+        // Chuẩn hóa dữ liệu đầu vào, nếu rỗng thì chuyển thành null để bỏ qua điều kiện lọc
+        if (keyword != null && keyword.trim().isEmpty()) keyword = null;
+        if (status != null && status.trim().isEmpty()) status = null;
+
+        return voucherRepository.searchVouchers(keyword, status);
+    }
 }

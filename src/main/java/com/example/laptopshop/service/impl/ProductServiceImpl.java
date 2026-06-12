@@ -148,7 +148,15 @@ public class ProductServiceImpl implements ProductService {
                 }
             }
         }
+        System.out.println("=========================");
+        System.out.println(dto.getImageFile().getOriginalFilename());
 
+        System.out.println(dto.getDetailFiles().size());
+
+        for (MultipartFile f : dto.getDetailFiles()) {
+            System.out.println(f.getOriginalFilename());
+        }
+        System.out.println("=========================");
         return savedProduct;
     }
 

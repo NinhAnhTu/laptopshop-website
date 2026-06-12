@@ -33,4 +33,12 @@ public class BrandServiceImpl implements BrandService {
     public void deleteBrand(Long id) {
         brandRepository.deleteById(id);
     }
+
+    @Override
+    public List<Brand> searchBrands(String keyword) {
+        if (keyword != null && keyword.trim().isEmpty()) {
+            keyword = null; // Tránh trường hợp gửi chuỗi rỗng
+        }
+        return brandRepository.searchBrands(keyword);
+    }
 }

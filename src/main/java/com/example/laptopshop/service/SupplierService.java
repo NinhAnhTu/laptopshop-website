@@ -8,4 +8,5 @@ public interface SupplierService {
     Supplier getSupplierById(Long id);
     Supplier saveSupplier(Supplier supplier);
     void deleteSupplier(Long id);
+    List<Supplier> searchSuppliers(String keyword);
 }

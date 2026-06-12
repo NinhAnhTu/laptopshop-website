@@ -9,4 +9,5 @@ public interface VoucherService {
     Voucher getById(Long id);
     void delete(Long id);
     Voucher findByCode(String code);
+    List<Voucher> searchVouchers(String keyword, String status);
 }
