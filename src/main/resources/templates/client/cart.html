@@ -84,6 +84,7 @@
                                            form="checkoutForm"
                                            class="form-check-input item-checkbox"
                                            th:data-price="${item.product.salePrice}"
+                                           th:data-stock="${item.product.stock}"
                                            onchange="updateTotalPrice()">
                                 </td>
 
@@ -99,9 +100,10 @@
                                         </div>
                                         <div>
                                             <a th:href="@{'/product/' + ${item.product.slug}}"
-                                               class="product-link text-decoration-none d-block mb-1"
+                                               class="product-link text-decoration-none d-block mb-1 product-name-label"
                                                th:text="${item.product.productName}">Tên Laptop</a>
-                                            <small class="text-muted" th:text="'Kho: ' + ${item.product.stock}"></small>
+                                            <small th:class="${item.quantity > item.product.stock} ? 'text-danger fw-bold' : 'text-muted'"
+                                                   th:text="'Kho: ' + ${item.product.stock}"></small>
                                         </div>
                                     </div>
                                 </td>
@@ -112,8 +114,9 @@
                                 <td class="text-center">
                                     <form th:action="@{/cart/update}" method="post" class="d-flex justify-content-center">
                                         <input type="hidden" name="id" th:value="${item.cartDetailId}">
-                                        <input type="number" name="quantity" th:value="${item.quantity}" min="0" max="100"
+                                        <input type="number" name="quantity" th:value="${item.quantity}" min="1" th:max="${item.product.stock}"
                                                class="form-control quantity-input text-center" style="width: 70px;"
+                                               th:classappend="${item.quantity > item.product.stock} ? 'border-danger text-danger' : ''"
                                                onchange="this.form.submit()">
                                     </form>
                                 </td>
@@ -178,21 +181,18 @@
 <div th:replace="~{fragments/footer :: footer}"></div>
 
 <script>
-    // Hàm format tiền tệ VNĐ (Ví dụ: 1000000 -> 1.000.000 đ)
+    // Hàm format tiền tệ VNĐ
     function formatCurrency(amount) {
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
     }
 
-    // Hàm tính tổng tiền dựa trên các checkbox được chọn
+    // Hàm tính tổng tiền
     function updateTotalPrice() {
         let total = 0;
         const checkboxes = document.querySelectorAll('.item-checkbox:checked');
 
         checkboxes.forEach(checkbox => {
-            // Lấy giá từ data-price
             const price = parseFloat(checkbox.getAttribute('data-price'));
-
-            // Tìm ô input số lượng trong cùng dòng (tr)
             const row = checkbox.closest('tr');
             const quantityInput = row.querySelector('.quantity-input');
             const quantity = parseInt(quantityInput.value);
@@ -202,26 +202,78 @@
             }
         });
 
-        // Cập nhật giao diện
         document.getElementById('total-price-display').innerText = formatCurrency(total);
     }
 
-    // Hàm chọn tất cả / bỏ chọn tất cả
+    // Hàm chọn tất cả
     function toggleAll(source) {
         const checkboxes = document.querySelectorAll('.item-checkbox');
         checkboxes.forEach(checkbox => {
             checkbox.checked = source.checked;
         });
-        // Tính lại tiền sau khi chọn all
         updateTotalPrice();
     }
 
-    // Gọi hàm tính tiền 1 lần khi trang vừa load xong
     document.addEventListener("DOMContentLoaded", function() {
         updateTotalPrice();
+
+        const checkoutForm = document.getElementById('checkoutForm');
+
+        checkoutForm.addEventListener('submit', function(e) {
+            const checkboxes = document.querySelectorAll('.item-checkbox:checked');
+
+            // 1. Kiểm tra xem có chọn sản phẩm nào chưa
+            if (checkboxes.length === 0) {
+                e.preventDefault(); // Chặn submit
+
+                // DÙNG SWEETALERT THAY CHO ALERT
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Chưa chọn sản phẩm',
+                    text: 'Vui lòng chọn ít nhất 1 sản phẩm để tiến hành thanh toán!',
+                    confirmButtonColor: '#f37021',
+                    confirmButtonText: 'Đã hiểu'
+                });
+                return;
+            }
+
+            // 2. Kiểm tra số lượng so với tồn kho
+            let hasError = false;
+            let errorMessage = '<div style="text-align: left; font-size: 0.95rem;">';
+
+            checkboxes.forEach(checkbox => {
+                const stock = parseInt(checkbox.getAttribute('data-stock'));
+                const row = checkbox.closest('tr');
+                const quantityInput = row.querySelector('.quantity-input');
+                const quantity = parseInt(quantityInput.value);
+                const productName = row.querySelector('.product-name-label').innerText;
+
+                if (quantity > stock) {
+                    hasError = true;
+                    // Format lỗi bằng HTML cho đẹp
+                    errorMessage += `<div class="mb-2 text-danger"><i class="fas fa-times-circle me-1"></i> <b>${productName}</b><br>Kho chỉ còn <b>${stock}</b> (Bạn đang chọn ${quantity})</div>`;
+                }
+            });
+            errorMessage += '</div>';
+
+            if (hasError) {
+                e.preventDefault(); // Hủy lệnh chuyển trang thanh toán
+
+                // DÙNG SWEETALERT THAY CHO ALERT
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Vượt quá số lượng tồn kho!',
+                    html: errorMessage,
+                    footer: '<span class="text-muted small">Vui lòng giảm số lượng của các sản phẩm trên để tiếp tục.</span>',
+                    confirmButtonColor: '#f37021',
+                    confirmButtonText: 'Quay lại giỏ hàng'
+                });
+            }
+        });
     });
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>

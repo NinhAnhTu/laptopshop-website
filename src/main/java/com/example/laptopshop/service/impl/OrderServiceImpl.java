@@ -119,6 +119,10 @@ public class OrderServiceImpl implements OrderService {
         // 7. Lưu chi tiết đơn hàng (Details)
         List<OrderDetail> orderDetails = new ArrayList<>();
         for (CartDetail item : selectedItems) {
+            Product product = item.getProduct();
+            if (product.getStock() < item.getQuantity()) {
+                throw new RuntimeException("Lỗi: Sản phẩm [" + product.getProductName() + "] không đủ số lượng trong kho!");
+            }
             OrderDetail detail = new OrderDetail();
             detail.setOrder(savedOrder);
             detail.setProduct(item.getProduct());
@@ -126,6 +130,8 @@ public class OrderServiceImpl implements OrderService {
             detail.setUnitPrice(item.getProduct().getSalePrice());
             detail.setTotalPrice(item.getProduct().getSalePrice().multiply(BigDecimal.valueOf(item.getQuantity())));
             orderDetails.add(detail);
+            product.setStock(product.getStock() - item.getQuantity());
+            productRepository.save(product);
         }
         orderDetailRepository.saveAll(orderDetails);
 

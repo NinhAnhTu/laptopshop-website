@@ -58,9 +58,18 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public Product createProduct(ProductCreateDTO dto) {
+        if (dto.getSalePrice() != null && dto.getOriginalPrice() != null
+                && dto.getSalePrice().compareTo(dto.getOriginalPrice()) > 0) {
+            throw new RuntimeException("Lỗi: Giá bán khuyến mãi không được cao hơn giá gốc!");
+        }
+        if (dto.getStock() != null && dto.getStock() < 0) {
+            throw new RuntimeException("Lỗi: Số lượng tồn kho không được là số âm!");
+        }
         Product product = new Product();
         // Map dữ liệu cơ bản
         product.setProductName(dto.getProductName());
+        String slug = dto.getProductName().toLowerCase().replace(" ", "-");
+        product.setSlug(slug);
         product.setOriginalPrice(dto.getOriginalPrice());
         product.setSalePrice(dto.getSalePrice());
         product.setStock(0);

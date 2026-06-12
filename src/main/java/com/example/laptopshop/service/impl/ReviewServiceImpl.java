@@ -60,6 +60,17 @@ public class ReviewServiceImpl implements ReviewService {
             // Lưu xuống DB để có ID và đối tượng chuẩn
             Review savedReview = reviewRepository.save(review);
 
+            // Lấy toàn bộ đánh giá của sản phẩm này để tính trung bình
+            List<Review> allReviews = reviewRepository.findByProductProductIdOrderByCreatedAtDesc(productId);
+            double avgRating = allReviews.stream()
+                    .mapToInt(Review::getRating)
+                    .average()
+                    .orElse(0.0);
+
+            // Làm tròn đến 1 chữ số thập phân (ví dụ: 4.5, 4.8)
+            double roundedRating = Math.round(avgRating * 10.0) / 10.0;
+            product.setRating(roundedRating);
+            productRepository.save(product);
             processAutoReviewAction(savedReview);
         }
     }

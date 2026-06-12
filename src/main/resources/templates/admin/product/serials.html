@@ -83,7 +83,7 @@
 
                         <td>
                             <span th:if="${s.order != null}">
-                                <a th:class="btn btn-outline-info btn-sm rounded-pill px-3" style="font-size: 0.8rem;"
+                                <a class="btn btn-outline-info btn-sm rounded-pill px-3" style="font-size: 0.8rem;"
                                    th:href="@{'/admin/orders/view/' + ${s.order.orderId}}">
                                     <i class="fas fa-receipt me-1"></i>#<span th:text="${s.order.orderId}"></span>
                                 </a>

@@ -82,7 +82,8 @@
                                              class="badge bg-success-subtle text-success border border-success rounded-pill px-2 py-1 mb-1 d-inline-flex align-items-center me-1">
                                             <span th:text="${serial.serialNumber}" class="me-2 fw-bold"></span>
 
-                                            <form action="/admin/orders/remove-serial" method="post" class="d-inline m-0">
+                                            <form th:if="${order.status == 'Chờ xác nhận' or order.status == 'Đã xác nhận' or order.status == 'Đã thanh toán' or order.status == 'Đã hủy'}"
+                                                  action="/admin/orders/remove-serial" method="post" class="d-inline m-0">
                                                 <input type="hidden" name="orderId" th:value="${order.orderId}">
                                                 <input type="hidden" name="serialId" th:value="${serial.serialId}">
                                                 <button type="submit" class="btn-close" style="font-size: 0.5rem;" title="Xóa gán, trả lại kho"></button>
@@ -92,7 +93,8 @@
 
                                     <div th:with="assignedCount=${assignedSerials != null and assignedSerials.get(item.product.productId) != null ? assignedSerials.get(item.product.productId).size() : 0}">
 
-                                        <form th:if="${assignedCount < item.quantity}" action="/admin/orders/assign-serial" method="post" class="mt-2 d-flex flex-column align-items-center gap-2">
+                                        <form th:if="${assignedCount < item.quantity and (order.status == 'Chờ xác nhận' or order.status == 'Đã xác nhận' or order.status == 'Đã thanh toán')}"
+                                              action="/admin/orders/assign-serial" method="post" class="mt-2 d-flex flex-column align-items-center gap-2">
                                             <input type="hidden" name="orderId" th:value="${order.orderId}">
                                             <input type="hidden" name="productId" th:value="${item.product.productId}">
 
@@ -108,7 +110,10 @@
                                             </div>
                                         </form>
 
-                                        <small th:if="${assignedCount < item.quantity}" class="text-danger d-block mt-1 fw-bold">
+                                        <small th:if="${assignedCount < item.quantity and order.status != 'Chờ xác nhận' and order.status != 'Đã xác nhận' and order.status != 'Đã thanh toán'}" class="text-danger d-block mt-1 fw-bold">
+                                            <i class="fas fa-lock"></i> Đơn hàng khóa: Chưa gán đủ Serial
+                                        </small>
+                                        <small th:if="${assignedCount < item.quantity and (order.status == 'Chờ xác nhận' or order.status == 'Đã xác nhận' or order.status == 'Đã thanh toán')}" class="text-danger d-block mt-1 fw-bold">
                                             Cần gán thêm [[${item.quantity - assignedCount}]] serial
                                         </small>
                                         <small th:if="${assignedCount == item.quantity}" class="text-success d-block mt-1 fw-bold">
@@ -161,27 +166,52 @@
                     <h6 class="fw-bold text-secondary"><i class="fas fa-tasks me-2"></i>Cập nhật trạng thái</h6>
                 </div>
                 <div class="card-body p-4">
-                    <form action="/admin/orders/update-status" method="post">
+                    <form id="updateStatusForm" action="/admin/orders/update-status" method="post">
                         <input type="hidden" name="id" th:value="${order.orderId}">
 
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-muted">Trạng thái hiện tại</label>
+
                             <select name="status" class="form-select py-2 fw-bold"
-                                    th:classappend="${order.status == 'Đã hủy'} ? 'text-danger border-danger' :
-                                                        (${order.status == 'Đã giao'} ? 'text-success border-success' : 'text-primary border-primary')">
-                                <option value="Chờ xác nhận" th:selected="${order.status == 'Chờ xác nhận'}">🟡 Chờ xác nhận</option>
-                                <option value="Đã xác nhận" th:selected="${order.status == 'Đã xác nhận'}">🔵 Đã xác nhận</option>
-                                <option value="Đang giao" th:selected="${order.status == 'Đang giao'}">🚚 Đang giao hàng</option>
-                                <option value="Đã giao" th:selected="${order.status == 'Đã giao'}">✅ Giao thành công</option>
-                                <option value="Đã thanh toán" th:selected="${order.status == 'Đã thanh toán'}">💰 Đã thanh toán</option>
-                                <option value="Đã hủy" th:selected="${order.status == 'Đã hủy'}">❌ Hủy đơn hàng</option>
+                                    th:disabled="${order.status == 'Đã hủy' or order.status == 'Đã giao'}"
+                                    th:classappend="${order.status == 'Đã hủy'} ? 'text-danger border-danger bg-light' :
+                                                        (${order.status == 'Đã giao'} ? 'text-success border-success bg-light' : 'text-primary border-primary')">
+
+                                <option value="Chờ xác nhận"
+                                        th:selected="${order.status == 'Chờ xác nhận'}"
+                                        th:disabled="${order.status != 'Chờ xác nhận'}">Chờ xác nhận</option>
+
+                                <option value="Đã thanh toán"
+                                        th:selected="${order.status == 'Đã thanh toán'}"
+                                        th:disabled="${order.status == 'Đã xác nhận' or order.status == 'Đang giao'}">Đã thanh toán</option>
+
+                                <option value="Đã xác nhận"
+                                        th:selected="${order.status == 'Đã xác nhận'}"
+                                        th:disabled="${order.status == 'Đang giao'}">Đã xác nhận (Đang chuẩn bị hàng)</option>
+
+                                <option value="Đang giao"
+                                        th:selected="${order.status == 'Đang giao'}">Đang giao hàng</option>
+
+                                <option value="Đã giao"
+                                        th:selected="${order.status == 'Đã giao'}">Giao thành công</option>
+
+                                <option value="Đã hủy"
+                                        th:selected="${order.status == 'Đã hủy'}"
+                                        th:disabled="${order.status == 'Đang giao'}">Hủy đơn hàng</option>
                             </select>
                         </div>
 
-                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold"
+                        <button th:if="${order.status != 'Đã hủy' and order.status != 'Đã giao'}" type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold"
                                 style="background-color: #f37021; border-color: #f37021;">
                             <i class="fas fa-save me-2"></i>Cập nhật
                         </button>
+
+                        <div th:if="${order.status == 'Đã hủy'}" class="alert alert-danger text-center small p-2 mt-2 mb-0 border-0 rounded-3">
+                            <i class="fas fa-lock me-1"></i> Đơn hàng đã hủy (Khóa thay đổi)
+                        </div>
+                        <div th:if="${order.status == 'Đã giao'}" class="alert alert-success text-center small p-2 mt-2 mb-0 border-0 rounded-3">
+                            <i class="fas fa-shield-alt me-1"></i> Đơn hàng đã hoàn thành (Khóa thay đổi)
+                        </div>
                     </form>
                 </div>
             </div>
@@ -235,6 +265,79 @@
     </div>
 
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        const updateForm = document.getElementById('updateStatusForm');
+
+        // 1. Tính toán số lượng Serial bằng Thymeleaf ngay trong JS
+        let totalRequired = 0;
+        let totalAssigned = 0;
+
+        /*[# th:each="item : ${order.orderDetails}"]*/
+        totalRequired += /*[[${item.quantity}]]*/ 0;
+        /*[# th:if="${assignedSerials != null and assignedSerials.get(item.product.productId) != null}"]*/
+        totalAssigned += /*[[${assignedSerials.get(item.product.productId).size()}]]*/ 0;
+        /*[/]*/
+        /*[/]*/
+
+        const currentStatus = /*[[${order.status}]]*/ 'Chờ xác nhận';
+
+        if(updateForm) {
+            updateForm.addEventListener('submit', function(e) {
+                const statusSelect = this.querySelector('select[name="status"]');
+                if (!statusSelect) return;
+
+                const newStatus = statusSelect.value;
+                if (newStatus === currentStatus) return; // Không đổi trạng thái -> Bỏ qua
+
+                // --- LUỒNG 1: NẾU MUỐN HỦY ĐƠN ---
+                if (newStatus === 'Đã hủy') {
+                    if (totalAssigned > 0) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Không thể hủy đơn!',
+                            html: 'Đơn hàng này đang có <b>' + totalAssigned + '</b> Serial được gán.<br>Vui lòng bấm dấu <b>[x]</b> để gỡ bỏ toàn bộ Serial trả lại kho trước khi hủy đơn.',
+                            confirmButtonColor: '#f37021'
+                        });
+                        return;
+                    } else {
+                        e.preventDefault();
+                        Swal.fire({
+                            title: 'Xác nhận hủy đơn hàng?',
+                            html: 'Bạn có chắc chắn muốn hủy hóa đơn này không?<br><small class="text-danger"><i>(Hành động này không thể hoàn tác)</i></small>',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#dc3545',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: '<i class="fas fa-trash-alt me-2"></i>Đồng ý hủy',
+                            cancelButtonText: 'Quay lại'
+                        }).then((result) => {
+                            if (result.isConfirmed) { updateForm.submit(); }
+                        });
+                        return;
+                    }
+                }
+
+                // --- LUỒNG 2: NẾU TIẾN LÊN CÁC TRẠNG THÁI TIẾP THEO ---
+                // Yêu cầu phải có đủ Serial nếu Admin muốn xác nhận để đóng gói, hoặc đem đi giao
+                if (newStatus === 'Đã xác nhận' || newStatus === 'Đang giao' || newStatus === 'Đã giao') {
+                    if (totalAssigned < totalRequired) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Chưa gán đủ Serial!',
+                            html: 'Vui lòng gán đủ <b>' + totalRequired + '</b> mã Serial cho sản phẩm trước khi chuyển sang trạng thái <b>' + newStatus + '</b>!<br><span class="small text-muted">(Hiện tại mới gán: ' + totalAssigned + ')</span>',
+                            confirmButtonColor: '#f37021'
+                        });
+                        return;
+                    }
+                }
+            });
+        }
+    });
+</script>
 </body>
 </html>

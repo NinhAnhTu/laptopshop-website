@@ -41,6 +41,12 @@ public class UserServiceImpl implements UserService {
     // --- 1. ĐĂNG KÝ USER MỚI (CLIENT) ---
     @Override
     public User registerUser(User user) {
+        if (user.getGoogleId() == null && (user.getPhone() == null || user.getPhone().trim().isEmpty())) {
+            throw new RuntimeException("Lỗi: Người dùng bắt buộc phải có số điện thoại!");
+        }
+        if (user.getEmail() == null || !user.getEmail().contains("@")) {
+            throw new RuntimeException("Lỗi: Email không hợp lệ (thiếu @)!");
+        }
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new RuntimeException("Email đã tồn tại!");
         }
@@ -70,6 +76,12 @@ public class UserServiceImpl implements UserService {
     // --- 3. CẬP NHẬT PROFILE (CLIENT) ---
     @Override
     public void updateUser(User user) {
+        if (user.getGoogleId() == null && (user.getPhone() == null || user.getPhone().trim().isEmpty())) {
+            throw new RuntimeException("Lỗi: Người dùng bắt buộc phải có số điện thoại!");
+        }
+        if (user.getEmail() == null || !user.getEmail().contains("@")) {
+            throw new RuntimeException("Lỗi: Email không hợp lệ (thiếu @)!");
+        }
         User currentUser = userRepository.findById(user.getUserId()).orElse(null);
         if (currentUser != null) {
             currentUser.setFullname(user.getFullname());
@@ -121,6 +133,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User saveUser(User user) {
+        if (user.getGoogleId() == null && (user.getPhone() == null || user.getPhone().trim().isEmpty())) {
+            throw new RuntimeException("Lỗi: Người dùng bắt buộc phải có số điện thoại!");
+        }
+        if (user.getEmail() == null || !user.getEmail().contains("@")) {
+            throw new RuntimeException("Lỗi: Email không hợp lệ (thiếu @)!");
+        }
         if (user.getUserId() == null) {
             String rawPassword = user.getPassword(); // Lấy mật khẩu gốc
             user.setPassword(passwordEncoder.encode(rawPassword));
