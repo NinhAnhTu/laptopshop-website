@@ -2,16 +2,13 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/admin_layout :: layout(~{:: .warranty-content})}">
 <head>
-    <title>Quản lý Bảo Hành - ChaosCoders</title>
+    <title>Quản lý phiếu bảo hành - ChaosCoders</title>
 </head>
 <body>
 
 <div class="warranty-content">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-dark">Danh sách Bảo Hành</h2>
-        <a th:href="@{/admin/warranties/scan}" class="btn btn-warning shadow-sm">
-            <i class="fas fa-envelope-open-text me-1"></i> Quét & Gửi Mail Nhắc Nhở
-        </a>
+        <h2 class="fw-bold text-dark">Danh sách phiếu bảo hành</h2>
     </div>
 
     <div class="card border-0 shadow-sm rounded-4 mb-4">
@@ -42,35 +39,32 @@
                         <th>Mã BH</th>
                         <th>Khách hàng</th>
                         <th>Sản phẩm</th>
-                        <th>Gói BH</th>
+                        <th>Gói bảo hành</th>
                         <th>Hạn bảo hành</th>
                         <th>Trạng thái</th>
-                        <th>Thao tác</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:each="w : ${warranties}">
                         <td class="fw-bold text-primary" th:text="${w.warrantyCode}"></td>
                         <td>
-                            <div th:text="${w.user?.fullname}"></div>
-                            <small class="text-muted" th:text="${w.user?.phone}"></small>
+                            <div class="fw-bold text-dark" th:text="${w.product?.productName}"></div>
+
+                            <small class="text-muted"
+                                   th:text="${w.purchaseDate != null ? 'Ngày kích hoạt: ' + #temporals.format(w.purchaseDate, 'dd/MM/yyyy') : 'Ngày kích hoạt: Đang cập nhật'}">
+                            </small>
                         </td>
-                        <td th:text="${w.product?.productName}"></td>
                         <td th:text="${w.warrantyPolicy?.policyName}"></td>
-                        <td th:text="${#temporals.format(w.expirationDate, 'dd/MM/yyyy HH:mm')}"></td>
-                        <td>
-                                <span class="badge rounded-pill"
-                                      th:classappend="${w.status == 'ACTIVE' ? 'bg-success' : (w.status == 'EXPIRED' ? 'bg-warning' : 'bg-danger')}"
-                                      th:text="${w.status}"></span>
+
+                        <td class="fw-bold"
+                            th:text="${w.expirationDate != null ? #temporals.format(w.expirationDate, 'dd/MM/yyyy') : 'Chưa xác định'}">
                         </td>
+
                         <td>
-                            <a th:href="@{/admin/warranties/edit/{id}(id=${w.id})}" class="btn btn-sm btn-outline-primary" title="Cập nhật">
-                                <i class="fas fa-edit"></i>
-                            </a>
+                                                <span class="badge rounded-pill px-3 py-2"
+                                                      th:classappend="${w.status == 'ACTIVE' ? 'bg-success' : (w.status == 'EXPIRED' ? 'bg-warning text-dark' : 'bg-danger')}"
+                                                      th:text="${w.status != null ? w.status : 'UNKNOWN'}"></span>
                         </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(warranties)}">
-                        <td colspan="7" class="text-center text-muted py-4">Không tìm thấy dữ liệu bảo hành nào.</td>
                     </tr>
                     </tbody>
                 </table>

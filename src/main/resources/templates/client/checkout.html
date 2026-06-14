@@ -163,41 +163,49 @@
             <div class="row g-4">
                 <div class="col-lg-7">
                     <div class="checkout-card">
-                        <div class="card-header-custom">
-                            <i class="fas fa-map-marker-alt me-2"></i> Thông tin giao hàng
+                        <div class="card-header-custom d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-map-marker-alt me-2"></i> Thông tin nhận hàng</span>
+                            <a href="/account" class="btn btn-sm btn-light text-primary rounded-pill fw-bold px-3 py-1" style="font-size: 0.85rem;">
+                                <i class="fas fa-edit me-1"></i> Thay đổi
+                            </a>
                         </div>
                         <div class="card-body-custom">
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="form-label"><i class="fas fa-user me-1"></i> Họ và tên <span class="required-mark">*</span></label>
-                                    <input type="text" name="fullname" class="form-control" th:value="${user.fullname}" placeholder="Nguyễn Văn A" required>
+                                    <label class="form-label"><i class="fas fa-user me-1"></i> Họ và tên</label>
+                                    <input type="text" name="fullname" class="form-control bg-light" th:value="${user.fullname}" readonly required>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label"><i class="fas fa-phone me-1"></i> Số điện thoại <span class="required-mark">*</span></label>
-                                    <input type="text" name="phone" class="form-control" th:value="${user.phone}" placeholder="0912..." required>
+                                    <label class="form-label"><i class="fas fa-phone me-1"></i> Số điện thoại</label>
+                                    <input type="text" name="phone" class="form-control bg-light" th:value="${user.phone}" readonly required>
                                 </div>
+
                                 <div class="col-12">
-                                    <label class="form-label"><i class="fas fa-city me-1"></i> Tỉnh / Thành phố <span class="required-mark">*</span></label>
-                                    <select name="cityId" class="form-select" required>
-                                        <option value="" disabled selected>-- Chọn khu vực --</option>
-                                        <option th:each="city : ${cities}"
-                                                th:value="${city.cityId}"
-                                                th:text="${city.cityName}">
-                                        </option>
-                                    </select>
+                                    <div class="p-3 bg-light border border-secondary-subtle rounded-3 position-relative">
+                                        <label class="form-label text-muted small text-uppercase fw-bold"><i class="fas fa-map-marked-alt me-1"></i> Địa chỉ giao hàng</label>
+
+                                        <div th:if="${user.city != null and user.address != null and user.address != ''}">
+                                            <p class="mb-1 fw-bold text-dark fs-6" th:text="${user.address}"></p>
+                                            <p class="mb-0 text-muted small" th:text="${user.city.cityName}"></p>
+
+                                            <input type="hidden" name="cityId" th:value="${user.city.cityId}">
+                                            <input type="hidden" name="address" th:value="${user.address}">
+                                        </div>
+
+                                        <div th:if="${user.city == null or user.address == null or user.address == ''}">
+                                            <p class="text-danger fw-bold mb-0"><i class="fas fa-exclamation-triangle me-1"></i> Bạn chưa thiết lập địa chỉ!</p>
+                                            <a href="/account" class="btn btn-sm btn-danger mt-2 rounded-pill px-3">Cập nhật ngay</a>
+                                        </div>
+                                    </div>
                                 </div>
+
                                 <div class="col-12">
-                                    <label class="form-label"><i class="fas fa-home me-1"></i> Địa chỉ chi tiết <span class="required-mark">*</span></label>
-                                    <input type="text" name="address" class="form-control" th:value="${user.address}" placeholder="Số nhà, tên đường, phường/xã..." required>
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label"><i class="fas fa-clipboard-list me-1"></i> Ghi chú (Tùy chọn)</label>
+                                    <label class="form-label"><i class="fas fa-clipboard-list me-1"></i> Ghi chú </label>
                                     <textarea name="note" class="form-control" rows="2" placeholder=" "></textarea>
                                 </div>
                             </div>
                         </div>
                     </div>
-
                     <div class="checkout-card">
                         <div class="card-header-custom">
                             <i class="fas fa-credit-card me-2"></i> Phương thức thanh toán
@@ -269,18 +277,18 @@
                                 </div>
                                 <div class="d-flex justify-content-between mb-3 text-muted">
                                     <span><i class="fas fa-truck me-1"></i>Phí vận chuyển:</span>
-                                    <span class="small">Tính theo khu vực</span>
+                                    <span class="small fw-bold text-dark" th:text="'+ ' + ${#numbers.formatDecimal(shippingFee, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
                                 </div>
                                 <hr>
                                 <div class="d-flex justify-content-between align-items-center pt-2">
                                     <span class="fw-bold fs-5 text-dark">TỔNG CỘNG:</span>
                                     <strong id="finalTotalDisplay" class="fs-4 text-danger fw-bold"
-                                            th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                            th:text="${#numbers.formatDecimal(totalPrice + shippingFee, 0, 'COMMA', 0, 'POINT')} + ' đ'">
                                     </strong>
                                 </div>
                             </div>
 
-                            <button type="submit" class="btn btn-custom-orange w-100 mt-4">
+                            <button type="submit" class="btn btn-custom-orange w-100 mt-4" th:disabled="${user.city == null}">
                                 <i class="fas fa-paper-plane me-2"></i>ĐẶT HÀNG NGAY
                             </button>
                             <div class="text-center mt-3">
@@ -315,7 +323,12 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script th:inline="javascript">
-    const originalTotal = /*[[${totalPrice}]]*/ 0;
+    // Lấy thẳng số liệu từ Spring Boot vào biến Javascript
+    const productsTotal = /*[[${totalPrice}]]*/ 0;
+    const shippingFee = /*[[${shippingFee}]]*/ 0;
+
+    // Khởi tạo tổng tiền cuối cùng = Tiền Hàng + Tiền Ship
+    let originalTotalWithShip = productsTotal + shippingFee;
 
     function applyVoucher() {
         const codeInput = document.getElementById("voucherCodeInput");
@@ -345,7 +358,8 @@
                     const discount = data.discountAmount;
                     document.getElementById("discountDisplay").innerText = "- " + discount.toLocaleString('vi-VN') + " đ";
 
-                    const newTotal = originalTotal - discount;
+                    // Trừ tiền: (Tổng gốc) - (Giảm giá)
+                    const newTotal = originalTotalWithShip - discount;
                     const finalTotal = newTotal > 0 ? newTotal : 0;
 
                     document.getElementById("finalTotalDisplay").innerText = finalTotal.toLocaleString('vi-VN') + " đ";
@@ -355,15 +369,14 @@
                     messageBox.innerHTML = '<i class="fas fa-times-circle me-1"></i> ' + data.message;
                     messageBox.className = "voucher-error";
 
+                    // Trả lại nguyên trạng thái
                     document.getElementById("discountDisplay").innerText = "- 0 đ";
-                    document.getElementById("finalTotalDisplay").innerText = originalTotal.toLocaleString('vi-VN') + " đ";
+                    document.getElementById("finalTotalDisplay").innerText = originalTotalWithShip.toLocaleString('vi-VN') + " đ";
                     document.getElementById("hiddenVoucherCode").value = "";
                 }
             })
             .catch(error => {
                 console.error('Lỗi:', error);
-                messageBox.innerHTML = "Lỗi kết nối!";
-                messageBox.className = "voucher-error";
             });
     }
 

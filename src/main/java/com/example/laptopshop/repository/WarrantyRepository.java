@@ -1,5 +1,6 @@
 package com.example.laptopshop.repository;
 
+import com.example.laptopshop.entity.User;
 import com.example.laptopshop.entity.Warranty;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,7 +22,7 @@ public interface WarrantyRepository extends JpaRepository<Warranty, Long> {
 
     List<Warranty> findByExpirationDateBetweenAndStatus(LocalDateTime start, LocalDateTime end, String status);
 
-    Warranty findByWarrantyCode(String code);
+    List<Warranty> findByUserOrderByPurchaseDateDesc(User user);
 
     List<Warranty> findByStatus(String status);
 }

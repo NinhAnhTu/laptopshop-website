@@ -1,6 +1,7 @@
 package com.example.laptopshop.service;
 
 import com.example.laptopshop.entity.Order;
+import com.example.laptopshop.entity.User;
 import com.example.laptopshop.entity.Warranty;
 import java.util.List;
 
@@ -16,7 +17,5 @@ public interface WarrantyService {
     void activateWarranty(Order order);
     void scanAndExpireWarranties();
     void sendWarrantyExpiryReminders();
-    Warranty getById(Long id);
-    void save(Warranty warranty);
-    void deleteById(Long id);
+    List<Warranty> getWarrantiesByUser(User user);
 }

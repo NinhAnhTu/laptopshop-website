@@ -3,9 +3,11 @@ package com.example.laptopshop.controller.client;
 import com.example.laptopshop.entity.City;
 import com.example.laptopshop.entity.Order;
 import com.example.laptopshop.entity.User;
+import com.example.laptopshop.entity.Warranty;
 import com.example.laptopshop.repository.CityRepository;
 import com.example.laptopshop.service.OrderService;
 import com.example.laptopshop.service.UserService;
+import com.example.laptopshop.service.WarrantyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
@@ -24,6 +26,7 @@ public class ClientController {
     private final UserService userService;
     private final OrderService orderService;
     private final CityRepository cityRepository;
+    private final WarrantyService warrantyService;
     @GetMapping("/account")
     public String myAccount(Model model, Principal principal) {
         if (principal == null) return "redirect:/login";
@@ -39,10 +42,13 @@ public class ClientController {
         List<Order> orders = orderService.getOrdersByUser(user);
         if (orders == null) orders = Collections.emptyList();
 
+        List<Warranty> warranties = warrantyService.getWarrantiesByUser(user);
+        if (warranties == null) warranties = Collections.emptyList();
+
         // [MỚI] Load danh sách 34 tỉnh thành và đẩy xuống View
         List<City> cities = cityRepository.findAll();
         model.addAttribute("cities", cities);
-
+        model.addAttribute("warranties", warranties);
         model.addAttribute("user", user);
         model.addAttribute("orders", orders);
         return "client/account";
@@ -60,8 +66,13 @@ public class ClientController {
             user.setCity(city);
         }
 
-        userService.updateUser(user);
-        redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin thành công!");
+        try {
+            userService.updateUser(user);
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin thành công!");
+        } catch (Exception e) {
+            // Đẩy câu báo lỗi về lại màn hình giao diện
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
         return "redirect:/account";
     }
 
@@ -105,4 +116,26 @@ public class ClientController {
 
         return "redirect:/account";
     }
+    // --- XEM CHI TIẾT ĐƠN HÀNG ---
+    @GetMapping("/account/order/{id}")
+    public String viewOrderDetail(@PathVariable Long id, Model model, Principal principal) {
+        if (principal == null) return "redirect:/login";
+
+        Order order = orderService.getOrderById(id);
+
+        // Chặn không cho xem trộm đơn hàng của người khác
+        String currentEmail = principal.getName();
+        if (principal instanceof OAuth2AuthenticationToken) {
+            currentEmail = ((OAuth2AuthenticationToken) principal).getPrincipal().getAttribute("email");
+        }
+        User currentUser = userService.findByEmail(currentEmail);
+
+        if (order == null || !order.getUser().getUserId().equals(currentUser.getUserId())) {
+            return "redirect:/account";
+        }
+
+        model.addAttribute("order", order);
+        return "client/order_detail"; // Trỏ tới file HTML mới
+    }
+
 }

@@ -34,36 +34,6 @@ public class AdminWarrantyController {
         return "admin/warranty/list";
     }
 
-    // 2. Hiển thị form Edit
-    @GetMapping("/edit/{id}")
-    public String editWarranty(@PathVariable Long id, Model model) {
-        Warranty warranty = warrantyRepository.findById(id).orElse(null);
-        if (warranty == null) {
-            return "redirect:/admin/warranties";
-        }
-        model.addAttribute("warranty", warranty);
-        model.addAttribute("activePage", "warranties");
-        return "admin/warranty/edit";
-    }
-
-    // 3. Xử lý lưu (Cập nhật)
-    @PostMapping("/save")
-    public String saveWarranty(@ModelAttribute("warranty") Warranty formWarranty, RedirectAttributes redirectAttributes) {
-        Warranty dbWarranty = warrantyRepository.findById(formWarranty.getId()).orElse(null);
-
-        if (dbWarranty != null) {
-            dbWarranty.setExpirationDate(formWarranty.getExpirationDate());
-            dbWarranty.setStatus(formWarranty.getStatus());
-
-            warrantyRepository.save(dbWarranty);
-            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật phiếu bảo hành thành công!");
-        } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy phiếu bảo hành!");
-        }
-
-        return "redirect:/admin/warranties";
-    }
-
     @GetMapping("/scan")
     public String scanExpiringWarranties(RedirectAttributes redirectAttributes) {
         try {

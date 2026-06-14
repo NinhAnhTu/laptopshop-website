@@ -1,11 +1,8 @@
 package com.example.laptopshop.controller.client;
 
-import com.example.laptopshop.entity.Cart;
-import com.example.laptopshop.entity.CartDetail;
-import com.example.laptopshop.entity.City;
-import com.example.laptopshop.entity.Order;
-import com.example.laptopshop.entity.User;
+import com.example.laptopshop.entity.*;
 import com.example.laptopshop.repository.CityRepository;
+import com.example.laptopshop.repository.ShippingRateRepository;
 import com.example.laptopshop.service.CartService;
 import com.example.laptopshop.service.OrderService;
 import com.example.laptopshop.service.UserService;
@@ -21,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +31,7 @@ public class CheckoutController {
     private final OrderService orderService;
     private final CityRepository cityRepository;
     private final VnPayService vnPayService;
-
+    private final ShippingRateRepository shippingRateRepository;
     // 1. Hiển thị trang thanh toán
     @GetMapping("/checkout")
     public String showCheckoutPage(@RequestParam(value = "selectedItems", required = false) List<Long> selectedItems,
@@ -69,12 +67,16 @@ public class CheckoutController {
         if (checkoutItems.isEmpty()) {
             return "redirect:/cart";
         }
-
-        List<City> cities = cityRepository.findAll();
-
+        BigDecimal shippingFee = BigDecimal.valueOf(50000); // Phí mặc định nếu lỗi
+        if (user.getCity() != null && user.getCity().getRegion() != null) {
+            ShippingRate rate = shippingRateRepository.findByRegionRegionId(user.getCity().getRegion().getRegionId()).orElse(null);
+            if (rate != null) {
+                shippingFee = rate.getBaseFee();
+            }
+        }
+        model.addAttribute("shippingFee", shippingFee); // Truyền phí Ship xuống HTML
         model.addAttribute("cartItems", checkoutItems);
         model.addAttribute("totalPrice", totalPrice);
-        model.addAttribute("cities", cities);
         model.addAttribute("user", user);
 
         // Truyền danh sách ID này sang View để lát nữa form POST gửi lại
