@@ -1,12 +1,15 @@
 package com.example.laptopshop.service.impl;
 
 import com.example.laptopshop.entity.*;
+import com.example.laptopshop.event.OrderStatusChangedEvent;
+import com.example.laptopshop.facade.CheckoutFacade;
 import com.example.laptopshop.repository.*;
 import com.example.laptopshop.service.CartService;
 import com.example.laptopshop.service.EmailService;
 import com.example.laptopshop.service.OrderService;
 import com.example.laptopshop.service.WarrantyService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,138 +26,22 @@ import java.util.List;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
-    private final OrderDetailRepository orderDetailRepository;
-    private final CartService cartService;
-    private final CityRepository cityRepository;
-    private final ShippingRateRepository shippingRateRepository;
-    private final CartDetailRepository cartDetailRepository;
-    private final PaymentMethodRepository paymentMethodRepository;
     private final EmailService emailService;
     private final ProductRepository productRepository;
-    private final VoucherRepository voucherRepository;
     private final WarrantyService warrantyService;
 
+    private final CheckoutFacade checkoutFacade;
+
+    private final ApplicationEventPublisher eventPublisher;
     @Override
     @Transactional
     public Order placeOrder(User user, String note, String shippingAddress,
                             String shippingName, String shippingPhone, Long cityId, Long paymentMethodId,
                             List<Long> selectedCartDetailIds, String voucherCode) {
-
-        // 1. Lấy sản phẩm từ giỏ hàng
-        List<CartDetail> selectedItems = cartDetailRepository.findAllById(selectedCartDetailIds);
-
-        if (selectedItems.isEmpty()) {
-            throw new RuntimeException("Không có sản phẩm nào được chọn để thanh toán!");
-        }
-
-        // 2. Tính tổng tiền hàng
-        BigDecimal totalProductsPrice = BigDecimal.ZERO;
-        for (CartDetail item : selectedItems) {
-            BigDecimal linePrice = item.getProduct().getSalePrice().multiply(BigDecimal.valueOf(item.getQuantity()));
-            totalProductsPrice = totalProductsPrice.add(linePrice);
-        }
-
-        // 3. Tính phí vận chuyển
-        City city = cityRepository.findById(cityId).orElseThrow(() -> new RuntimeException("City not found"));
-        Long regionId = city.getRegion().getRegionId();
-
-        ShippingRate rate = shippingRateRepository.findByRegionRegionId(regionId).orElse(null);
-        BigDecimal shippingFee = (rate != null) ? rate.getBaseFee() : BigDecimal.valueOf(50000);
-
-        // 4. Xử lý Voucher (Fix lỗi Race Condition)
-        BigDecimal discountAmount = BigDecimal.ZERO;
-        Voucher voucher = null;
-
-        if (voucherCode != null && !voucherCode.trim().isEmpty()) {
-            voucher = voucherRepository.findByCode(voucherCode).orElse(null);
-
-            if (voucher != null) {
-                // RÀO CHẮN 1: Bắt lỗi nếu mã bị Admin tắt, hết hạn hoặc hết số lượng
-                if (!"active".equals(voucher.getStatus())
-                        || voucher.getQuantity() <= 0
-                        || LocalDateTime.now().isBefore(voucher.getStartDate())
-                        || LocalDateTime.now().isAfter(voucher.getEndDate())) {
-                    throw new RuntimeException("Rất tiếc, mã giảm giá [" + voucherCode + "] vừa hết lượt sử dụng hoặc bị tạm ngưng!");
-                }
-
-                // RÀO CHẮN 2: Bắt lỗi nếu ai đó hack API đổi số tiền giỏ hàng xuống dưới mức tối thiểu
-                if (totalProductsPrice.compareTo(voucher.getMinOrderValue()) < 0) {
-                    throw new RuntimeException("Đơn hàng không đạt giá trị tối thiểu để sử dụng mã này!");
-                }
-
-                // Nếu qua được các rào chắn -> Tính tiền giảm giá
-                BigDecimal percent = voucher.getDiscountPercent().divide(BigDecimal.valueOf(100));
-                discountAmount = totalProductsPrice.multiply(percent);
-
-                // Giới hạn giảm tối đa
-                if (discountAmount.compareTo(voucher.getMaxDiscountAmount()) > 0) {
-                    discountAmount = voucher.getMaxDiscountAmount();
-                }
-
-                // Trừ số lượng voucher
-                voucher.setQuantity(voucher.getQuantity() - 1);
-                voucherRepository.save(voucher);
-            }
-        }
-
-        // 5. Tính tổng thanh toán cuối cùng
-        BigDecimal finalAmount = totalProductsPrice.add(shippingFee).subtract(discountAmount);
-        if (finalAmount.compareTo(BigDecimal.ZERO) < 0) {
-            finalAmount = BigDecimal.ZERO;
-        }
-
-        // 6. Lưu đơn hàng (Header)
-        Order order = new Order();
-        order.setUser(user);
-        order.setStatus("Chờ xác nhận");
-        order.setNote(note);
-        order.setShippingAddress(shippingAddress);
-        order.setShippingName(shippingName);
-        order.setShippingPhone(shippingPhone);
-        order.setShippingCity(city);
-        order.setTotalProductsPrice(totalProductsPrice);
-        order.setShippingFee(shippingFee);
-        order.setDiscountAmount(discountAmount);
-        order.setVoucher(voucher);
-        order.setFinalAmount(finalAmount);
-
-        PaymentMethod pm = paymentMethodRepository.findById(paymentMethodId).orElse(null);
-        order.setPaymentMethod(pm);
-
-        Order savedOrder = orderRepository.save(order);
-
-        // 7. Lưu chi tiết đơn hàng (Details)
-        List<OrderDetail> orderDetails = new ArrayList<>();
-        for (CartDetail item : selectedItems) {
-            Product product = item.getProduct();
-            if (product.getStock() < item.getQuantity()) {
-                throw new RuntimeException("Lỗi: Sản phẩm [" + product.getProductName() + "] không đủ số lượng trong kho!");
-            }
-            OrderDetail detail = new OrderDetail();
-            detail.setOrder(savedOrder);
-            detail.setProduct(item.getProduct());
-            detail.setQuantity(item.getQuantity());
-            detail.setUnitPrice(item.getProduct().getSalePrice());
-            detail.setTotalPrice(item.getProduct().getSalePrice().multiply(BigDecimal.valueOf(item.getQuantity())));
-            orderDetails.add(detail);
-            product.setStock(product.getStock() - item.getQuantity());
-            productRepository.save(product);
-        }
-        orderDetailRepository.saveAll(orderDetails);
-
-        // 8. Gửi email xác nhận đặt hàng
-        try {
-            if (user.getEmail() != null) {
-                emailService.sendOrderStatusEmail(savedOrder);
-            }
-        } catch (Exception e) {
-            System.out.println("Lỗi gửi mail: " + e.getMessage());
-        }
-
-        // 9. Xóa sản phẩm khỏi giỏ hàng
-        cartDetailRepository.deleteAll(selectedItems);
-
-        return savedOrder;
+        return checkoutFacade.processCheckout(
+                user, note, shippingAddress, shippingName, shippingPhone,
+                cityId, paymentMethodId, selectedCartDetailIds, voucherCode
+        );
     }
 
     @Override
@@ -191,43 +78,9 @@ public class OrderServiceImpl implements OrderService {
             order.setStatus(status);
             orderRepository.save(order);
 
-            // 2. Logic kích hoạt bảo hành (khi giao hàng thành công)
-            boolean isNewStatusDelivered = status != null && status.contains("Đã giao");
-            boolean isOldStatusNotDelivered = oldStatus == null || !oldStatus.contains("Đã giao");
-
-            if (isNewStatusDelivered && isOldStatusNotDelivered) {
-                try {
-                    warrantyService.activateWarranty(order);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            // 3. Logic gửi mail thông báo trạng thái đơn hàng (đã giao, đang giao...)
-            if (order.getUser() != null && order.getUser().getEmail() != null) {
-                try {
-                    Hibernate.initialize(order.getOrderDetails());
-                    emailService.sendOrderStatusEmail(order);
-                } catch (Exception e) {
-                    System.out.println("Lỗi gửi mail đơn hàng: " + e.getMessage());
-                }
-            }
-
-            // 4.Logic gửi mail tặng Voucher (Tích lũy)
-            boolean isPaidOrSuccess = (status != null) && (status.contains("Đã thanh toán") || status.contains("Đã giao"));
-            boolean wasNotPaidOrSuccess = (oldStatus == null) || (!oldStatus.contains("Đã thanh toán") && !oldStatus.contains("Đã giao"));
-
-            if (isPaidOrSuccess && wasNotPaidOrSuccess) {
-                if (order.getUser() != null && order.getUser().getEmail() != null) {
-                    try {
-                        BigDecimal totalSpent = calculateTotalSpent(order.getUser());
-                        emailService.sendVoucherGiftNotification(order.getUser(), totalSpent);
-                        System.out.println("Đã gửi mail tặng voucher cho user: " + order.getUser().getEmail());
-                    } catch (Exception e) {
-                        System.out.println("Lỗi gửi mail tặng voucher: " + e.getMessage());
-                    }
-                }
-            }
+            // 2. PHÁT LOA THÔNG BÁO (Áp dụng Observer Pattern)
+            // Không cần quan tâm ai gửi mail, ai làm bảo hành nữa, cứ quăng Event ra là xong!
+            eventPublisher.publishEvent(new OrderStatusChangedEvent(this, order, oldStatus, status));
         }
     }
 

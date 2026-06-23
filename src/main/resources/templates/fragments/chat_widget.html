@@ -1,0 +1,323 @@
+<style>
+  /* Hoạt ảnh dấu 3 chấm đang gõ */
+  .typing-indicator {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: #e9ecef;
+    border-radius: 20px;
+    border-bottom-left-radius: 2px;
+  }
+  .typing-indicator span {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background-color: #6c757d;
+    border-radius: 50%;
+    margin: 0 2px;
+    animation: typing 1.4s infinite ease-in-out both;
+  }
+  .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+  .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+  @keyframes typing {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+  }
+
+  /* Hiệu ứng nảy cho Lời chào */
+  @keyframes bounceIn {
+    0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+    40% {transform: translateY(-10px);}
+    60% {transform: translateY(-5px);}
+  }
+</style>
+
+<div id="welcome-bubble" class="shadow rounded-3 bg-white p-2 d-flex align-items-center"
+     style="position: fixed; bottom: 40px; right: 100px; z-index: 1000; cursor: pointer; animation: bounceIn 2s infinite; border: 1px solid #dee2e6;">
+  <img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png" style="width: 30px; height: 30px;" class="me-2">
+  <div style="font-size: 0.85rem; color: #333; line-height: 1.2;">
+    <span class="fw-bold text-primary">Chat ngay!</span><br>
+    Mình tư vấn laptop cho bạn nhé?
+  </div>
+  <div style="position: absolute; right: -8px; top: 15px; width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 8px solid white;"></div>
+</div>
+<div th:fragment="chat_widget">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+  <button id="btn-open-chat" class="btn btn-primary rounded-circle shadow-lg"
+          style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; z-index: 1000;">
+    <i class="fas fa-comments fs-3"></i>
+  </button>
+
+  <div id="chat-box-container" class="card shadow-lg d-none"
+       style="position: fixed; bottom: 100px; right: 30px; width: 350px; height: 500px; z-index: 1000; border-radius: 15px; overflow: hidden; display: flex; flex-direction: column;">
+
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center p-3">
+      <h6 class="mb-0 fw-bold"><i class="fas fa-robot me-2"></i> Trợ lý AI - ChaosCoders</h6>
+      <button id="btn-close-chat" class="btn-close btn-close-white"></button>
+    </div>
+
+    <div id="chat-messages" class="card-body p-3" style="overflow-y: auto; flex-grow: 1; background-color: #f8f9fa;">
+      <div class="text-center my-2">
+        <small class="text-muted fst-italic">Hãy bắt đầu cuộc trò chuyện!</small>
+      </div>
+    </div>
+
+    <div class="card-footer bg-white p-2">
+      <div class="input-group">
+        <input type="text" id="chat-input" class="form-control rounded-pill me-2" placeholder="Nhập tin nhắn..." onkeypress="handleEnter(event)">
+        <button class="btn btn-primary rounded-circle" onclick="sendMessage()">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let stompClient = null;
+    let currentRoomId = null;
+    let currentRoomStatus = 'AI'; // [MỚI] Biến theo dõi trạng thái phòng
+    let typingTimeout;
+    let lastMsgDateStr = null;
+
+    const chatContainer = document.getElementById("chat-box-container");
+    const msgContainer = document.getElementById("chat-messages");
+    const chatInput = document.getElementById("chat-input");
+
+    document.getElementById("btn-open-chat").addEventListener("click", function() {
+      chatContainer.classList.remove("d-none");
+      this.classList.add("d-none");
+
+      // [MỚI] Ẩn bong bóng lời chào đi khi mở chat
+      let welcomeBubble = document.getElementById("welcome-bubble");
+      if (welcomeBubble) welcomeBubble.style.display = "none";
+
+      initChat();
+    });
+
+    // (Cho phép khách bấm vào bong bóng lời chào để mở chat luôn)
+    document.getElementById("welcome-bubble").addEventListener("click", function() {
+      document.getElementById("btn-open-chat").click();
+    });
+
+    document.getElementById("btn-close-chat").addEventListener("click", function() {
+      chatContainer.classList.add("d-none");
+      document.getElementById("btn-open-chat").classList.remove("d-none");
+
+      // [FIX LỖI] Hiện lại Bong bóng lời chào nảy nảy khi đóng chat
+      let welcomeBubble = document.getElementById("welcome-bubble");
+      if (welcomeBubble) welcomeBubble.style.display = "flex";
+    });
+
+    chatInput.addEventListener("input", function() {
+      if (stompClient && stompClient.connected && currentRoomId) {
+        stompClient.send("/app/chat.typing", {}, JSON.stringify({ roomId: currentRoomId, senderType: 'USER' }));
+      }
+    });
+
+    function formatTimeOnly(timestamp) {
+      if (!timestamp) timestamp = new Date();
+      var date = new Date(timestamp);
+      return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute:'2-digit' });
+    }
+
+    function getNewDayDivider(timestamp) {
+      if (!timestamp) timestamp = new Date();
+      var date = new Date(timestamp);
+      var dateStr = date.toLocaleDateString('vi-VN');
+      if (dateStr !== lastMsgDateStr) {
+        lastMsgDateStr = dateStr;
+        return dateStr;
+      }
+      return null;
+    }
+
+    function initChat() {
+      msgContainer.innerHTML = `
+        <div class="d-flex justify-content-center align-items-center h-100 flex-column text-muted opacity-75">
+            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+            <span class="fw-bold">Đang tải cuộc trò chuyện...</span>
+        </div>`;
+
+      fetch('/api/chat/my-room')
+              .then(res => {
+                if (res.status === 401) {
+                  msgContainer.innerHTML = '<div class="alert alert-warning m-2 text-center small">Vui lòng đăng nhập để chat!</div>';
+                  chatInput.disabled = true; throw new Error("Not logged in");
+                }
+                return res.json();
+              })
+              .then(data => {
+                msgContainer.innerHTML = '';
+                lastMsgDateStr = null;
+                if (data.hasRoom && data.history.length > 0) {
+                  currentRoomId = data.roomId;
+                  currentRoomStatus = data.status;
+                  data.history.forEach(msg => appendMessage(msg));
+                  connectWebSocket(currentRoomId);
+                } else {
+                  // [FIX LỖI] TỰ ĐỘNG BẮN LỜI CHÀO NẾU LÀ KHÁCH HÀNG MỚI (Lần đầu mở chat)
+                  appendMessage({
+                    senderType: 'AI',
+                    content: 'Chào bạn, mình là trợ lý AI của Laptop Shop ChaosCoders. Bạn đang cần tìm laptop phục vụ nhu cầu gì ạ? (Học tập, chơi game, hay văn phòng...)'
+                  });
+                }
+              }).catch(err => console.log(err));
+    }
+
+    function connectWebSocket(roomId) {
+      if (stompClient !== null) return;
+      let socket = new SockJS('/ws');
+      stompClient = Stomp.over(socket);
+      stompClient.debug = null;
+
+      stompClient.connect({}, function(frame) {
+
+        // 1. NHẬN TIN NHẮN TỪ SOCKET
+        stompClient.subscribe('/topic/room/' + roomId, function(payload) {
+          removeTypingIndicator(); // Luôn xóa chữ "Đang gõ" cũ khi có tín hiệu mới
+          let message = JSON.parse(payload.body);
+          appendMessage(message);
+
+          // [MỚI] Cập nhật trạng thái phòng nếu có tin nhắn hệ thống
+          if (message.senderType === 'SYSTEM') {
+            if (message.content.includes("kết thúc")) currentRoomStatus = 'AI';
+            else if (message.content.includes("tham gia")) currentRoomStatus = 'CHATTING';
+            else if (message.content.includes("chờ")) currentRoomStatus = 'WAITING_ADMIN';
+          }
+
+          // [MỚI] Nếu Khách vừa chat xong và phòng đang là AI quản lý -> Hiện "AI đang suy nghĩ..."
+          if (message.senderType === 'USER' && (currentRoomStatus === 'AI' || currentRoomStatus === 'CLOSED')) {
+            showAiTypingIndicator();
+          }
+        });
+
+        // 2. NHẬN TÍN HIỆU ADMIN ĐANG GÕ
+        stompClient.subscribe('/topic/room/' + roomId + '/typing', function(payload) {
+          let data = JSON.parse(payload.body);
+          if (data.senderType === 'ADMIN') {
+            showAdminTypingIndicator();
+          }
+        });
+      });
+    }
+
+    function handleEnter(e) { if (e.key === 'Enter') sendMessage(); }
+
+    function sendMessage() {
+      let content = chatInput.value.trim();
+      if (!content) return;
+      chatInput.value = "";
+
+      fetch('/api/chat/send/user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: content })
+      }).then(res => res.json()).then(data => {
+        if (currentRoomId === null && data.room) {
+          currentRoomId = data.room.roomId;
+          currentRoomStatus = data.room.status;
+          msgContainer.innerHTML = '';
+          connectWebSocket(currentRoomId);
+        }
+      });
+    }
+
+    // [MỚI] ĐỔI HOẠT ẢNH AI ĐANG GÕ THÀNH DẤU 3 CHẤM
+    function showAiTypingIndicator() {
+      let indicator = document.getElementById("typing-indicator");
+      if (!indicator) {
+        let alignClass = "text-start";
+        let nameTag = `<div class="small text-muted fw-bold mb-1"><i class="fas fa-robot text-primary me-1"></i>Bot AI</div>`;
+
+        let html = `
+          <div id="typing-indicator" class="mb-3 ${alignClass}">
+              ${nameTag}
+              <div class="typing-indicator">
+                  <span></span><span></span><span></span>
+              </div>
+          </div>`;
+        msgContainer.insertAdjacentHTML('beforeend', html);
+      }
+      msgContainer.scrollTop = msgContainer.scrollHeight;
+    }
+
+    // [MỚI] ĐỔI HOẠT ẢNH ADMIN ĐANG GÕ THÀNH DẤU 3 CHẤM
+    function showAdminTypingIndicator() {
+      let indicator = document.getElementById("typing-indicator");
+      if (!indicator) {
+        let alignClass = "text-start";
+        let nameTag = `<div class="small text-muted fw-bold mb-1"><i class="fas fa-headset text-success me-1"></i>Hỗ trợ viên</div>`;
+
+        let html = `
+          <div id="typing-indicator" class="mb-3 ${alignClass}">
+              ${nameTag}
+              <div class="typing-indicator">
+                  <span></span><span></span><span></span>
+              </div>
+          </div>`;
+        msgContainer.insertAdjacentHTML('beforeend', html);
+      }
+      msgContainer.scrollTop = msgContainer.scrollHeight;
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(removeTypingIndicator, 2500);
+    }
+
+    function removeTypingIndicator() {
+      let indicator = document.getElementById("typing-indicator");
+      if (indicator) indicator.remove();
+    }
+
+    function formatText(text) {
+      if (!text) return "";
+      return text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+    }
+
+    function appendMessage(msg) {
+      let isUser = (msg.senderType === 'USER');
+      let isSystem = (msg.senderType === 'SYSTEM');
+      let timestamp = msg.createdAt || new Date().toISOString();
+
+      let newDayStr = getNewDayDivider(timestamp);
+      if (newDayStr) {
+        msgContainer.innerHTML += `<div class="text-center my-3"><span class="small text-muted bg-light px-3 py-1 rounded-pill" style="border: 1px solid #eee;">${newDayStr}</span></div>`;
+      }
+
+      if (isSystem) {
+        msgContainer.innerHTML += `<div class="text-center my-3"><span class="badge bg-secondary opacity-75 text-wrap lh-base" style="max-width: 90%; line-height: 1.5;">${msg.content}</span></div>`;
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+        return;
+      }
+
+      let alignClass = isUser ? "text-end" : "text-start";
+      let bgClass = isUser ? "bg-primary text-white" : "bg-white text-dark border";
+      let nameTag = msg.senderType === 'AI' ? `<div class="small text-muted fw-bold mb-1"><i class="fas fa-robot text-primary me-1"></i>Bot AI</div>` : '';
+      if (msg.senderType === 'ADMIN') nameTag = `<div class="small text-muted fw-bold mb-1"><i class="fas fa-headset text-success me-1"></i>Hỗ trợ viên</div>`;
+      let timeStr = formatTimeOnly(timestamp);
+
+      let html = `<div class="mb-3 ${alignClass}"> ${!isUser ? nameTag : ''} <div class="d-inline-block p-2 rounded-3 shadow-sm ${bgClass}" style="max-width: 85%; text-align: left; font-size: 0.95rem;"> ${formatText(msg.content)} </div>`;
+      // [MỚI] Vòng lặp vẽ DÀN CARD SẢN PHẨM nàm ngang
+      if (msg.suggestedProducts && msg.suggestedProducts.length > 0) {
+        // Tạo một flex-box chứa các card, cho phép cuộn ngang hoặc tự rớt dòng
+        html += `<div class="d-flex flex-wrap gap-2 mt-2 ${isUser ? 'justify-content-end' : 'justify-content-start'}">`;
+
+        msg.suggestedProducts.forEach(p => {
+          let imgUrl = (p.images && p.images.length > 0) ? p.images[0].url : 'https://via.placeholder.com/150';
+          html += `
+                        <div class="card shadow-sm text-start bg-white" style="width: 160px; border-radius: 10px;">
+                            <img src="${imgUrl}" class="card-img-top p-2" style="height: 100px; object-fit: contain; background: white;">
+                            <div class="card-body p-2 border-top">
+                                <h6 class="card-title text-truncate mb-1 text-dark" style="font-size: 0.8rem;" title="${p.productName}">${p.productName}</h6>
+                                <p class="text-danger fw-bold mb-0" style="font-size: 0.85rem;">${p.salePrice.toLocaleString('vi-VN')} đ</p>
+                                <a href="/product/${p.slug}" class="btn btn-sm btn-outline-primary w-100 mt-2" style="font-size: 0.75rem;">Xem chi tiết</a>
+                            </div>
+                        </div>`;
+        });
+        html += `</div>`;
+      }
+
+      html += `<div class="${isUser ? 'text-end' : 'text-start'} mt-1" style="font-size: 0.7rem; opacity: 0.7; color: #888;">${timeStr}</div></div>`;
+      msgContainer.innerHTML += html;
+      msgContainer.scrollTop = msgContainer.scrollHeight;
+    }
+  </script>
+</div>

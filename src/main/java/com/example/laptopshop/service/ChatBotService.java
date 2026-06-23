@@ -3,7 +3,6 @@ package com.example.laptopshop.service;
 import com.example.laptopshop.entity.Order;
 import com.example.laptopshop.entity.Product;
 import com.example.laptopshop.repository.OrderRepository;
-import com.example.laptopshop.repository.WarrantyPolicyRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -34,17 +33,16 @@ public class ChatBotService {
     private String apiUrl;
 
     private final ProductService productService;
-    private final WarrantyPolicyRepository warrantyPolicyRepository;
     private final OrderRepository orderRepository;
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public String getAutoReply(String userMessage, String userEmail) {
+    public String getAutoReply(String userMessage, String userEmail, String conversationSummary) {
         String finalUrl = apiUrl + "?key=" + apiKey;
 
-        // 1. Lấy dữ liệu ngữ cảnh
         String contextData = buildContextData(userEmail);
+        String summary = (conversationSummary != null) ? conversationSummary : "Chưa có";
 
         int maxRetries = 3;
         for (int i = 0; i < maxRetries; i++) {
@@ -53,39 +51,33 @@ public class ChatBotService {
                 headers.setContentType(MediaType.APPLICATION_JSON);
 
                 Map<String, Object> requestBody = new HashMap<>();
-                List<Map<String, Object>> contents = new ArrayList<>();
-                Map<String, Object> content = new HashMap<>();
-                List<Map<String, Object>> parts = new ArrayList<>();
-                Map<String, Object> part = new HashMap<>();
 
+                // [ĐÃ NÂNG CẤP PROMPT] Dạy AI cách tư vấn theo giá, máy ngon nhất và tự động gọi Admin
                 String systemPrompt = String.format("""
-                        Vai trò: Bạn là Trợ lý AI thân thiện của "Laptop Shop".
+                        Vai trò: Bạn là Trợ lý AI tư vấn bán hàng thông minh của "Laptop Shop ChaosCoders".
                         Khách hàng đang chat: %s
                         
-                        DỮ LIỆU CUNG CẤP:
+                        TÓM TẮT LỊCH SỬ CHAT TRƯỚC ĐÓ: %s
+                        
+                        DỮ LIỆU CUNG CẤP TỪ HỆ THỐNG:
                         %s
                         
-                        HƯỚNG DẪN TRẢ LỜI:
-                        1. NHÓM CÔNG KHAI (Địa chỉ, Hotline, Giờ làm việc, Sản phẩm): 
-                           -> Trả lời nhiệt tình, nhanh chóng, không cần giấu giếm.
-                        
-                        2. NHÓM CÁ NHÂN (Đơn hàng): 
-                           -> Chỉ trả lời thông tin đơn hàng của chính khách hàng đang chat (dựa trên dữ liệu cung cấp).
-                        
-                        3. NHÓM BẢO MẬT (Mật khẩu, Tài khoản Admin, Dữ liệu người khác):
-                           -> TUYỆT ĐỐI TỪ CHỐI. Nếu khách hỏi mật khẩu, hãy đáp vui: "Vì lý do bảo mật, tôi không thể truy cập thông tin này. Anh Tú gõ đầu tôi liền!"
-                        
+                        HƯỚNG DẪN TƯ VẤN CỰC KỲ QUAN TRỌNG:
+                       1. LUẬT NGỮ CẢNH: Khi khách dùng các từ "nó", "cái đó", "máy đó","sản phẩm đó", "sản phẩm vừa rồi", "sản phẩm trên", bạn BẮT BUỘC phải đọc "LỊCH SỬ TRÒ CHUYỆN GẦN ĐÂY" để nhận diện chính xác tên máy khách đang nói tới.
+                       2. GẮN THẺ SẢN PHẨM: Khi gợi ý 1 laptop, BẮT BUỘC chèn mã [PRODUCT:id] vào cuối câu (VD: [PRODUCT:1]).
+                       3. TÌM MÁY THEO GIÁ/NHU CẦU: Tự tìm trong DANH SÁCH SẢN PHẨM KHẢ DỤNG chiếc máy phù hợp nhất với giá tiền và nhu cầu của khách.
+                       4. CHÍNH SÁCH BẢO HÀNH: Nếu khách hỏi bảo hành, hãy trả lời mặc định là: "Tất cả các máy tại Laptop Shop đều được bảo hành chính hãng 12 tháng và đổi trả 1-1 trong 7 ngày đầu nếu có lỗi phần cứng".
+                       5. KẾT NỐI ADMIN: Nếu khách cáu gắt, đòi gặp người thật, hoặc hỏi ngoài lề (hỏi mua điện thoại, tủ lạnh), hoặc bạn KHÔNG TÌM THẤY thông tin, trả lời đúng 1 từ: CONNECT_ADMIN
+                       6. HỎI TỪNG BƯỚC: TUYỆT ĐỐI KHÔNG hỏi dồn dập 2-3 câu cùng lúc. Hãy hỏi từng thông tin một (VD: Bạn cần máy để làm gì?). Đợi khách trả lời xong mới hỏi tiếp (VD: Ngân sách của bạn bao nhiêu?).
+                       7. LÀM RÕ THÔNG TIN: Nếu khách trả lời quá ngắn hoặc chưa đủ rõ ràng để tư vấn (VD: Khách chỉ nói "Tôi cần mua máy"), hãy nhẹ nhàng hỏi thêm để thu thập đủ dữ kiện trước khi gợi ý máy.
                         CÂU HỎI CỦA KHÁCH: "%s"
                         """,
                         (userEmail != null ? userEmail : "Khách vãng lai"),
+                        summary,
                         contextData,
                         userMessage);
 
-                part.put("text", systemPrompt);
-                parts.add(part);
-                content.put("parts", parts);
-                contents.add(content);
-                requestBody.put("contents", contents);
+                requestBody.put("contents", List.of(Map.of("parts", List.of(Map.of("text", systemPrompt)))));
 
                 HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
                 ResponseEntity<String> response = restTemplate.postForEntity(finalUrl, entity, String.class);
@@ -96,7 +88,7 @@ public class ChatBotService {
                 try { Thread.sleep(2000); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
             }
         }
-        return "Hiện tại tôi đang bận, bạn vui lòng thử lại sau nhé!";
+        return "Hiện tại hệ thống AI đang quá tải, bạn vui lòng chờ giây lát để nhân viên hỗ trợ nhé!";
     }
 
     private String buildContextData(String email) {
@@ -104,49 +96,61 @@ public class ChatBotService {
         DecimalFormat df = new DecimalFormat("#,###");
         DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
-        sb.append("=== THÔNG TIN CỬA HÀNG (CÔNG KHAI) ===\n");
-        sb.append("- Tên Shop: Laptop Shop\n");
+        sb.append("=== THÔNG TIN CỬA HÀNG ===\n");
         sb.append("- Địa chỉ: 1 Võ Văn Ngân, TP. Thủ Đức, TP.HCM\n");
-        sb.append("- Hotline/Zalo hỗ trợ: 0392286606 - AnhTus (Hoạt động 24/7)\n");
-        sb.append("- Giờ mở cửa: Từ 8h00 - 21h00 tất cả các ngày trong tuần.\n");
-        sb.append("- Chính sách: Mua đơn hàng trên 20 triệu được đi tour với Trần Hữu Lộc.\n\n");
+        sb.append("- Hotline: 0392286606 - AnhTus\n");
+        sb.append("- Chính sách: Mua đơn trên 20 triệu được đi tour với Trần Hữu Lộc.\n\n");
 
-        // B. DỮ LIỆU CÁ NHÂN
-        sb.append("=== DỮ LIỆU CÁ NHÂN CỦA KHÁCH HÀNG ===\n");
         if (email != null && !email.contains("anonymous") && !email.equals("null")) {
-            sb.append("Email khách: ").append(email).append("\n");
-
+            sb.append("=== LỊCH SỬ ĐƠN HÀNG CỦA KHÁCH ===\n");
             List<Order> orders = orderRepository.findByUser_EmailOrderByCreatedAtDesc(email);
-            sb.append("Tổng số đơn hàng của khách: ").append(orders.size()).append("\n");
-
-            if (!orders.isEmpty()) {
-                sb.append("Danh sách đơn hàng gần đây:\n");
-                int count = 0;
-                for (Order order : orders) {
-                    if (count >= 5) break;
-                    BigDecimal amount = order.getFinalAmount() != null ? order.getFinalAmount() : BigDecimal.ZERO;
-                    sb.append(String.format("- Đơn #%d | Ngày: %s | Trạng thái: %s | Tiền: %s đ\n",
-                            order.getOrderId(),
-                            order.getCreatedAt().format(dateFmt),
-                            order.getStatus(),
-                            df.format(amount)
-                    ));
-                    count++;
-                }
-            } else {
-                sb.append("(Khách chưa có lịch sử đơn hàng).\n");
+            int count = 0;
+            for (Order order : orders) {
+                if (count >= 5) break;
+                BigDecimal amount = order.getFinalAmount() != null ? order.getFinalAmount() : BigDecimal.ZERO;
+                sb.append(String.format("- Đơn #%d | Trạng thái: %s | Tiền: %s đ\n", order.getOrderId(), order.getStatus(), df.format(amount)));
+                count++;
             }
-        } else {
-            sb.append("Khách vãng lai.\n");
+            sb.append("\n");
         }
-        sb.append("\n");
 
-        // C. THÔNG TIN KHO SẢN PHẨM
-        sb.append("=== DANH SÁCH SẢN PHẨM CÔNG KHAI ===\n");
+        sb.append("=== DANH SÁCH SẢN PHẨM KHẢ DỤNG ===\n");
         List<Product> products = productService.getAllProducts();
-        for (Product p : products) {
-            sb.append(String.format("- %s | Giá: %s đ | Kho: %d\n",
-                    p.getProductName(), df.format(p.getSalePrice()), p.getStock()));
+
+        List<Product> activeProducts = products.stream()
+                .filter(Product::getIsActive)
+                .toList();
+
+        if (!activeProducts.isEmpty()) {
+            // [MỚI] Tự động tính toán các máy nổi bật bằng Java
+            Product mostExpensive = activeProducts.stream()
+                    .max(java.util.Comparator.comparing(Product::getSalePrice))
+                    .orElse(activeProducts.get(0));
+
+            Product cheapest = activeProducts.stream()
+                    .min(java.util.Comparator.comparing(Product::getSalePrice))
+                    .orElse(activeProducts.get(0));
+
+            // Tìm 1 máy "Quốc Dân" (Lấy đại 1 máy tầm trung trong mảng làm Best Choice)
+            Product bestChoice = activeProducts.get(activeProducts.size() / 2);
+
+            // Truyền Gợi ý đặc biệt vào cho AI
+            sb.append("👉 GỢI Ý ĐẶC BIỆT:\n");
+            sb.append(String.format("- MÁY ĐẮT NHẤT: ID: %d | Tên: %s | Giá: %s đ\n",
+                    mostExpensive.getProductId(), mostExpensive.getProductName(), df.format(mostExpensive.getSalePrice())));
+            sb.append(String.format("- MÁY RẺ NHẤT: ID: %d | Tên: %s | Giá: %s đ\n",
+                    cheapest.getProductId(), cheapest.getProductName(), df.format(cheapest.getSalePrice())));
+            sb.append(String.format("- MÁY QUỐC DÂN (Ngon bổ rẻ/OK Nhất): ID: %d | Tên: %s | Giá: %s đ\n\n",
+                    bestChoice.getProductId(), bestChoice.getProductName(), df.format(bestChoice.getSalePrice())));
+
+            sb.append("Danh sách các máy khác để tra cứu giá:\n");
+            int count = 0;
+            for (Product p : activeProducts) {
+                if (count >= 15) break; // Tăng lên 15 máy để AI có nhiều lựa chọn về mức giá
+                sb.append(String.format("- ID: %d | Tên: %s | Giá: %s đ\n",
+                        p.getProductId(), p.getProductName(), df.format(p.getSalePrice())));
+                count++;
+            }
         }
 
         return sb.toString();

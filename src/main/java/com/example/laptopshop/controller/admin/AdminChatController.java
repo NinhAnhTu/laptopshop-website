@@ -1,7 +1,8 @@
 package com.example.laptopshop.controller.admin;
 
 import com.example.laptopshop.entity.ChatMessage;
-import com.example.laptopshop.entity.User;
+import com.example.laptopshop.entity.ChatRoom;
+import com.example.laptopshop.repository.ChatRoomRepository;
 import com.example.laptopshop.service.ChatMessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -19,34 +20,34 @@ import java.util.List;
 public class AdminChatController {
 
     private final ChatMessageService chatService;
-    private final long MAIN_ADMIN_ID = 1L; // ID cố định của Admin
+    private final ChatRoomRepository chatRoomRepository; // [MỚI] Sử dụng Repository của Room
 
     @GetMapping
-    public String getAdminChatPage(Model model, @RequestParam(required = false) Long userId) {
-        // 1. Lấy danh sách khách hàng đã chat để hiển thị Sidebar
-        List<User> users = chatService.getUsersWhoChatted();
-        model.addAttribute("users", users);
+    public String getAdminChatPage(Model model, @RequestParam(required = false) Long roomId) {
 
-        // 2. Xác định xem sẽ hiển thị tin nhắn của ai
-        // Nếu có userId trên URL (khi bấm chọn) -> dùng userId đó
-        // Nếu không có (vừa vào trang) -> lấy user đầu tiên trong danh sách
-        Long targetUserId = userId;
-        if (targetUserId == null && !users.isEmpty()) {
-            targetUserId = users.get(0).getUserId();
+        // 1. Lấy danh sách các phòng chat đang cần hỗ trợ (WAITING_ADMIN, CHATTING)
+        List<ChatRoom> rooms = chatRoomRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "lastMessageAt"));
+        model.addAttribute("rooms", rooms);
+
+        // 2. Xác định xem Admin đang bấm vào xem phòng nào
+        Long targetRoomId = roomId;
+        if (targetRoomId == null && !rooms.isEmpty()) {
+            targetRoomId = rooms.get(0).getRoomId();
         }
 
-        // 3. Lấy lịch sử tin nhắn (Nếu đã xác định được khách hàng)
-        if (targetUserId != null) {
-            List<ChatMessage> messages = chatService.getHistory(MAIN_ADMIN_ID, targetUserId);
-            model.addAttribute("messages", messages);       // Đẩy list tin nhắn sang View
-            model.addAttribute("targetUserId", targetUserId); // Để highlight user đang chọn
+        // 3. Lấy lịch sử tin nhắn của phòng đó
+        if (targetRoomId != null) {
+            List<ChatMessage> messages = chatService.getHistoryByRoomId(targetRoomId);
+            ChatRoom currentRoom = chatRoomRepository.findById(targetRoomId).orElse(null);
+
+            model.addAttribute("messages", messages);
+            model.addAttribute("targetRoomId", targetRoomId);
+            model.addAttribute("currentRoom", currentRoom); // Gửi thêm info phòng để check trạng thái
         } else {
             model.addAttribute("messages", Collections.emptyList());
         }
 
-        // 4. Active menu sidebar
         model.addAttribute("activePage", "chat");
-
         return "admin/chat/dashboard";
     }
 }
