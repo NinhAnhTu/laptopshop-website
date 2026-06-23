@@ -156,11 +156,11 @@
             var sendBtn = document.getElementById('sendBtn');
 
             if (status === 'CHATTING') {
-                btnArea.innerHTML = `<button class="btn btn-sm btn-danger rounded-pill fw-bold px-3 shadow-sm" onclick="closeRoom(${roomId})"><i class="fas fa-times me-1"></i> Kết thúc hỗ trợ</button>`;
+                btnArea.innerHTML = `<button class="btn btn-sm btn-danger rounded-pill fw-bold px-3 shadow-sm" onclick="closeRoom(${roomId})"><i class="fas fa-times me-1"></i> Kết thúc</button>`;
                 inputArea.disabled = false; sendBtn.disabled = false; inputArea.placeholder = "Nhập tin nhắn..."; inputArea.focus();
             } else {
                 // CHỦ ĐỘNG JOIN BẤT KỲ LÚC NÀO
-                btnArea.innerHTML = `<button class="btn btn-sm btn-success rounded-pill fw-bold px-3 shadow-sm" onclick="joinRoom(${roomId})"><i class="fas fa-headset me-1"></i> Tham gia / Tiếp nhận</button>`;
+                btnArea.innerHTML = `<button class="btn btn-sm btn-success rounded-pill fw-bold px-3 shadow-sm" onclick="joinRoom(${roomId})"><i class="fas fa-headset me-1"></i>Tham gia</button>`;
                 inputArea.disabled = true; sendBtn.disabled = true; inputArea.placeholder = "Tiếp nhận để nhắn tin trực tiếp...";
             }
         }

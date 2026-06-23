@@ -121,10 +121,13 @@ public class ChatController {
         User user = getUserFromPrincipal(principal);
         if (user == null) return ResponseEntity.status(401).body("Not logged in");
 
-        com.example.laptopshop.entity.ChatRoom room = chatRoomRepository.findByCustomer(user).orElse(null);
-        if (room == null) {
-            return ResponseEntity.ok(java.util.Map.of("hasRoom", false));
-        }
+        // [FIX LỖI CỐT LÕI]: Tự động tạo phòng cho khách ngay khi họ vừa mở hộp chat
+        com.example.laptopshop.entity.ChatRoom room = chatRoomRepository.findByCustomer(user).orElseGet(() -> {
+            com.example.laptopshop.entity.ChatRoom newRoom = new com.example.laptopshop.entity.ChatRoom();
+            newRoom.setCustomer(user);
+            newRoom.setStatus("AI");
+            return chatRoomRepository.save(newRoom);
+        });
 
         List<Map<String, Object>> safeHistory = chatService.getHistoryByRoomId(room.getRoomId())
                 .stream().map(this::convertToSafeDto).collect(Collectors.toList());
