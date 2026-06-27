@@ -41,18 +41,28 @@ public class UserServiceImpl implements UserService {
     // --- 1. ĐĂNG KÝ USER MỚI (CLIENT) ---
     @Override
     public User registerUser(User user) {
-        if (user.getGoogleId() == null && (user.getPhone() == null || user.getPhone().trim().isEmpty())) {
-            throw new RuntimeException("Lỗi: Người dùng bắt buộc phải có số điện thoại!");
+        if (user.getGoogleId() == null) {
+            if (user.getPhone() == null || user.getPhone().trim().isEmpty()) {
+                throw new RuntimeException("Lỗi: Người dùng bắt buộc phải có số điện thoại!");
+            }
+            if (!user.getPhone().matches("^\\d{10}$")) {
+                throw new RuntimeException("Lỗi: Số điện thoại phải bao gồm đúng 10 chữ số!");
+            }
         }
         if (user.getEmail() == null || !user.getEmail().contains("@")) {
             throw new RuntimeException("Lỗi: Email không hợp lệ (thiếu @)!");
         }
+
+        // KIỂM TRA UNIQUE KHI ĐĂNG KÝ MỚI
         if (userRepository.existsByEmail(user.getEmail())) {
-            throw new RuntimeException("Email đã tồn tại!");
+            throw new RuntimeException("Lỗi: Email này đã được sử dụng!");
         }
+        if (user.getPhone() != null && userRepository.existsByPhone(user.getPhone())) {
+            throw new RuntimeException("Lỗi: Số điện thoại này đã được sử dụng!");
+        }
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        // Mặc định là Customer
         UserType customerRole = userTypeRepository.findByTypeName("Customer");
         if (customerRole == null) {
             customerRole = userTypeRepository.findById(2L).orElse(null);
@@ -76,12 +86,20 @@ public class UserServiceImpl implements UserService {
     // --- 3. CẬP NHẬT PROFILE (CLIENT) ---
     @Override
     public void updateUser(User user) {
-        if (user.getGoogleId() == null && (user.getPhone() == null || user.getPhone().trim().isEmpty())) {
-            throw new RuntimeException("Lỗi: Người dùng bắt buộc phải có số điện thoại!");
+        if (user.getGoogleId() == null) {
+            if (user.getPhone() == null || user.getPhone().trim().isEmpty()) {
+                throw new RuntimeException("Lỗi: Người dùng bắt buộc phải có số điện thoại!");
+            }
+            if (!user.getPhone().matches("^\\d{10}$")) {
+                throw new RuntimeException("Lỗi: Số điện thoại phải bao gồm đúng 10 chữ số!");
+            }
         }
-        if (user.getEmail() == null || !user.getEmail().contains("@")) {
-            throw new RuntimeException("Lỗi: Email không hợp lệ (thiếu @)!");
+
+        // KIỂM TRA UNIQUE SĐT KHI CLIENT UPDATE PROFILE (Loại trừ chính mình)
+        if (user.getPhone() != null && userRepository.existsByPhoneAndUserIdNot(user.getPhone(), user.getUserId())) {
+            throw new RuntimeException("Lỗi: Số điện thoại này đã được sử dụng bởi tài khoản khác!");
         }
+
         User currentUser = userRepository.findById(user.getUserId()).orElse(null);
         if (currentUser != null) {
             currentUser.setFullname(user.getFullname());
@@ -134,42 +152,57 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User saveUser(User user) {
-        if (user.getGoogleId() == null && (user.getPhone() == null || user.getPhone().trim().isEmpty())) {
-            throw new RuntimeException("Lỗi: Người dùng bắt buộc phải có số điện thoại!");
+        if (user.getGoogleId() == null) {
+            if (user.getPhone() == null || user.getPhone().trim().isEmpty()) {
+                throw new RuntimeException("Lỗi: Người dùng bắt buộc phải có số điện thoại!");
+            }
+            if (!user.getPhone().matches("^\\d{10}$")) {
+                throw new RuntimeException("Lỗi: Số điện thoại phải bao gồm đúng 10 chữ số!");
+            }
         }
         if (user.getEmail() == null || !user.getEmail().contains("@")) {
             throw new RuntimeException("Lỗi: Email không hợp lệ (thiếu @)!");
         }
+
+        // BIỆN PHÁP CHẶN UNIQUE CHO ADMIN
         if (user.getUserId() == null) {
-            String rawPassword = user.getPassword(); // Lấy mật khẩu gốc
+            // TRƯỜNG HỢP THÊM MỚI (Id chưa tồn tại)
+            if (userRepository.existsByEmail(user.getEmail())) {
+                throw new RuntimeException("Lỗi: Email này đã được sử dụng!");
+            }
+            if (user.getPhone() != null && userRepository.existsByPhone(user.getPhone())) {
+                throw new RuntimeException("Lỗi: Số điện thoại này đã được sử dụng!");
+            }
+
+            String rawPassword = user.getPassword();
             user.setPassword(passwordEncoder.encode(rawPassword));
         }
         else {
+            // TRƯỜNG HỢP CHỈNH SỬA (Id đã tồn tại - Phải dùng hàm loại trừ Id hiện tại)
+            if (userRepository.existsByEmailAndUserIdNot(user.getEmail(), user.getUserId())) {
+                throw new RuntimeException("Lỗi: Email này đã được sử dụng bởi tài khoản khác!");
+            }
+            if (user.getPhone() != null && userRepository.existsByPhoneAndUserIdNot(user.getPhone(), user.getUserId())) {
+                throw new RuntimeException("Lỗi: Số điện thoại này đã được sử dụng bởi tài khoản khác!");
+            }
+
             User existingUser = userRepository.findById(user.getUserId()).orElse(null);
             if (existingUser != null) {
                 if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-                    String rawPassword = user.getPassword(); // Lấy mật khẩu admin vừa nhập
-
-                    // Gửi mail cho email cũ (trong DB) để đảm bảo an toàn
+                    String rawPassword = user.getPassword();
                     try {
                         emailService.sendNewPasswordEmail(existingUser.getEmail(), rawPassword);
                     } catch (Exception e) {
                         System.out.println("Lỗi gửi mail khi đổi pass admin: " + e.getMessage());
                     }
-
-                    // Sau khi gửi xong thì mới mã hóa để lưu DB
                     user.setPassword(passwordEncoder.encode(rawPassword));
                 } else {
-                    // Nếu admin bỏ trống ô mật khẩu -> Giữ nguyên mật khẩu cũ
                     user.setPassword(existingUser.getPassword());
                 }
 
-                // Giữ lại các thông tin quan trọng khác
                 if (user.getAvatarUrl() == null) user.setAvatarUrl(existingUser.getAvatarUrl());
                 if (user.getProvider() == null) user.setProvider(existingUser.getProvider());
                 if (user.getGoogleId() == null) user.setGoogleId(existingUser.getGoogleId());
-
-                // Giữ nguyên ngày tạo
                 user.setCreatedAt(existingUser.getCreatedAt());
             }
         }

@@ -18,4 +18,6 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
             "LOWER(s.email) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
             "ORDER BY s.supplierId DESC")
     List<Supplier> searchSuppliers(@Param("keyword") String keyword);
+    boolean existsByPhone(String phone);
+    boolean existsByPhoneAndSupplierIdNot(String phone, Long supplierId);
 }

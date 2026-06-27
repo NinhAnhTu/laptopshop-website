@@ -20,7 +20,7 @@
 
     <div class="card border-0 shadow-sm rounded-4" style="max-width: 900px; margin: 0 auto;">
         <div class="card-body p-4">
-            <form action="/admin/users/save" method="post" th:object="${user}">
+            <form th:action="@{/admin/users/save}" method="post" th:object="${user}">
                 <input type="hidden" th:field="*{userId}">
                 <input type="hidden" th:field="*{avatarUrl}">
                 <input type="hidden" th:field="*{provider}">

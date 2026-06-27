@@ -32,7 +32,6 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     private final ChatBotService chatBotService;
     private final EmailService emailService;
     private final SimpMessagingTemplate messagingTemplate;
-
     @Override
     @Transactional
     public ChatMessage processUserMessage(User user, String content) {

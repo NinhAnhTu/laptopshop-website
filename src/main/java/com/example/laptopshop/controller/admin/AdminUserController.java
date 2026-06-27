@@ -1,6 +1,7 @@
 package com.example.laptopshop.controller.admin;
 
 import com.example.laptopshop.entity.User;
+import com.example.laptopshop.entity.UserType;
 import com.example.laptopshop.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -39,7 +40,11 @@ public class AdminUserController {
     // --- 2. FORM TẠO MỚI ---
     @GetMapping("/create")
     public String showCreateForm(Model model) {
-        model.addAttribute("user", new User());
+        User user = new User();
+        // Khởi tạo UserType để tránh lỗi NullPointerException trên giao diện
+        user.setUserType(new UserType());
+
+        model.addAttribute("user", user);
         // Lấy danh sách Role để admin chọn khi tạo user mới
         model.addAttribute("roles", userService.getAllUserTypes());
         model.addAttribute("activePage", "users");
@@ -52,12 +57,15 @@ public class AdminUserController {
         try {
             userService.saveUser(user);
             redirectAttributes.addFlashAttribute("successMessage", "Lưu người dùng thành công!");
+        } catch (RuntimeException e) {
+            // Lấy chính xác câu thông báo lỗi từ UserServiceImpl (ví dụ: lỗi sđt, lỗi email)
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: Email có thể đã tồn tại hoặc lỗi hệ thống!");
+            // Bắt các lỗi hệ thống không lường trước khác
+            redirectAttributes.addFlashAttribute("errorMessage", "Đã xảy ra lỗi hệ thống nghiêm trọng!");
         }
         return "redirect:/admin/users";
     }
-
     // --- 4. FORM SỬA ---
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {

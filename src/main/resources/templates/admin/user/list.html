@@ -35,8 +35,7 @@
             </h6>
         </div>
         <div class="card-body p-4">
-            <form action="/admin/users" method="get" class="row g-3">
-
+            <form th:action="@{/admin/users}" method="get" class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label fw-bold small text-muted">Từ khóa</label>
                     <div class="input-group">
@@ -141,15 +140,15 @@
                         </td>
 
                         <td class="text-center">
-                                    <span th:if="${u.userType.typeName == 'ADMIN'}"
-                                          class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3">
-                                        <i class="fas fa-user-shield me-1"></i> ADMIN
-                                    </span>
+                            <span th:if="${#strings.equalsIgnoreCase(u.userType.typeName, 'ADMIN')}"
+                                  class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3">
+                                <i class="fas fa-user-shield me-1"></i> ADMIN
+                            </span>
 
-                            <span th:if="${u.userType.typeName != 'ADMIN'}"
-                                  class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-3">
-                                        <i class="fas fa-user me-1"></i> Khách hàng
-                                    </span>
+                            <span th:unless="${#strings.equalsIgnoreCase(u.userType.typeName, 'ADMIN')}"
+                                                          class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-3">
+                                <i class="fas fa-user me-1"></i> Khách hàng
+                            </span>
                         </td>
 
                         <td class="text-end pe-4">

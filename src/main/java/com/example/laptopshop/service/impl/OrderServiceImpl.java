@@ -33,6 +33,8 @@ public class OrderServiceImpl implements OrderService {
     private final CheckoutFacade checkoutFacade;
 
     private final ApplicationEventPublisher eventPublisher;
+
+    private final TransactionRepository transactionRepository;
     @Override
     @Transactional
     public Order placeOrder(User user, String note, String shippingAddress,
@@ -135,5 +137,30 @@ public class OrderServiceImpl implements OrderService {
     public BigDecimal calculateTotalSpent(User user) {
         BigDecimal total = orderRepository.sumTotalSpentByUser(user);
         return total == null ? BigDecimal.ZERO : total;
+    }
+
+    @Override
+    @Transactional
+    public void saveTransaction(Long orderId, String vnpAmount, String vnpTransactionNo) {
+        Order order = orderRepository.findById(orderId).orElse(null);
+        if (order != null) {
+            Transaction transaction = new Transaction();
+            transaction.setOrder(order);
+
+            // Cài đặt PaymentMethod (2 = Chuyển khoản)
+            PaymentMethod paymentMethod = new PaymentMethod();
+            paymentMethod.setMethodId(2L);
+            transaction.setPaymentMethod(paymentMethod);
+
+            // VNPAY trả về số tiền nhân 100, nên ta phải chia lại cho 100
+            BigDecimal amount = new BigDecimal(vnpAmount).divide(new BigDecimal(100));
+            transaction.setAmount(amount);
+
+            transaction.setStatus("SUCCESS");
+            transaction.setPaymentDate(LocalDateTime.now());
+            transaction.setInvoiceUrl(vnpTransactionNo); // Lưu mã giao dịch VNPAY tạm vào đây
+
+            transactionRepository.save(transaction);
+        }
     }
 }

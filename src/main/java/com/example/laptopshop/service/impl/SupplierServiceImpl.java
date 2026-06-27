@@ -26,6 +26,27 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Override
     public Supplier saveSupplier(Supplier supplier) {
+        // 1. Kiểm tra rỗng và format 10 số
+        if (supplier.getPhone() == null || supplier.getPhone().trim().isEmpty()) {
+            throw new RuntimeException("Lỗi: Số điện thoại không được để trống!");
+        }
+        if (!supplier.getPhone().matches("^\\d{10}$")) {
+            throw new RuntimeException("Lỗi: Số điện thoại phải bao gồm đúng 10 chữ số!");
+        }
+
+        // 2. Kiểm tra Unique (Trùng lặp)
+        if (supplier.getSupplierId() == null) {
+            // Trường hợp THÊM MỚI
+            if (supplierRepository.existsByPhone(supplier.getPhone())) {
+                throw new RuntimeException("Lỗi: Số điện thoại này đã được sử dụng cho nhà cung cấp khác!");
+            }
+        } else {
+            // Trường hợp CẬP NHẬT (bỏ qua id hiện tại)
+            if (supplierRepository.existsByPhoneAndSupplierIdNot(supplier.getPhone(), supplier.getSupplierId())) {
+                throw new RuntimeException("Lỗi: Số điện thoại này đã được sử dụng cho nhà cung cấp khác!");
+            }
+        }
+
         return supplierRepository.save(supplier);
     }
 

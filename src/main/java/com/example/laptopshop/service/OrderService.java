@@ -27,4 +27,6 @@ public interface OrderService {
     List<Order> searchOrders(String keyword, String status, String dateStr);
 
     BigDecimal calculateTotalSpent(User user);
+
+    void saveTransaction(Long orderId, String vnpAmount, String vnpTransactionNo);
 }

@@ -20,7 +20,7 @@
 
     <div class="card border-0 shadow-sm rounded-4" style="max-width: 900px; margin: 0 auto;">
         <div class="card-body p-4">
-            <form action="/admin/suppliers/save" method="post" th:object="${supplier}">
+            <form th:action="@{/admin/suppliers/save}" method="post" th:object="${supplier}">
                 <input type="hidden" th:field="*{supplierId}">
 
                 <h6 class="fw-bold text-secondary text-uppercase mb-4">

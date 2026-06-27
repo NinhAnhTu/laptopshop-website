@@ -40,8 +40,16 @@ public class AdminSupplierController {
     // 3. Xử lý lưu
     @PostMapping("/save")
     public String saveSupplier(@ModelAttribute("supplier") Supplier supplier, RedirectAttributes redirectAttributes) {
-        supplierService.saveSupplier(supplier);
-        redirectAttributes.addFlashAttribute("successMessage", "Lưu nhà cung cấp thành công!");
+        try {
+            supplierService.saveSupplier(supplier);
+            redirectAttributes.addFlashAttribute("successMessage", "Lưu nhà cung cấp thành công!");
+        } catch (RuntimeException e) {
+            // Bắt lỗi từ Service (lỗi sđt 10 số, lỗi trùng sđt) và hiển thị
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        } catch (Exception e) {
+            // Bắt lỗi hệ thống
+            redirectAttributes.addFlashAttribute("errorMessage", "Đã xảy ra lỗi hệ thống không xác định!");
+        }
         return "redirect:/admin/suppliers";
     }
 

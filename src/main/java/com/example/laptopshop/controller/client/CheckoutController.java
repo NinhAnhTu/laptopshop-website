@@ -144,7 +144,12 @@ public class CheckoutController {
         model.addAttribute("transactionId", transactionId);
 
         if (paymentStatus == 1) {
+            // 1. Cập nhật trạng thái đơn hàng (Đã có)
             orderService.updateOrderStatus(Long.parseLong(orderId), "Đã thanh toán");
+
+            // 2. LƯU GIAO DỊCH VÀO BẢNG TRANSACTIONS (BẠN HÃY THÊM DÒNG NÀY VÀO)
+            orderService.saveTransaction(Long.parseLong(orderId), totalPrice, transactionId);
+
             return "client/order_success";
         } else {
             // Thanh toán thất bại hoặc hủy bỏ
