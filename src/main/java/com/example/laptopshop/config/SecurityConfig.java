@@ -44,6 +44,7 @@ public class SecurityConfig {
                         // 4. Trang Khách hàng
                         .requestMatchers("/cart/**", "/checkout/**", "/account/**").authenticated()
 
+                        .requestMatchers("/api/products/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

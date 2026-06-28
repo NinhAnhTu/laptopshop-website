@@ -7,8 +7,8 @@ import com.example.laptopshop.service.RecommendationService;
 import com.example.laptopshop.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.transaction.annotation.Transactional; // [THÊM IMPORT NÀY]
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -26,12 +26,15 @@ public class ProductRestController {
     private final RecommendationService recommendationService;
     private final UserService userService;
 
+    // 1. API Trả về kết quả Live Search
     @GetMapping("/search-suggestions")
+    @Transactional(readOnly = true) // [QUAN TRỌNG]: Giúp giữ kết nối DB để lấy được danh sách Ảnh
     public ResponseEntity<List<Map<String, Object>>> getSearchSuggestions(@RequestParam("keyword") String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
             return ResponseEntity.ok(List.of());
         }
 
+        // Lấy top 5 sản phẩm khớp từ khóa
         List<Product> products = productRepository.findTop5ByProductNameContainingIgnoreCase(keyword.trim());
         List<Map<String, Object>> resultList = new ArrayList<>();
 
@@ -41,6 +44,7 @@ public class ProductRestController {
             item.put("salePrice", p.getSalePrice());
             item.put("slug", p.getSlug());
 
+            // Lấy URL ảnh Thumbnail
             String imageUrl = "https://via.placeholder.com/50";
             if (p.getImages() != null && !p.getImages().isEmpty()) {
                 imageUrl = p.getImages().get(0).getUrl();
@@ -51,6 +55,7 @@ public class ProductRestController {
         return ResponseEntity.ok(resultList);
     }
 
+    // 2. API Lưu lịch sử tìm kiếm (Hỗ trợ hệ thống gợi ý)
     @PostMapping("/record-click")
     public ResponseEntity<Void> recordSearchClick(@RequestParam("keyword") String keyword, Principal principal) {
         if (principal != null && keyword != null && !keyword.trim().isEmpty()) {
@@ -61,7 +66,7 @@ public class ProductRestController {
             }
             User user = userService.findByEmail(email);
 
-            // Lưu từ khóa (tên sản phẩm) vào lịch sử
+            // Lưu từ khóa vào lịch sử để làm Recommender System
             if (user != null) {
                 recommendationService.saveSearch(user, keyword);
             }

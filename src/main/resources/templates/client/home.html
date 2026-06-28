@@ -208,10 +208,20 @@
 
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
             <div class="col" th:each="product : ${recommendedProducts}">
-                <div class="card product-card h-100" style="border-bottom: 4px solid #ffc107;"> <a th:href="@{'/product/' + ${product.slug}}" class="text-decoration-none d-block text-center pt-3">
-                    <img th:if="${not #lists.isEmpty(product.images)}" th:src="${product.images[0].url}" class="card-img-top">
-                    <img th:if="${#lists.isEmpty(product.images)}" src="https://via.placeholder.com/300" class="card-img-top">
-                </a>
+                <div class="card product-card h-100" style="border-bottom: 4px solid #ffc107;">
+                    <a th:href="@{'/product/' + ${product.slug}}" class="text-decoration-none d-block text-center pt-3">
+                        <img th:if="${not #lists.isEmpty(product.images)}"
+                             th:src="${product.images[0].url}"
+                             th:data-default="${product.images[0].url}"
+                             th:data-hover="${product.images.size() > 1 ? product.images[1].url : product.images[0].url}"
+                             onmouseover="this.src=this.getAttribute('data-hover')"
+                             onmouseout="this.src=this.getAttribute('data-default')"
+                             class="card-img-top">
+
+                        <img th:if="${#lists.isEmpty(product.images)}"
+                             src="https://via.placeholder.com/300"
+                             class="card-img-top">
+                    </a>
                     <div class="card-body d-flex flex-column">
                         <h6 class="card-title text-truncate mb-3">
                             <a th:href="@{'/product/' + ${product.slug}}" class="text-dark text-decoration-none fw-bold" th:text="${product.productName}"></a>
@@ -245,8 +255,17 @@
                 <div class="card product-card h-100">
                     <div class="badge-hot"><i class="fas fa-fire me-1"></i>HOT</div>
                     <a th:href="@{'/product/' + ${product.slug}}" class="text-decoration-none d-block text-center pt-3">
-                        <img th:if="${not #lists.isEmpty(product.images)}" th:src="${product.images[0].url}" class="card-img-top">
-                        <img th:if="${#lists.isEmpty(product.images)}" src="https://via.placeholder.com/300" class="card-img-top">
+                        <img th:if="${not #lists.isEmpty(product.images)}"
+                             th:src="${product.images[0].url}"
+                             th:data-default="${product.images[0].url}"
+                             th:data-hover="${product.images.size() > 1 ? product.images[1].url : product.images[0].url}"
+                             onmouseover="this.src=this.getAttribute('data-hover')"
+                             onmouseout="this.src=this.getAttribute('data-default')"
+                             class="card-img-top">
+
+                        <img th:if="${#lists.isEmpty(product.images)}"
+                             src="https://via.placeholder.com/300"
+                             class="card-img-top">
                     </a>
                     <div class="card-body d-flex flex-column">
                         <h6 class="card-title text-truncate mb-3">
@@ -286,8 +305,17 @@
             <div class="col product-item-container" th:id="'realtime-product-' + ${product.productId}" th:each="product : ${products}">
                 <div class="card product-card h-100">
                     <a th:href="@{'/product/' + ${product.slug}}" class="text-decoration-none d-block text-center pt-3">
-                        <img th:if="${not #lists.isEmpty(product.images)}" th:src="${product.images[0].url}" class="card-img-top">
-                        <img th:if="${#lists.isEmpty(product.images)}" src="https://via.placeholder.com/300" class="card-img-top">
+                        <img th:if="${not #lists.isEmpty(product.images)}"
+                             th:src="${product.images[0].url}"
+                             th:data-default="${product.images[0].url}"
+                             th:data-hover="${product.images.size() > 1 ? product.images[1].url : product.images[0].url}"
+                             onmouseover="this.src=this.getAttribute('data-hover')"
+                             onmouseout="this.src=this.getAttribute('data-default')"
+                             class="card-img-top">
+
+                        <img th:if="${#lists.isEmpty(product.images)}"
+                             src="https://via.placeholder.com/300"
+                             class="card-img-top">
                     </a>
                     <div class="card-body d-flex flex-column">
                         <h6 class="card-title text-truncate mb-3">
@@ -407,15 +435,15 @@
     });
 
     // --- LOGIC WEBSOCKET REAL-TIME TỰ ĐỘNG CẬP NHẬT TRANG CHỦ ---
-    var socket = new SockJS('/ws');
-    var stompClient = Stomp.over(socket);
+    var homeSocket = new SockJS('/ws');
+    var homeStompClient = Stomp.over(homeSocket);
 
-    stompClient.debug = null; // Tắt log hệ thống cho đỡ rối console
+    homeStompClient.debug = null;
 
-    stompClient.connect({}, function (frame) {
+    homeStompClient.connect({}, function (frame) {
         console.log('⚡ Đã kết nối Real-time Server!');
 
-        stompClient.subscribe('/topic/product-updates', function (message) {
+        homeStompClient.subscribe('/topic/product-updates', function (message) {
             let data = JSON.parse(message.body);
             let existingItem = document.getElementById('realtime-product-' + data.productId);
             let container = document.getElementById('all-products-container');

@@ -361,12 +361,28 @@
                             <h5 class="card-title mb-0"><i class="fas fa-pen-nib me-2"></i>VIẾT ĐÁNH GIÁ</h5>
                         </div>
                         <div class="card-body p-4 bg-white">
+                            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                                <i class="fas fa-check-circle me-2"></i><span th:text="${successMessage}"></span>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="fas fa-exclamation-circle me-2"></i><span th:text="${errorMessage}"></span>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+
                             <div sec:authorize="!isAuthenticated()" class="text-center py-4">
-                                <p class="text-muted">Vui lòng đăng nhập để gửi đánh giá.</p>
+                                <p class="text-muted mb-3"><i class="fas fa-user-lock fa-3x opacity-25"></i></p>
+                                <p class="text-muted fw-bold">Vui lòng đăng nhập để gửi đánh giá.</p>
                                 <a href="/login" class="btn btn-outline-primary rounded-pill px-4">Đăng nhập ngay</a>
                             </div>
 
-                            <form sec:authorize="isAuthenticated()" action="/review/add" method="post">
+                            <div sec:authorize="isAuthenticated()" th:if="${!canReview}" class="text-center py-4">
+                                <p class="text-warning mb-3"><i class="fas fa-shopping-cart fa-3x opacity-50"></i></p>
+                                <p class="text-muted fw-bold mb-1">Tính năng đánh giá bị khóa</p>
+                                <p class="small text-muted">Bạn chỉ có thể đánh giá sau khi đã mua và nhận sản phẩm này thành công.</p>
+                            </div>
+
+                            <form sec:authorize="isAuthenticated()" th:if="${canReview}" action="/review/add" method="post">
                                 <input type="hidden" name="productId" th:value="${product.productId}">
                                 <div class="mb-3">
                                     <label class="form-label fw-bold small text-uppercase text-muted">Mức độ hài lòng</label>

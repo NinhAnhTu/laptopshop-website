@@ -1,15 +1,14 @@
 package com.example.laptopshop.controller.client;
 
+import com.example.laptopshop.entity.Order;
+import com.example.laptopshop.entity.OrderDetail;
 import com.example.laptopshop.entity.Product;
 import com.example.laptopshop.entity.Review;
 import com.example.laptopshop.entity.User;
-import com.example.laptopshop.service.BrandService;
-import com.example.laptopshop.service.CategoryService;
-import com.example.laptopshop.service.ProductService;
-import com.example.laptopshop.service.ReviewService;
-import com.example.laptopshop.service.UserService;
+import com.example.laptopshop.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken; // [QUAN TRỌNG: Import thêm dòng này]
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,6 +29,17 @@ public class ClientProductController {
     private final UserService userService;
     private final CategoryService categoryService;
     private final BrandService brandService;
+    private final OrderService orderService;
+
+    // [HÀM MỚI] Xử lý lấy User an toàn cho cả Google Login và Đăng nhập thường
+    private User getUserFromPrincipal(Principal principal) {
+        if (principal == null) return null;
+        String email = principal.getName();
+        if (principal instanceof OAuth2AuthenticationToken) {
+            email = ((OAuth2AuthenticationToken) principal).getPrincipal().getAttribute("email");
+        }
+        return userService.findByEmail(email);
+    }
 
     // --- 1. TRANG CỬA HÀNG ---
     @GetMapping("/store")
@@ -41,10 +51,8 @@ public class ClientProductController {
 
         List<Product> products = productService.filterProducts(category, brand, price, rating);
         model.addAttribute("products", products);
-
         model.addAttribute("categories", categoryService.getAllCategories());
         model.addAttribute("brands", brandService.getAllBrands());
-
         model.addAttribute("selectedBrand", brand);
         model.addAttribute("selectedCategory", category);
         model.addAttribute("selectedPrice", price);
@@ -57,15 +65,37 @@ public class ClientProductController {
     @GetMapping("/product/{slug}")
     public String showProductDetail(@PathVariable String slug,
                                     @RequestParam(defaultValue = "1") int page,
+                                    Principal principal,
                                     Model model) {
         Product product = productService.getProductBySlug(slug);
         if (product == null) {
             return "redirect:/";
         }
 
-        // Cấu hình số lượng review mỗi trang
-        int pageSize = 3;
+        // [ĐÃ SỬA] Dùng hàm lấy User an toàn
+        boolean canReview = false;
+        User user = getUserFromPrincipal(principal);
 
+        if (user != null) {
+            List<Order> orders = orderService.getOrdersByUser(user);
+            if (orders != null) {
+                for (Order order : orders) {
+                    if ("Đã giao".equals(order.getStatus()) || "Đã thanh toán".equals(order.getStatus())) {
+                        for (OrderDetail detail : order.getOrderDetails()) {
+                            if (detail.getProduct().getProductId().equals(product.getProductId())) {
+                                canReview = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (canReview) break;
+                }
+            }
+        }
+
+        model.addAttribute("canReview", canReview);
+
+        int pageSize = 3;
         Page<Review> reviewPage = reviewService.getReviewsByProductIds(product.getProductId(), page, pageSize);
         model.addAttribute("product", product);
         model.addAttribute("reviews", reviewPage);
@@ -83,18 +113,15 @@ public class ClientProductController {
                             Principal principal,
                             RedirectAttributes redirectAttributes) {
 
-        if (principal == null) {
+        // [ĐÃ SỬA] Dùng hàm lấy User an toàn
+        User user = getUserFromPrincipal(principal);
+        if (user == null) {
             return "redirect:/login";
         }
 
         try {
-            String email = principal.getName();
-            User user = userService.findByEmail(email);
-
             reviewService.saveReview(user, productId, comment, rating);
-
             redirectAttributes.addFlashAttribute("successMessage", "Cảm ơn bạn đã đánh giá sản phẩm!");
-
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
