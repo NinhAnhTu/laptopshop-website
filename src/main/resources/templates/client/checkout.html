@@ -389,6 +389,7 @@
         fetch('/api/voucher/available?t=' + new Date().getTime() + selectedIdsParam)
             .then(res => res.json())
             .then(data => {
+                console.log('RAW API:', JSON.stringify(data)); // ← thêm dòng này
                 if (!data || data.length === 0) {
                     container.innerHTML = `
                         <div class="text-center py-5">
@@ -400,43 +401,69 @@
 
                 let html = '';
                 data.forEach((v, index) => {
-                    const discountAmt = v.discountAmount.toLocaleString('vi-VN');
-                    const minOrder = v.minOrder.toLocaleString('vi-VN');
+                    // Không nhân 100 nữa vì backend đã nhân rồi (Cách 2)
+                    const percent = v.discountPercent
+                        ? Number(v.discountPercent).toFixed(0)
+                        : 0;
 
-                    // [MỚI] Lấy số lượng từ API
-                    const quantity = v.quantity;
+                    // ✅ Ép kiểu Number() chắc chắn hơn parseFloat() với BigDecimal JSON
+                    const maxDiscount = v.maxDiscount !== undefined && v.maxDiscount !== null
+                        ? Number(v.maxDiscount).toLocaleString('vi-VN')
+                        : '0';
+
+                    const minOrder = v.minOrder !== undefined && v.minOrder !== null
+                        ? Number(v.minOrder).toLocaleString('vi-VN')
+                        : '0';
+
+                    const quantity = v.quantity ?? 0;
+
+
+                    // ✅ Hiển thị % + giới hạn tối đa
+                    const discountLabel = percent > 0
+                        ? `Giảm <span class="text-danger fw-bold">${percent}%</span>
+           <small class="text-muted"> — tối đa ${maxDiscount}đ</small>`
+                        : `Giảm <span class="text-success fw-bold">${maxDiscount}đ</span>`;
+
+                    // ✅ Icon trong ô xanh hiển thị % thay vì chỉ biểu tượng
+                    const iconBlock = percent > 0
+                        ? `<span class="fw-bold fs-5">${percent}%</span>
+           <small class="fw-bold mt-1">GIẢM</small>`
+                        : `<i class="fas fa-tag fa-lg"></i>
+           <small class="fw-bold mt-1">GIẢM</small>`;
 
                     let badge = '';
                     let cardClass = 'border-0 shadow-sm mb-3';
-
                     if (index === 0) {
                         badge = '<div class="badge bg-warning text-dark mb-2"><i class="fas fa-crown me-1"></i>Đề xuất</div>';
                         cardClass = 'border border-warning border-2 mb-3 shadow';
                     }
 
                     html += `
-                    <div class="card ${cardClass}" style="border-radius: 15px; cursor: pointer; overflow: hidden;" onclick="selectVoucher('${v.code}')">
-                        <div class="card-body position-relative">
-                            <div class="d-flex">
-                                <div class="bg-primary text-white rounded-3 p-3 d-flex flex-column align-items-center justify-content-center me-3" style="min-width: 80px;">
-                                    <i class="fas fa-percent fa-lg"></i>
-                                    <small class="fw-bold mt-1">GIẢM</small>
-                                </div>
-                                <div class="flex-grow-1">
-                                    ${badge}
-                                    <div class="d-flex justify-content-between">
-                                        <h6 class="fw-bold text-primary mb-1">${v.code}</h6>
-                                        <small class="text-danger fw-bold" style="font-size: 0.8em;">Còn: ${quantity}</small>
-                                    </div>
-                                    <div class="fs-5 fw-bold text-success mb-1">Giảm ${discountAmt}đ</div>
-                                    <small class="text-muted d-block">Đơn tối thiểu: ${minOrder}đ</small>
-                                </div>
-                                <div class="align-self-center ms-2">
-                                    <button class="btn btn-sm btn-outline-primary rounded-pill">Dùng</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
+    <div class="card ${cardClass}" style="border-radius:15px; cursor:pointer; overflow:hidden;"
+         onclick="selectVoucher('${v.code}')">
+        <div class="card-body position-relative">
+            <div class="d-flex">
+                <div class="bg-primary text-white rounded-3 p-3 d-flex flex-column
+                            align-items-center justify-content-center me-3" style="min-width:80px;">
+                    ${iconBlock}
+                </div>
+                <div class="flex-grow-1">
+                    ${badge}
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="fw-bold text-primary mb-1">${v.code}</h6>
+                        <small class="text-danger fw-bold" style="font-size:0.8em;">Còn: ${quantity}</small>
+                    </div>
+                    <div class="fs-6 fw-bold mb-1">${discountLabel}</div>
+                    <small class="text-muted d-block">
+                        <i class="fas fa-shopping-cart me-1"></i>Đơn tối thiểu: ${minOrder}đ
+                    </small>
+                </div>
+                <div class="align-self-center ms-2">
+                    <button class="btn btn-sm btn-outline-primary rounded-pill">Dùng</button>
+                </div>
+            </div>
+        </div>
+    </div>`;
                 });
                 container.innerHTML = html;
             })

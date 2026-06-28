@@ -1,6 +1,8 @@
 package com.example.laptopshop.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
@@ -44,8 +46,12 @@ public class Product {
     private String upgradeOption;
 
     // Price & Stock
+    @DecimalMin(value = "1", message = "Giá gốc phải lớn hơn 0")
     private BigDecimal originalPrice;
+
+    @DecimalMin(value = "1", message = "Giá bán phải lớn hơn 0")
     private BigDecimal salePrice;
+
     private Integer stock;
     private Double rating;
 

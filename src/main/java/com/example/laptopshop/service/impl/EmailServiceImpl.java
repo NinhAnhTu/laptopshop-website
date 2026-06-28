@@ -4,6 +4,7 @@ import com.example.laptopshop.entity.ChatMessage;
 import com.example.laptopshop.entity.Order;
 import com.example.laptopshop.entity.User;
 import com.example.laptopshop.entity.Warranty;
+import com.example.laptopshop.repository.UserRepository;
 import com.example.laptopshop.service.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -20,6 +21,8 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -27,12 +30,26 @@ public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
     private final SpringTemplateEngine templateEngine;
-
+    private final UserRepository  userRepository;
     @Value("${app.email.from}")
     private String fromEmail;
 
     @Value("${app.email.admin-email}")
     private String adminEmail;
+
+    //LẤY TẤT CẢ EMAIL CỦA ADMIN TỪ DATABASE
+    private String[] getAdminEmails() {
+        // Lấy danh sách User có quyền "ADMIN" (Hoặc "ROLE_ADMIN" tùy cách bạn lưu trong DB)
+        List<User> admins = userRepository.findByUserType_UserTypeId(1L);
+
+        if (admins == null || admins.isEmpty()) {
+            return new String[]{}; // Trả về mảng rỗng nếu chưa có admin nào
+        }
+
+        return admins.stream()
+                .map(User::getEmail)
+                .toArray(String[]::new);
+    }
 
     @Override
     @Async
@@ -108,9 +125,7 @@ public class EmailServiceImpl implements EmailService {
                     + "</div>";
 
             helper.setText(content, true);
-
             mailSender.send(message);
-
             System.out.println("Đã gửi mail mật khẩu mới cho: " + toEmail);
 
         } catch (MessagingException e) {
@@ -146,120 +161,6 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
-    @Override
-    @Async
-    public void sendNewMessageNotification(ChatMessage message) {
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-
-            String senderName = message.getSender().getFullname();
-            String content = message.getContent();
-
-            String htmlContent = "<div style='font-family: Arial, sans-serif; padding: 15px; border: 1px solid #ccc;'>"
-                    + "<h3 style='color: #007bff;'>💬 Tin nhắn hỗ trợ mới</h3>"
-                    + "<p>Khách hàng <b>" + senderName + "</b> vừa gửi một tin nhắn:</p>"
-                    + "<blockquote style='background: #f9f9f9; padding: 10px; border-left: 5px solid #007bff;'>"
-                    + content
-                    + "</blockquote>"
-                    + "<p>Vui lòng truy cập trang quản trị để phản hồi.</p>"
-                    + "</div>";
-
-            helper.setFrom(fromEmail);
-            helper.setTo(adminEmail);
-            helper.setSubject("🔔 [Hỗ trợ] Tin nhắn mới từ " + senderName);
-            helper.setText(htmlContent, true);
-
-            mailSender.send(mimeMessage);
-            System.out.println("Đã gửi thông báo tin nhắn mới tới Admin: " + adminEmail);
-
-        } catch (MessagingException e) {
-            System.out.println("Lỗi gửi mail thông báo chat: " + e.getMessage());
-        }
-    }
-
-    @Override
-    @Async
-    public void sendOrderCancellationNotification(Order order) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            String customerName = order.getUser().getFullname();
-            String orderId = String.valueOf(order.getOrderId());
-
-            String totalAmount = "0";
-            if (order.getFinalAmount() != null) {
-                totalAmount = java.text.NumberFormat.getIntegerInstance(java.util.Locale.GERMANY).format(order.getFinalAmount());
-            }
-
-            String htmlContent = "<div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; max-width: 600px; margin: 0 auto;'>"
-                    + "<h2 style='color: #d9534f; text-align: center;'>⚠️ THÔNG BÁO HỦY ĐƠN HÀNG</h2>"
-                    + "<p>Xin chào Admin,</p>"
-                    + "<p>Khách hàng <b>" + customerName + "</b> vừa thực hiện hủy đơn hàng <b>#" + orderId + "</b>.</p>"
-                    + "<div style='background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 15px 0;'>"
-                    + "<ul style='list-style-type: none; padding: 0;'>"
-                    + "<li style='margin-bottom: 10px;'>📦 <b>Mã đơn hàng:</b> #" + orderId + "</li>"
-                    + "<li style='margin-bottom: 10px;'>👤 <b>Khách hàng:</b> " + customerName + "</li>"
-                    + "<li style='margin-bottom: 10px;'>💰 <b>Tổng hoàn tiền (dự kiến):</b> <span style='color: #d9534f; font-weight: bold;'>" + totalAmount + " đ</span></li>"
-                    + "<li style='margin-bottom: 10px;'>📅 <b>Ngày đặt:</b> " + order.getCreatedAt() + "</li>"
-                    + "</ul>"
-                    + "</div>"
-                    + "<p>Hệ thống đã tự động hoàn lại số lượng tồn kho (Restock) cho các sản phẩm trong đơn hàng này.</p>"
-                    + "<div style='text-align: center; margin-top: 25px;'>"
-                    + "<a href='http://localhost:8080/admin/orders' style='background-color: #007bff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Xem Chi Tiết Đơn Hàng</a>"
-                    + "</div>"
-                    + "</div>";
-
-            helper.setFrom(fromEmail);
-            helper.setTo(adminEmail);
-            helper.setSubject("⚠️ [Hủy Đơn] Khách hàng " + customerName + " đã hủy đơn hàng #" + orderId);
-            helper.setText(htmlContent, true);
-
-            mailSender.send(message);
-            System.out.println("Đã gửi thông báo hủy đơn #" + orderId + " tới Admin: " + adminEmail);
-
-        } catch (MessagingException e) {
-            System.out.println("Lỗi gửi mail hủy đơn: " + e.getMessage());
-        }
-    }
-
-    @Override
-    @Async
-    public void sendVoucherGiftNotification(User user, BigDecimal totalSpent) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            helper.setFrom(fromEmail);
-            helper.setTo(user.getEmail());
-            helper.setSubject("🎉 CHÚC MỪNG! BẠN NHẬN ĐƯỢC VOUCHER TỪ CHAOSCODERS");
-
-            DecimalFormat formatter = new DecimalFormat("#,###");
-            String formattedTotal = formatter.format(totalSpent);
-
-            String htmlContent = "<div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;'>"
-                    + "<h2 style='color: #f37021;'>Cảm ơn bạn đã đồng hành cùng ChaosCoders!</h2>"
-                    + "<p>Xin chào <b>" + user.getFullname() + "</b>,</p>"
-                    + "<p>Đơn hàng vừa rồi của bạn đã được thanh toán thành công.</p>"
-                    + "<p>Tổng tích lũy mua sắm của bạn hiện tại là: <b style='color: #0f2027; font-size: 18px;'>" + formattedTotal + " đ</b></p>"
-                    + "<div style='background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0;'>"
-                    + "<h3 style='margin-top: 0; color: #0277bd;'>🎁 QUÀ TẶNG DÀNH RIÊNG CHO BẠN</h3>"
-                    + "<p>Dựa trên hạng thành viên tích lũy, chúng tôi đã mở khóa thêm các <b>Mã giảm giá đặc biệt</b> cho đơn hàng tiếp theo của bạn.</p>"
-                    + "<p>👉 Hãy truy cập trang <b>Thanh toán</b> và mở <b>Kho Voucher</b> để kiểm tra và sử dụng ngay nhé!</p>"
-                    + "</div>"
-                    + "<p>Trân trọng,<br/>Đội ngũ ChaosCoders</p>"
-                    + "</div>";
-
-            helper.setText(htmlContent, true);
-
-            mailSender.send(message);
-            System.out.println("Đã gửi mail tặng voucher cho: " + user.getEmail());
-
-        } catch (Exception e) {
-            System.out.println("Lỗi gửi mail voucher: " + e.getMessage());
-        }
-    }
     @Override
     @Async
     public void sendReviewReplyEmail(com.example.laptopshop.entity.Review review) {
@@ -310,9 +211,104 @@ public class EmailServiceImpl implements EmailService {
             System.out.println("Lỗi gửi mail review removed: " + e.getMessage());
         }
     }
+
+    // =========================================================================
+    // CÁC HÀM GỬI CHO ADMIN (ĐÃ NÂNG CẤP ĐỂ TỰ ĐỘNG LẤY TỪ DATABASE)
+    // =========================================================================
+
+    @Override
+    @Async
+    public void sendNewMessageNotification(ChatMessage message) {
+        String[] adminEmails = getAdminEmails();
+        if (adminEmails.length == 0) {
+            System.out.println("⚠️ Bỏ qua gửi mail: Không tìm thấy Admin nào trong DB!");
+            return;
+        }
+
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+            String senderName = message.getSender().getFullname();
+            String content = message.getContent();
+
+            String htmlContent = "<div style='font-family: Arial, sans-serif; padding: 15px; border: 1px solid #ccc;'>"
+                    + "<h3 style='color: #007bff;'>💬 Tin nhắn hỗ trợ mới</h3>"
+                    + "<p>Khách hàng <b>" + senderName + "</b> vừa gửi một tin nhắn:</p>"
+                    + "<blockquote style='background: #f9f9f9; padding: 10px; border-left: 5px solid #007bff;'>"
+                    + content
+                    + "</blockquote>"
+                    + "<p>Vui lòng truy cập trang quản trị để phản hồi.</p>"
+                    + "</div>";
+
+            helper.setFrom(fromEmail);
+            helper.setTo(adminEmails); // Truyền mảng danh sách các Admin vào đây
+            helper.setSubject("🔔 [Hỗ trợ] Tin nhắn mới từ " + senderName);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(mimeMessage);
+            System.out.println("Đã gửi thông báo tin nhắn mới tới Admin: " + Arrays.toString(adminEmails));
+
+        } catch (MessagingException e) {
+            System.out.println("Lỗi gửi mail thông báo chat: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Async
+    public void sendOrderCancellationNotification(Order order) {
+        String[] adminEmails = getAdminEmails();
+        if (adminEmails.length == 0) return;
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            String customerName = order.getUser().getFullname();
+            String orderId = String.valueOf(order.getOrderId());
+
+            String totalAmount = "0";
+            if (order.getFinalAmount() != null) {
+                totalAmount = java.text.NumberFormat.getIntegerInstance(java.util.Locale.GERMANY).format(order.getFinalAmount());
+            }
+
+            String htmlContent = "<div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; max-width: 600px; margin: 0 auto;'>"
+                    + "<h2 style='color: #d9534f; text-align: center;'>⚠️ THÔNG BÁO HỦY ĐƠN HÀNG</h2>"
+                    + "<p>Xin chào Admin,</p>"
+                    + "<p>Khách hàng <b>" + customerName + "</b> vừa thực hiện hủy đơn hàng <b>#" + orderId + "</b>.</p>"
+                    + "<div style='background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 15px 0;'>"
+                    + "<ul style='list-style-type: none; padding: 0;'>"
+                    + "<li style='margin-bottom: 10px;'>📦 <b>Mã đơn hàng:</b> #" + orderId + "</li>"
+                    + "<li style='margin-bottom: 10px;'>👤 <b>Khách hàng:</b> " + customerName + "</li>"
+                    + "<li style='margin-bottom: 10px;'>💰 <b>Tổng hoàn tiền (dự kiến):</b> <span style='color: #d9534f; font-weight: bold;'>" + totalAmount + " đ</span></li>"
+                    + "<li style='margin-bottom: 10px;'>📅 <b>Ngày đặt:</b> " + order.getCreatedAt() + "</li>"
+                    + "</ul>"
+                    + "</div>"
+                    + "<p>Hệ thống đã tự động hoàn lại số lượng tồn kho (Restock) cho các sản phẩm trong đơn hàng này.</p>"
+                    + "<div style='text-align: center; margin-top: 25px;'>"
+                    + "<a href='http://localhost:8080/admin/orders' style='background-color: #007bff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Xem Chi Tiết Đơn Hàng</a>"
+                    + "</div>"
+                    + "</div>";
+
+            helper.setFrom(fromEmail);
+            helper.setTo(adminEmails);
+            helper.setSubject("⚠️ [Hủy Đơn] Khách hàng " + customerName + " đã hủy đơn hàng #" + orderId);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+            System.out.println("Đã gửi thông báo hủy đơn #" + orderId + " tới Admin: " + Arrays.toString(adminEmails));
+
+        } catch (MessagingException e) {
+            System.out.println("Lỗi gửi mail hủy đơn: " + e.getMessage());
+        }
+    }
+
     @Override
     @Async
     public void sendAdminReviewAlert(com.example.laptopshop.entity.Review review) {
+        String[] adminEmails = getAdminEmails();
+        if (adminEmails.length == 0) return;
+
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -333,13 +329,13 @@ public class EmailServiceImpl implements EmailService {
                     + "<a href='http://localhost:8080/admin/reviews' style='background-color: #dc3545; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;'>TRUY CẬP ADMIN ĐỂ XỬ LÝ</a>"
                     + "</div>";
 
-            helper.setTo(adminEmail);
             helper.setFrom(fromEmail);
+            helper.setTo(adminEmails);
             helper.setSubject(subject);
             helper.setText(htmlContent, true);
 
             mailSender.send(message);
-            System.out.println("Đã gửi cảnh báo review thấp tới Admin: " + adminEmail);
+            System.out.println("Đã gửi cảnh báo review thấp tới Admin: " + Arrays.toString(adminEmails));
 
         } catch (MessagingException e) {
             System.out.println("Lỗi gửi mail cảnh báo: " + e.getMessage());

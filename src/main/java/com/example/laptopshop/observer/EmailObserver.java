@@ -36,18 +36,5 @@ public class EmailObserver {
         } catch (Exception e) {
             System.out.println("Lỗi gửi mail đơn hàng: " + e.getMessage());
         }
-
-        // 2. Gửi mail tặng Voucher nếu thỏa điều kiện
-        boolean isPaidOrSuccess = (newStatus != null) && (newStatus.contains("Đã thanh toán") || newStatus.contains("Đã giao"));
-        boolean wasNotPaidOrSuccess = (oldStatus == null) || (!oldStatus.contains("Đã thanh toán") && !oldStatus.contains("Đã giao"));
-
-        if (isPaidOrSuccess && wasNotPaidOrSuccess) {
-            try {
-                BigDecimal totalSpent = orderService.calculateTotalSpent(order.getUser());
-                emailService.sendVoucherGiftNotification(order.getUser(), totalSpent);
-            } catch (Exception e) {
-                System.out.println("Lỗi gửi mail tặng voucher: " + e.getMessage());
-            }
-        }
     }
 }

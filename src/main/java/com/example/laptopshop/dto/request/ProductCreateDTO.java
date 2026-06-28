@@ -1,17 +1,22 @@
 package com.example.laptopshop.dto.request;
 
+import jakarta.validation.constraints.DecimalMin;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
+import jakarta.validation.constraints.NotNull;
 
 @Getter
 @Setter
 public class ProductCreateDTO {
     private String productName;
+    @DecimalMin(value = "1", message = "Giá gốc phải lớn hơn 0")
     private BigDecimal originalPrice;
+
+    @DecimalMin(value = "1", message = "Giá bán phải lớn hơn 0")
     private BigDecimal salePrice;
     private Integer stock;
 

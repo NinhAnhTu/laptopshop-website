@@ -127,21 +127,24 @@ public class VoucherRestController {
                 // ĐÃ XÓA ĐOẠN LỌC (filter) CHẶN VOUCHER THEO ID Ở ĐÂY
 
                 .map(v -> {
+                    // Tính % thực tế để hiển thị (0.10 → 10)
+                    BigDecimal percentDisplay = v.getDiscountPercent()
+                            .multiply(BigDecimal.valueOf(100));
+
                     BigDecimal percent = v.getDiscountPercent().divide(BigDecimal.valueOf(100));
                     BigDecimal discount = finalTotal.multiply(percent);
-                    // Giới hạn giảm tối đa
                     if (discount.compareTo(v.getMaxDiscountAmount()) > 0) {
                         discount = v.getMaxDiscountAmount();
                     }
 
                     Map<String, Object> map = new HashMap<>();
-                    map.put("code", v.getCode());
-                    map.put("discountPercent", v.getDiscountPercent());
-                    map.put("maxDiscount", v.getMaxDiscountAmount());
-                    map.put("minOrder", v.getMinOrderValue());
-                    map.put("endDate", v.getEndDate());
-                    map.put("quantity", v.getQuantity());
-                    map.put("discountAmount", discount);
+                    map.put("code",            v.getCode());
+                    map.put("discountPercent", percentDisplay);        // ✅ trả 10 thay vì 0.10
+                    map.put("maxDiscount",     v.getMaxDiscountAmount()); // giữ nguyên tên
+                    map.put("minOrder",        v.getMinOrderValue());     // giữ nguyên tên
+                    map.put("endDate",         v.getEndDate());
+                    map.put("quantity",        v.getQuantity());
+                    map.put("discountAmount",  discount);
                     return map;
                 })
                 // Sắp xếp: Ưu tiên voucher giảm nhiều tiền nhất lên đầu

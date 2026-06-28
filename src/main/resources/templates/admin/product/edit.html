@@ -41,7 +41,10 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small text-muted">Giá gốc (VNĐ)</label>
                                 <div class="input-group">
-                                    <input type="number" th:field="*{originalPrice}" class="form-control py-2" required>
+                                    <input type="number" th:field="*{originalPrice}" class="form-control py-2" min="1"
+                                           th:classappend="${#fields.hasErrors('originalPrice')} ? 'is-invalid'" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('originalPrice')}"
+                                         th:errors="*{originalPrice}"></div>
                                     <span class="input-group-text bg-light text-muted">đ</span>
                                 </div>
                             </div>
@@ -206,15 +209,15 @@
                 const catId = parseInt(categorySelect.value);
 
                 // 3. Hiển thị khối tương ứng dựa theo ID trong DB
-                if ([1, 2, 3, 4].includes(catId)) { // Laptop / Macbook
+                if ([1, 2, 3].includes(catId)) {        // Macbook, Laptop Gaming, Laptop Văn Phòng
                     document.getElementById('specs-laptop').classList.remove('d-none');
-                } else if (catId === 6) { // RAM
+                } else if (catId === 4) {               // RAM  (cũ: 6)
                     document.getElementById('specs-ram').classList.remove('d-none');
-                } else if (catId === 7) { // SSD/HDD
+                } else if (catId === 5) {               // Ổ cứng SSD/HDD  (cũ: 7)
                     document.getElementById('specs-storage').classList.remove('d-none');
-                } else if (catId === 8) { // CPU
+                } else if (catId === 6) {               // CPU  (cũ: 8)
                     document.getElementById('specs-cpu').classList.remove('d-none');
-                } else if (catId === 9) { // VGA
+                } else if (catId === 7) {               // VGA  (cũ: 9)
                     document.getElementById('specs-vga').classList.remove('d-none');
                 } else {
                     document.getElementById('specs-laptop').classList.remove('d-none');

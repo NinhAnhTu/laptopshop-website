@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.PageRequest;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,6 +59,12 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public Product createProduct(ProductCreateDTO dto) {
+        if (dto.getOriginalPrice() == null || dto.getOriginalPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Lỗi: Giá gốc phải lớn hơn 0!");
+        }
+        if (dto.getSalePrice() == null || dto.getSalePrice().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Lỗi: Giá bán phải lớn hơn 0!");
+        }
         if (dto.getSalePrice() != null && dto.getOriginalPrice() != null
                 && dto.getSalePrice().compareTo(dto.getOriginalPrice()) > 0) {
             throw new RuntimeException("Lỗi: Giá bán khuyến mãi không được cao hơn giá gốc!");
@@ -89,14 +96,14 @@ public class ProductServiceImpl implements ProductService {
 // --- ĐOẠN CODE THÊM MỚI: LƯU THÔNG SỐ LINH KIỆN TƯƠNG ỨNG ---
         Long catId = dto.getCategoryId();
         if (catId != null) {
-            if (catId == 6L) { // RAM
+            if (catId == 4L) { // RAM
                 SpecRam ram = new SpecRam();
                 ram.setProductId(savedProduct.getProductId());
                 ram.setCapacity(dto.getRamCapacity());
                 ram.setRamType(dto.getRamType());
                 ram.setBusSpeed(dto.getBusSpeed());
                 specRamRepository.save(ram);
-            } else if (catId == 7L) { // SSD/HDD
+            } else if (catId == 5L) { // SSD/HDD
                 SpecStorage storage = new SpecStorage();
                 storage.setProductId(savedProduct.getProductId());
                 storage.setCapacity(dto.getStorageCapacity());
@@ -105,7 +112,7 @@ public class ProductServiceImpl implements ProductService {
                 storage.setReadSpeed(dto.getReadSpeed());
                 storage.setWriteSpeed(dto.getWriteSpeed());
                 specStorageRepository.save(storage);
-            } else if (catId == 8L) { // CPU
+            } else if (catId == 6L) { // CPU
                 SpecCpu cpu = new SpecCpu();
                 cpu.setProductId(savedProduct.getProductId());
                 cpu.setSocketType(dto.getSocketType());
@@ -115,7 +122,7 @@ public class ProductServiceImpl implements ProductService {
                 cpu.setBoostClock(dto.getBoostClock());
                 cpu.setTdp(dto.getTdp());
                 specCpuRepository.save(cpu);
-            } else if (catId == 9L) { // VGA
+            } else if (catId == 7L) { // VGA
                 SpecVga vga = new SpecVga();
                 vga.setProductId(savedProduct.getProductId());
                 vga.setGpuChip(dto.getGpuChip());
@@ -163,6 +170,15 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public Product updateProduct(Long id, ProductCreateDTO dto) {
+        if (dto.getOriginalPrice() == null || dto.getOriginalPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Lỗi: Giá gốc phải lớn hơn 0!");
+        }
+        if (dto.getSalePrice() == null || dto.getSalePrice().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Lỗi: Giá bán phải lớn hơn 0!");
+        }
+        if (dto.getSalePrice().compareTo(dto.getOriginalPrice()) > 0) {
+            throw new RuntimeException("Lỗi: Giá bán không được cao hơn giá gốc!");
+        }
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
 
@@ -188,7 +204,7 @@ public class ProductServiceImpl implements ProductService {
 // --- ĐOẠN CODE THÊM MỚI: CẬP NHẬT THÔNG SỐ LINH KIỆN ---
         Long catId = dto.getCategoryId();
         if (catId != null) {
-            if (catId == 6L) {
+            if (catId == 4L) {
                 // Tìm record cũ, nếu ko có thì tạo mới
                 SpecRam ram = specRamRepository.findById(id).orElse(new SpecRam());
                 ram.setProductId(id);
@@ -196,7 +212,7 @@ public class ProductServiceImpl implements ProductService {
                 ram.setRamType(dto.getRamType());
                 ram.setBusSpeed(dto.getBusSpeed());
                 specRamRepository.save(ram);
-            } else if (catId == 7L) {
+            } else if (catId == 5L) {
                 SpecStorage storage = specStorageRepository.findById(id).orElse(new SpecStorage());
                 storage.setProductId(id);
                 storage.setCapacity(dto.getStorageCapacity());
@@ -205,7 +221,7 @@ public class ProductServiceImpl implements ProductService {
                 storage.setReadSpeed(dto.getReadSpeed());
                 storage.setWriteSpeed(dto.getWriteSpeed());
                 specStorageRepository.save(storage);
-            } else if (catId == 8L) {
+            } else if (catId == 6L) {
                 SpecCpu cpu = specCpuRepository.findById(id).orElse(new SpecCpu());
                 cpu.setProductId(id);
                 cpu.setSocketType(dto.getSocketType());
@@ -215,7 +231,7 @@ public class ProductServiceImpl implements ProductService {
                 cpu.setBoostClock(dto.getBoostClock());
                 cpu.setTdp(dto.getTdp());
                 specCpuRepository.save(cpu);
-            } else if (catId == 9L) {
+            } else if (catId == 7L) {
                 SpecVga vga = specVgaRepository.findById(id).orElse(new SpecVga());
                 vga.setProductId(id);
                 vga.setGpuChip(dto.getGpuChip());

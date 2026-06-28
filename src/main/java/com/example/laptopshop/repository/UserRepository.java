@@ -34,4 +34,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "(:roleId IS NULL OR u.userType.userTypeId = :roleId)")
     List<User> searchUsers(@Param("keyword") String keyword,
                            @Param("roleId") Long roleId);
+
+// Hàm lấy danh sách user dựa trên tên quyền (từ bảng user_type) để gửi mail
+    List<User> findByUserType_UserTypeId(Long userTypeId);
 }

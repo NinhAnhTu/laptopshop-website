@@ -5,6 +5,10 @@ import com.example.laptopshop.entity.OrderDetail;
 import com.example.laptopshop.entity.Product;
 import com.example.laptopshop.entity.Review;
 import com.example.laptopshop.entity.User;
+import com.example.laptopshop.repository.SpecCpuRepository;
+import com.example.laptopshop.repository.SpecRamRepository;
+import com.example.laptopshop.repository.SpecStorageRepository;
+import com.example.laptopshop.repository.SpecVgaRepository;
 import com.example.laptopshop.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,6 +34,11 @@ public class ClientProductController {
     private final CategoryService categoryService;
     private final BrandService brandService;
     private final OrderService orderService;
+
+    private final SpecRamRepository specRamRepository;
+    private final SpecStorageRepository specStorageRepository;
+    private final SpecCpuRepository specCpuRepository;
+    private final SpecVgaRepository specVgaRepository;
 
     // [HÀM MỚI] Xử lý lấy User an toàn cho cả Google Login và Đăng nhập thường
     private User getUserFromPrincipal(Principal principal) {
@@ -72,7 +81,13 @@ public class ClientProductController {
             return "redirect:/";
         }
 
-        // [ĐÃ SỬA] Dùng hàm lấy User an toàn
+        // [MỚI] Truy vấn linh kiện bằng Product ID (Không cần biết là Category gì, có dữ liệu thì nạp)
+        specRamRepository.findById(product.getProductId()).ifPresent(ram -> model.addAttribute("specRam", ram));
+        specStorageRepository.findById(product.getProductId()).ifPresent(storage -> model.addAttribute("specStorage", storage));
+        specCpuRepository.findById(product.getProductId()).ifPresent(cpu -> model.addAttribute("specCpu", cpu));
+        specVgaRepository.findById(product.getProductId()).ifPresent(vga -> model.addAttribute("specVga", vga));
+
+        // Logic check điều kiện khóa/mở Form Đánh giá
         boolean canReview = false;
         User user = getUserFromPrincipal(principal);
 

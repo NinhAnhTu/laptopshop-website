@@ -15,7 +15,6 @@ public interface EmailService {
     void sendWarrantyExpirationEmail(Warranty warranty);
     void sendNewMessageNotification(ChatMessage message);
     void sendOrderCancellationNotification(Order order);
-    void sendVoucherGiftNotification(User user, BigDecimal totalSpent);
     void sendReviewReplyEmail(Review review);
     void sendReviewRemovedEmail(Review review, String reason);
     void sendAdminReviewAlert(com.example.laptopshop.entity.Review review);

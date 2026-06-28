@@ -135,8 +135,11 @@
                             <span th:if="${order.status == 'Đang giao'}" class="badge bg-primary-subtle text-primary border border-primary rounded-pill px-3">
                                         <i class="fas fa-truck me-1"></i> Đang giao
                                     </span>
-                            <span th:if="${order.status == 'Đã giao' || order.status == 'Đã thanh toán'}" class="badge bg-success-subtle text-success border border-success rounded-pill px-3">
-                                        <i class="fas fa-check me-1"></i> Thành công
+                            <span th:if="${order.status == 'Đã giao'}" class="badge bg-success-subtle text-success border border-success rounded-pill px-3">
+                                        <i class="fas fa-check me-1"></i> Giao thành công
+                                    </span>
+                            <span th:if="${order.status == 'Đã thanh toán'}" class="badge bg-success-subtle text-success border border-success rounded-pill px-3">
+                                        <i class="fas fa-check me-1"></i> Đã thanh toán
                                     </span>
                             <span th:if="${order.status == 'Đã hủy'}" class="badge bg-danger-subtle text-danger border border-danger rounded-pill px-3">
                                         <i class="fas fa-times me-1"></i> Đã hủy

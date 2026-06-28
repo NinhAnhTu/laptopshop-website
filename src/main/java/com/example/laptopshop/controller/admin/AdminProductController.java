@@ -8,9 +8,11 @@ import com.example.laptopshop.service.BrandService;
 import com.example.laptopshop.service.CategoryService;
 import com.example.laptopshop.service.ProductSerialService;
 import com.example.laptopshop.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -74,12 +76,38 @@ public class AdminProductController {
         return "admin/product/create";
     }
 
+    // AdminProductController.java
     @PostMapping("/products/create")
-    public String createProduct(@ModelAttribute ProductCreateDTO productDTO) {
+    public String createProduct(@Valid @ModelAttribute ProductCreateDTO productDTO,
+                                BindingResult bindingResult,
+                                Model model) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("productDTO", productDTO);
+            model.addAttribute("brands", brandRepository.findAll());
+            model.addAttribute("categories", categoryRepository.findAll());
+            model.addAttribute("warranties", warrantyPolicyRepository.findAll());
+            return "admin/product/create"; // Trả về form kèm lỗi
+        }
         productService.createProduct(productDTO);
         return "redirect:/admin/products";
     }
 
+    @PostMapping("/products/update/{id}")
+    public String updateProduct(@PathVariable Long id,
+                                @Valid @ModelAttribute ProductCreateDTO productDTO,
+                                BindingResult bindingResult,
+                                Model model) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("productDTO", productDTO);
+            model.addAttribute("productId", id);
+            model.addAttribute("brands", brandRepository.findAll());
+            model.addAttribute("categories", categoryRepository.findAll());
+            model.addAttribute("warranties", warrantyPolicyRepository.findAll());
+            return "admin/product/edit";
+        }
+        productService.updateProduct(id, productDTO);
+        return "redirect:/admin/products";
+    }
     @GetMapping("/products/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {
         Product product = productService.getProductById(id);
@@ -102,13 +130,13 @@ public class AdminProductController {
 // --- ĐOẠN CODE THÊM MỚI: KÉO DỮ LIỆU LINH KIỆN LÊN FORM ---
         if (product.getCategory() != null) {
             Long catId = product.getCategory().getCategoryId();
-            if (catId == 6L) {
+            if (catId == 4L) {
                 specRamRepository.findById(id).ifPresent(ram -> {
                     dto.setRamCapacity(ram.getCapacity());
                     dto.setRamType(ram.getRamType());
                     dto.setBusSpeed(ram.getBusSpeed());
                 });
-            } else if (catId == 7L) {
+            } else if (catId == 5L) {
                 specStorageRepository.findById(id).ifPresent(storage -> {
                     dto.setStorageCapacity(storage.getCapacity());
                     dto.setStorageType(storage.getStorageType());
@@ -116,7 +144,7 @@ public class AdminProductController {
                     dto.setReadSpeed(storage.getReadSpeed());
                     dto.setWriteSpeed(storage.getWriteSpeed());
                 });
-            } else if (catId == 8L) {
+            } else if (catId == 6L) {
                 specCpuRepository.findById(id).ifPresent(cpu -> {
                     dto.setSocketType(cpu.getSocketType());
                     dto.setCores(cpu.getCores());
@@ -125,7 +153,7 @@ public class AdminProductController {
                     dto.setBoostClock(cpu.getBoostClock());
                     dto.setTdp(cpu.getTdp());
                 });
-            } else if (catId == 9L) {
+            } else if (catId == 7L) {
                 specVgaRepository.findById(id).ifPresent(vga -> {
                     dto.setGpuChip(vga.getGpuChip());
                     dto.setPowerRecommended(vga.getPowerRecommended());
@@ -142,12 +170,6 @@ public class AdminProductController {
         model.addAttribute("warranties", warrantyPolicyRepository.findAll());
 
         return "admin/product/edit";
-    }
-
-    @PostMapping("/products/update/{id}")
-    public String updateProduct(@PathVariable Long id, @ModelAttribute ProductCreateDTO productDTO) {
-        productService.updateProduct(id, productDTO);
-        return "redirect:/admin/products";
     }
 
     @GetMapping("/products/delete/{id}")
