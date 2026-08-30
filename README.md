@@ -158,7 +158,7 @@ Các bước cài đặt
 
 Trang chủ khách hàng: http://localhost:8080
 
-Đăng nhập admin: http://localhost:8080/login (Tài khoản mặc định: admin@laptopshop.com / admin123)
+Đăng nhập admin: http://localhost:8080/login (Tài khoản mặc định: admintest@gmail.com / 123456)
 
 Quản trị Dashboard: http://localhost:8080/admin/dashboard
 
