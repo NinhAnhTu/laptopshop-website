@@ -72,7 +72,7 @@ public class CheckoutFacade {
         Order savedOrder = orderRepository.save(order);
 
         // 4. Phân hệ Kho hàng (Inventory Subsystem)
-        deductInventoryAndSaveDetails(savedOrder, items);
+        deductInventoryAndSaveDetails(savedOrder, items, paymentMethodId);
 
         // 5. Phân hệ Thông báo (Notification Subsystem)
         sendOrderEmail(user, savedOrder);
@@ -131,7 +131,7 @@ public class CheckoutFacade {
         return discount.compareTo(voucher.getMaxDiscountAmount()) > 0 ? voucher.getMaxDiscountAmount() : discount;
     }
 
-    private void deductInventoryAndSaveDetails(Order savedOrder, List<CartDetail> items) {
+    private void deductInventoryAndSaveDetails(Order savedOrder, List<CartDetail> items, Long paymentMethodId) {
         List<OrderDetail> orderDetails = new ArrayList<>();
         for (CartDetail item : items) {
             Product product = item.getProduct();
@@ -147,8 +147,10 @@ public class CheckoutFacade {
             detail.setTotalPrice(product.getSalePrice().multiply(BigDecimal.valueOf(item.getQuantity())));
             orderDetails.add(detail);
 
-            product.setStock(product.getStock() - item.getQuantity());
-            productRepository.save(product);
+            if (paymentMethodId == 1L) {
+                product.setStock(product.getStock() - item.getQuantity());
+                productRepository.save(product);
+            }
         }
         orderDetailRepository.saveAll(orderDetails);
     }

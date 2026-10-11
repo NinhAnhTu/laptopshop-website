@@ -8,6 +8,7 @@ import com.example.laptopshop.service.OrderService;
 import com.example.laptopshop.service.UserService;
 import com.example.laptopshop.service.VnPayService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -37,13 +38,23 @@ public class CheckoutController {
     @GetMapping("/checkout")
     public String showCheckoutPage(@RequestParam(value = "selectedItems", required = false) List<Long> selectedItems,
                                    Model model,
-                                   Authentication authentication) {
+                                   Authentication authentication, HttpSession session) {
 
         User user = getUserFromAuthentication(authentication);
         if (user == null) return "redirect:/login";
 
-        if (selectedItems == null || selectedItems.isEmpty()) {
-            return "redirect:/cart?error=no_items_selected";
+        // DÙNG SESSION ĐỂ NHỚ CÁC MÓN HÀNG
+        if (selectedItems != null && !selectedItems.isEmpty()) {
+            // Lần đầu từ Giỏ hàng sang: Lưu danh sách ID vào Session
+            session.setAttribute("sessionSelectedItems", selectedItems);
+        } else {
+            // Không có param trên URL (VD: bấm nút Quay lại từ trang Account) -> Lấy từ Session ra
+            selectedItems = (List<Long>) session.getAttribute("sessionSelectedItems");
+
+            // Nếu Session cũng rỗng nốt -> Báo lỗi
+            if (selectedItems == null || selectedItems.isEmpty()) {
+                return "redirect:/cart?error=no_items_selected";
+            }
         }
 
         Cart cart = cartService.getCartByUser(user);

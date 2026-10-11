@@ -61,18 +61,37 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findById(id).orElse(null);
     }
 
-    // Thêm logic hoàn kho khi Admin hủy đơn
     @Override
     public void updateOrderStatus(Long orderId, String status) {
         Order order = orderRepository.findById(orderId).orElse(null);
         if (order != null) {
-            String oldStatus = order.getStatus(); // Lưu trạng thái cũ trước khi cập nhật
+            String oldStatus = order.getStatus(); // Lưu trạng thái cũ
 
-            if ("Đã hủy".equals(status) && !"Đã hủy".equals(oldStatus)) {
+            // [FIX BUG KHO 1]: VNPAY BÁO THÀNH CÔNG (Chờ thanh toán -> Đã thanh toán)
+            // Lúc này khách đã trả tiền xong, hệ thống tiến hành TRỪ KHO chính thức.
+            if ("Đã thanh toán".equals(status) && "Chờ thanh toán".equals(oldStatus)) {
                 for (OrderDetail detail : order.getOrderDetails()) {
                     Product product = detail.getProduct();
-                    product.setStock(product.getStock() + detail.getQuantity());
+
+                    // Tránh trường hợp kho bị âm (nếu có khách khác nhanh tay mua mất lúc đang thanh toán)
+                    if (product.getStock() >= detail.getQuantity()) {
+                        product.setStock(product.getStock() - detail.getQuantity());
+                    } else {
+                        product.setStock(0);
+                    }
                     productRepository.save(product);
+                }
+            }
+
+            // [FIX BUG KHO 2]: HỦY ĐƠN
+            // Tuyệt đối KHÔNG cộng lại kho nếu đơn đó bị hủy khi đang "Chờ thanh toán", vì trước đó ta chưa hề trừ kho.
+            if ("Đã hủy".equals(status) && !"Đã hủy".equals(oldStatus)) {
+                if (!"Chờ thanh toán".equals(oldStatus)) {
+                    for (OrderDetail detail : order.getOrderDetails()) {
+                        Product product = detail.getProduct();
+                        product.setStock(product.getStock() + detail.getQuantity());
+                        productRepository.save(product);
+                    }
                 }
             }
 
@@ -80,29 +99,31 @@ public class OrderServiceImpl implements OrderService {
             order.setStatus(status);
             orderRepository.save(order);
 
-            // 2. PHÁT LOA THÔNG BÁO (Áp dụng Observer Pattern)
-            // Không cần quan tâm ai gửi mail, ai làm bảo hành nữa, cứ quăng Event ra là xong!
+            // 2. PHÁT LOA THÔNG BÁO (Observer Pattern)
             eventPublisher.publishEvent(new OrderStatusChangedEvent(this, order, oldStatus, status));
         }
     }
 
-    //Cho phép hủy cả đơn "Chờ thanh toán"
     @Override
     @Transactional
     public void cancelOrder(Long orderId) {
         Order order = orderRepository.findById(orderId).orElse(null);
 
-        //Thêm điều kiện "Chờ thanh toán"
         if (order != null && ("Chờ xác nhận".equals(order.getStatus()) || "Chờ thanh toán".equals(order.getStatus()))) {
+            String oldStatus = order.getStatus();
+
             order.setStatus("Đã hủy");
             orderRepository.save(order);
 
-            // Hoàn lại tồn kho
-            for (OrderDetail detail : order.getOrderDetails()) {
-                Product product = detail.getProduct();
-                product.setStock(product.getStock() + detail.getQuantity());
-                productRepository.save(product);
+            // [FIX BUG KHO 3]: Chỉ hoàn lại tồn kho nếu KHÔNG PHẢI đơn VNPAY đang kẹt (Chờ thanh toán)
+            if (!"Chờ thanh toán".equals(oldStatus)) {
+                for (OrderDetail detail : order.getOrderDetails()) {
+                    Product product = detail.getProduct();
+                    product.setStock(product.getStock() + detail.getQuantity());
+                    productRepository.save(product);
+                }
             }
+
             // Gửi mail thông báo hủy
             try {
                 emailService.sendOrderCancellationNotification(order);

@@ -77,7 +77,9 @@ public class VnPayServiceImpl implements VnPayService {
         String queryUrl = query.toString();
         String vnp_SecureHash = VnPayConfig.hmacSHA512(VnPayConfig.vnp_HashSecret, hashData.toString());
         queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
-        return VnPayConfig.vnp_PayUrl + "?" + queryUrl;
+        String finalUrl = VnPayConfig.vnp_PayUrl + "?" + queryUrl;
+        System.out.println("🔗 VNPAY GENERATED URL: " + finalUrl); // In ra để kiểm tra
+        return finalUrl;
     }
 
     @Override

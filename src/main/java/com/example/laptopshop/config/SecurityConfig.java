@@ -30,8 +30,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         // 1. Các trang Public
-                        .requestMatchers("/", "/login", "/register", "/forgot-password", "/reset-password", "/product/**", "/search/**").permitAll()
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/uploads/**").permitAll()
+                        .requestMatchers("/", "/login", "/register", "/forgot-password", "/reset-password", "/product/**", "/search/**", "/error").permitAll()                        .requestMatchers("/css/**", "/js/**", "/images/**", "/uploads/**").permitAll()
 
                         // Mở khóa cho Chat WebSocket và API Chat
                         .requestMatchers("/ws/**", "/api/chat/**").permitAll()

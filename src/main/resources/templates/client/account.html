@@ -141,6 +141,10 @@
                 <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-secondary"><i class="fas fa-home me-1"></i>Trang chủ</a></li>
                 <li class="breadcrumb-item active text-primary fw-bold" aria-current="page">Tài khoản</li>
             </ol>
+            <!-- NÚT QUAY LẠI THANH TOÁN (Ẩn đi, chỉ hiện khi có biến ?from=checkout) -->
+            <a href="/checkout" id="btnBackToCheckout" class="btn btn-sm btn-custom-orange d-none rounded-pill">
+                <i class="fas fa-arrow-left me-1"></i> Quay lại Thanh toán
+            </a>
         </nav>
 
         <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm border-0 bg-success text-white" role="alert">
@@ -302,8 +306,9 @@
                                 <!-- Phần 1: Cập nhật thông tin cá nhân cơ bản -->
                                 <h6 class="fw-bold text-secondary mb-3 text-uppercase border-bottom pb-2"><i class="fas fa-id-card me-2"></i>Thông tin cá nhân</h6>
                                 <form action="/account/update" method="post" class="row g-3 mb-5">
+                                    <!-- THÊM DÒNG NÀY ĐỂ GIỮ BIẾN "FROM" -->
                                     <input type="hidden" name="userId" th:value="${user.userId}">
-
+                                    <input type="hidden" name="from" id="fromInputProfile" value="">
                                     <div class="col-md-4">
                                         <label class="form-label fw-bold text-secondary small">Email</label>
                                         <input type="text" name="email" class="form-control bg-light" th:value="${user.email}" readonly>
@@ -311,11 +316,13 @@
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label fw-bold text-secondary small">Họ và tên</label>
-                                        <input type="text" name="fullname" class="form-control" th:value="${user.fullname}" required>
+                                        <input type="text" name="fullname" class="form-control"
+                                               th:value="${failedUser != null ? failedUser.fullname : user.fullname}" required>
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label fw-bold text-secondary small">Số điện thoại</label>
-                                        <input type="text" name="phone" class="form-control" th:value="${user.phone}" required>
+                                        <input type="text" name="phone" class="form-control"
+                                               th:value="${failedUser != null ? failedUser.phone : user.phone}" required>
                                     </div>
 
                                     <div class="col-12 text-end mt-3">
@@ -344,6 +351,21 @@
                                         <div class="p-3 border rounded-3 h-100 position-relative" th:classappend="${addr.isDefault} ? 'border-primary bg-light shadow-sm' : 'border-secondary-subtle'">
                                             <span th:if="${addr.isDefault}" class="badge bg-primary position-absolute top-0 end-0 m-2">Mặc định</span>
 
+                                            <!-- Nút "Sửa" Góc Phải (Nếu không phải mặc định thì cách ra chút xíu) -->
+                                            <button type="button" class="btn btn-sm btn-link text-primary position-absolute end-0 p-2"
+                                                    th:style="${addr.isDefault ? 'top: 25px;' : 'top: 0;'}"
+                                                    th:data-id="${addr.addressId}"
+                                                    th:data-name="${addr.receiverName}"
+                                                    th:data-phone="${addr.receiverPhone}"
+                                                    th:data-province="${addr.ghnProvinceId}"
+                                                    th:data-district="${addr.ghnDistrictId}"
+                                                    th:data-ward="${addr.ghnWardCode}"
+                                                    th:data-full="${addr.fullAddress}"
+                                                    th:data-default="${addr.isDefault}"
+                                                    onclick="editAddress(this)">
+                                                <i class="fas fa-edit"></i> Sửa
+                                            </button>
+
                                             <h6 class="fw-bold mb-1 text-dark" th:text="${addr.receiverName}">Tên người nhận</h6>
                                             <p class="text-muted small mb-2"><i class="fas fa-phone-alt me-2 text-secondary"></i><span th:text="${addr.receiverPhone}">0123</span></p>
                                             <p class="small text-dark mb-0"><i class="fas fa-map-marker-alt me-2 text-danger"></i><span th:text="${addr.fullAddress}">Địa chỉ</span></p>
@@ -364,6 +386,8 @@
 
                                         <!-- Trỏ tới API trong ClientController -->
                                         <form action="/account/add-address" method="post" id="addressForm">
+                                            <input type="hidden" name="from" id="fromInputAddressModal" value="">
+                                            <input type="hidden" name="addressId" id="modalAddressId" value="">
                                             <div class="modal-body p-4">
                                                 <!-- Input Ẩn: Lưu chuỗi địa chỉ đầy đủ sau khi ghép bằng JS -->
                                                 <input type="hidden" name="fullAddress" id="fullAddress">
@@ -398,17 +422,26 @@
                                                         </select>
                                                     </div>
 
-                                                    <div class="col-12">
+                                                    <div class="col-12 mt-3">
+                                                        <!-- Thêm dòng này để loại phần đường phố riêng ra -->
                                                         <label class="form-label fw-bold text-secondary small">Địa chỉ cụ thể (Số nhà, Tên đường) <span class="text-danger">*</span></label>
                                                         <input type="text" id="streetInput" class="form-control" required placeholder="VD: Số 1, Đường Võ Văn Ngân...">
+                                                    </div>
+
+                                                    <div class="col-12 mt-3">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" name="isDefault" id="isDefaultCheck">
+                                                            <label class="form-check-label text-dark" for="isDefaultCheck">
+                                                                Đặt làm địa chỉ mặc định
+                                                            </label>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <div class="modal-footer border-0 bg-light rounded-bottom-4">
                                                 <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
-                                                <button type="submit" class="btn btn-custom-orange px-4">Lưu vào Sổ địa chỉ</button>
-                                            </div>
+                                                <button type="submit" id="btnSubmitAddress" class="btn btn-custom-orange px-4">Lưu vào sổ địa chỉ</button>                                            </div>
                                         </form>
                                     </div>
                                 </div>
@@ -423,7 +456,8 @@
                                         <div class="position-relative">
                                             <input type="password" name="oldPassword" id="oldPassword"
                                                    class="form-control form-control-lg form-control-password rounded-pill fs-6"
-                                                   required placeholder="Nhập mật khẩu cũ...">
+                                                   required placeholder="Nhập mật khẩu cũ..."
+                                                   th:value="${oldPwd}">
 
                                             <div class="password-icon-container">
                                                 <i class="fas fa-check-circle text-success icon-animated d-none" id="checkOldPass"></i>
@@ -437,9 +471,11 @@
 
                                     <div class="col-md-8">
                                         <label class="form-label fw-bold text-secondary small text-uppercase">Mật khẩu mới</label>
+                                        <!-- [SỬA LẠI name và id THÀNH newPassword] -->
                                         <input type="password" name="newPassword" id="newPassword"
-                                               class="form-control form-control-lg rounded-pill fs-6"
-                                               required placeholder="Nhập mật khẩu mới...">
+                                               class="form-control form-control-lg form-control-password rounded-pill fs-6"
+                                               required placeholder="Nhập mật khẩu mới..."
+                                               th:value="${newPwd}">
                                     </div>
 
                                     <div class="col-md-8">
@@ -562,6 +598,81 @@
         confirmPassInput.addEventListener("input", validateMatch);
     });
 
+    // --- HÀM MỞ MODAL ĐỂ SỬA ĐỊA CHỈ ---
+    function editAddress(buttonElement) {
+        // 1. Lấy dữ liệu từ Data Attributes của nút bấm
+        const id = buttonElement.getAttribute('data-id');
+        const name = buttonElement.getAttribute('data-name');
+        const phone = buttonElement.getAttribute('data-phone');
+        const provinceId = buttonElement.getAttribute('data-province');
+        const districtId = buttonElement.getAttribute('data-district');
+        const wardCode = buttonElement.getAttribute('data-ward');
+        const fullAddress = buttonElement.getAttribute('data-full');
+        const isDefault = buttonElement.getAttribute('data-default') === 'true';
+
+        // 2. Đổ dữ liệu vào Modal
+        document.getElementById('modalAddressId').value = id;
+        document.querySelector('input[name="receiverName"]').value = name;
+        document.querySelector('input[name="receiverPhone"]').value = phone;
+
+        // Tách chuỗi địa chỉ đầy đủ để lấy khúc số nhà (Vì fullAddress = "Số nhà, Xã, Huyện, Tỉnh")
+        const streetPart = fullAddress.split(',')[0];
+        document.getElementById('streetInput').value = streetPart;
+
+        // Checkbox mặc định
+        document.getElementById('isDefaultCheck').checked = isDefault;
+        document.getElementById('isDefaultCheck').disabled = isDefault; // Nếu đang là mặc định thì không cho bỏ check
+
+        // 3. Đổi Tiêu đề và Nút
+        document.querySelector('#addressModal .modal-title').innerHTML = '<i class="fas fa-edit me-2"></i>Cập nhật địa chỉ';
+        document.getElementById('btnSubmitAddress').innerText = 'Cập nhật';
+
+        // 4. Xử lý Load API GHN
+        const pSelect = document.getElementById('provinceSelect');
+        pSelect.value = provinceId;
+
+        // Buộc phải dùng hàm Fetch riêng để load Quận dựa vào Tỉnh cũ, sau đó select Quận cũ, rồi lại load Xã...
+        fetch(`https://online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id=${provinceId}`, { method: 'GET', headers: headers })
+            .then(res => res.json())
+            .then(data => {
+                const dSelect = document.getElementById('districtSelect');
+                let html = '<option value="">-- Chọn Quận/Huyện --</option>';
+                data.data.forEach(d => html += `<option value="${d.DistrictID}">${d.DistrictName}</option>`);
+                dSelect.innerHTML = html;
+                dSelect.disabled = false;
+                dSelect.value = districtId; // Gán Quận
+
+                return fetch(`https://online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=${districtId}`, { method: 'GET', headers: headers });
+            })
+            .then(res => res.json())
+            .then(data => {
+                const wSelect = document.getElementById('wardSelect');
+                let html = '<option value="">-- Chọn Phường/Xã --</option>';
+                data.data.forEach(w => html += `<option value="${w.WardCode}">${w.WardName}</option>`);
+                wSelect.innerHTML = html;
+                wSelect.disabled = false;
+                wSelect.value = wardCode; // Gán Xã
+
+                // 5. Hiển thị Modal lên
+                const modal = new bootstrap.Modal(document.getElementById('addressModal'));
+                modal.show();
+            });
+    }
+
+    // --- Reset lại Modal khi tắt (hoặc khi bấm Thêm mới) ---
+    document.getElementById('addressModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('addressForm').reset();
+        document.getElementById('modalAddressId').value = "";
+        document.querySelector('#addressModal .modal-title').innerHTML = '<i class="fas fa-map-plus me-2"></i>Thêm địa chỉ nhận hàng';
+        document.getElementById('btnSubmitAddress').innerText = 'Lưu vào Sổ địa chỉ';
+        document.getElementById('isDefaultCheck').disabled = false;
+
+        document.getElementById('districtSelect').innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+        document.getElementById('districtSelect').disabled = true;
+        document.getElementById('wardSelect').innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+        document.getElementById('wardSelect').disabled = true;
+    });
+
     // Token của bạn (Giữ nguyên)
     const GHN_TOKEN = '0ba5db0e-9f1f-426b-9342-c2ed9953098a';
     const headers = { 'Content-Type': 'application/json', 'Token': GHN_TOKEN };
@@ -678,6 +789,41 @@
                 const fullAddress = `${street}, ${wText}, ${dText}, ${pText}`;
                 document.getElementById('fullAddress').value = fullAddress;
             });
+        }
+    });
+
+    //chuyển tab
+    document.addEventListener("DOMContentLoaded", function() {
+        // --- LOGIC XỬ LÝ URL PARAMETERS (TỰ ĐỘNG CHUYỂN TAB) ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+        const fromParam = urlParams.get('from');
+
+        // 1. Hiển thị nút Quay lại thanh toán nếu đến từ trang Checkout
+        if (fromParam === 'checkout') {
+            document.getElementById('btnBackToCheckout').classList.remove('d-none');
+
+            // Nếu có form, nhét biến from vào để giữ nguyên luồng
+            const fromInput = document.getElementById('fromInputProfile');
+            if(fromInput) fromInput.value = 'checkout';
+            // [BỔ SUNG] Nhét biến from vào Modal Tạo Địa Chỉ
+            const fromInputModal = document.getElementById('fromInputAddressModal');
+            if(fromInputModal) fromInputModal.value = 'checkout';
+        }
+
+        // 2. Chuyển Tab nếu có tham số 'tab' trên URL (Ví dụ: ?tab=profile)
+        if (tabParam) {
+            let targetTabBtn = null;
+            if (tabParam === 'orders') targetTabBtn = document.getElementById('orders-tab');
+            else if (tabParam === 'warranty') targetTabBtn = document.getElementById('warranty-tab');
+            else if (tabParam === 'profile') targetTabBtn = document.getElementById('profile-tab');
+            else if (tabParam === 'password') targetTabBtn = document.getElementById('password-tab');
+
+            if (targetTabBtn) {
+                // Khởi tạo Bootstrap Tab và kích hoạt
+                const tab = new bootstrap.Tab(targetTabBtn);
+                tab.show();
+            }
         }
     });
 </script>

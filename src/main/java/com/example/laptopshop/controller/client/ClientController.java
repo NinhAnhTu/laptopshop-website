@@ -49,7 +49,7 @@ public class ClientController {
 
     // --- 2. CẬP NHẬT THÔNG TIN CÁ NHÂN (CƠ BẢN) ---
     @PostMapping("/account/update")
-    public String updateAccount(@ModelAttribute("user") User user,
+    public String updateAccount(@ModelAttribute("user") User user, @RequestParam(value = "from", required = false) String from,
                                 RedirectAttributes redirectAttributes) {
         try {
             // Hàm này giờ chỉ làm nhiệm vụ cập nhật Tên và SĐT của Account gốc
@@ -57,44 +57,79 @@ public class ClientController {
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin cá nhân thành công!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            redirectAttributes.addFlashAttribute("failedUser", user);
         }
-        return "redirect:/account";
+        // GIỮ NGUYÊN TAB PROFILE & TRẠNG THÁI FROM
+        String redirectUrl = "redirect:/account?tab=profile";
+        if (from != null && from.equals("checkout")) {
+            redirectUrl += "&from=checkout";
+        }
+        return redirectUrl;
     }
 
-    // --- 3. [MỚI] THÊM ĐỊA CHỈ GIAO HÀNG VÀO SỔ ĐỊA CHỈ ---
-    @PostMapping("/account/add-address")
-    public String addAddress(@RequestParam("receiverName") String receiverName,
-                             @RequestParam("receiverPhone") String receiverPhone,
-                             @RequestParam("ghnProvinceId") Integer ghnProvinceId,
-                             @RequestParam("ghnDistrictId") Integer ghnDistrictId,
-                             @RequestParam("ghnWardCode") String ghnWardCode,
-                             @RequestParam("fullAddress") String fullAddress,
-                             Principal principal,
-                             RedirectAttributes redirectAttributes) {
+    // --- 3. [SỬA LẠI] THÊM HOẶC CẬP NHẬT ĐỊA CHỈ ---
+    @PostMapping("/account/add-address") // Đổi tên thành add-or-update-address nếu muốn rành mạch
+    public String addOrUpdateAddress(@RequestParam(value = "addressId", required = false) Long addressId, // [MỚI] ID để biết là sửa hay thêm
+                                     @RequestParam("receiverName") String receiverName,
+                                     @RequestParam("receiverPhone") String receiverPhone,
+                                     @RequestParam("ghnProvinceId") Integer ghnProvinceId,
+                                     @RequestParam("ghnDistrictId") Integer ghnDistrictId,
+                                     @RequestParam("ghnWardCode") String ghnWardCode,
+                                     @RequestParam("fullAddress") String fullAddress,
+                                     @RequestParam(value = "isDefault", defaultValue = "false") boolean isDefault, // [MỚI] Cho phép set mặc định
+                                     @RequestParam(value = "from", required = false) String from,
+                                     Principal principal,
+                                     RedirectAttributes redirectAttributes) {
 
         User user = getUserFromPrincipal(principal);
         if (user == null) return "redirect:/login";
 
-        UserAddress newAddress = new UserAddress();
-        newAddress.setUser(user);
-        newAddress.setReceiverName(receiverName);
-        newAddress.setReceiverPhone(receiverPhone);
-        newAddress.setGhnProvinceId(ghnProvinceId);
-        newAddress.setGhnDistrictId(ghnDistrictId);
-        newAddress.setGhnWardCode(ghnWardCode);
-        newAddress.setFullAddress(fullAddress);
+        UserAddress addressToSave;
 
-        // Nếu đây là địa chỉ đầu tiên được thêm vào, tự động thiết lập làm Mặc định
-        if (user.getAddresses() == null || user.getAddresses().isEmpty()) {
-            newAddress.setIsDefault(true);
+        // Nếu có ID -> Cập nhật địa chỉ cũ
+        if (addressId != null) {
+            addressToSave = userAddressRepository.findById(addressId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy địa chỉ!"));
+
+            // Đảm bảo địa chỉ này đúng là của User đang đăng nhập
+            if (!addressToSave.getUser().getUserId().equals(user.getUserId())) {
+                return "redirect:/account";
+            }
         } else {
-            newAddress.setIsDefault(false);
+            // Không có ID -> Tạo địa chỉ mới
+            addressToSave = new UserAddress();
+            addressToSave.setUser(user);
         }
 
-        userAddressRepository.save(newAddress);
+        addressToSave.setReceiverName(receiverName);
+        addressToSave.setReceiverPhone(receiverPhone);
+        addressToSave.setGhnProvinceId(ghnProvinceId);
+        addressToSave.setGhnDistrictId(ghnDistrictId);
+        addressToSave.setGhnWardCode(ghnWardCode);
+        addressToSave.setFullAddress(fullAddress);
 
-        redirectAttributes.addFlashAttribute("successMessage", "Thêm địa chỉ nhận hàng mới thành công!");
-        return "redirect:/account";
+        // Xử lý cờ Mặc định
+        if (user.getAddresses() == null || user.getAddresses().isEmpty()) {
+            addressToSave.setIsDefault(true); // Địa chỉ đầu tiên luôn mặc định
+        } else if (isDefault) {
+            // Nếu user tick chọn Mặc định, phải gỡ bỏ Mặc định của các địa chỉ cũ
+            for (UserAddress oldAddr : user.getAddresses()) {
+                oldAddr.setIsDefault(false);
+                userAddressRepository.save(oldAddr);
+            }
+            addressToSave.setIsDefault(true);
+        }
+
+        userAddressRepository.save(addressToSave);
+
+        redirectAttributes.addFlashAttribute("successMessage",
+                addressId != null ? "Cập nhật địa chỉ thành công!" : "Thêm địa chỉ nhận hàng mới thành công!");
+
+        String redirectUrl = "redirect:/account?tab=profile";
+        if (from != null && from.equals("checkout")) {
+            redirectUrl += "&from=checkout";
+        }
+        return redirectUrl;
     }
 
     // --- 4. HỦY ĐƠN HÀNG ---
@@ -116,9 +151,14 @@ public class ClientController {
 
         if (principal == null) return "redirect:/login";
 
+        // [BỔ SUNG] Đóng gói dữ liệu cũ để trả về HTML nếu lỗi
+        redirectAttributes.addFlashAttribute("oldPwd", oldPassword);
+        redirectAttributes.addFlashAttribute("newPwd", newPassword);
+        redirectAttributes.addFlashAttribute("confirmPwd", confirmPassword);
+
         if (!newPassword.equals(confirmPassword)) {
             redirectAttributes.addFlashAttribute("errorMessage", "Mật khẩu xác nhận không khớp!");
-            return "redirect:/account";
+            return "redirect:/account?tab=password"; // Dù lỗi cũng giữ ở tab mật khẩu
         }
 
         try {
@@ -131,11 +171,15 @@ public class ClientController {
             userService.changeClientPassword(currentUser, oldPassword, newPassword);
 
             redirectAttributes.addFlashAttribute("successMessage", "Đổi mật khẩu thành công! Kiểm tra email để xem thông tin.");
+
+            redirectAttributes.getFlashAttributes().remove("oldPwd");
+            redirectAttributes.getFlashAttributes().remove("newPwd");
+            redirectAttributes.getFlashAttributes().remove("confirmPwd");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
 
-        return "redirect:/account";
+        return "redirect:/account?tab=password"; // Thành công thì giữ tab mật khẩu
     }
     // --- XEM CHI TIẾT ĐƠN HÀNG ---
     @GetMapping("/account/order/{id}")
