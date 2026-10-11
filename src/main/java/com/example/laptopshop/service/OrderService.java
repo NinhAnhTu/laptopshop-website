@@ -9,7 +9,7 @@ import java.util.List;
 public interface OrderService {
 
     Order placeOrder(User user, String note, String shippingAddress,
-                     String shippingName, String shippingPhone, Long cityId, Long paymentMethodId,
+                     String shippingName, String shippingPhone, Integer ghnDistrictId, String ghnWardCode, Long paymentMethodId,
                      List<Long> selectedCartDetailIds, String voucherCode);
 
     List<Order> getOrdersByUser(User user);

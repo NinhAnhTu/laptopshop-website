@@ -1,9 +1,9 @@
 package com.example.laptopshop.controller.client;
 
 import com.example.laptopshop.entity.*;
-import com.example.laptopshop.repository.CityRepository;
-import com.example.laptopshop.repository.ShippingRateRepository;
+import com.example.laptopshop.repository.UserAddressRepository;
 import com.example.laptopshop.service.CartService;
+import com.example.laptopshop.service.GhnApiService;
 import com.example.laptopshop.service.OrderService;
 import com.example.laptopshop.service.UserService;
 import com.example.laptopshop.service.VnPayService;
@@ -13,9 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
@@ -29,30 +27,30 @@ public class CheckoutController {
     private final CartService cartService;
     private final UserService userService;
     private final OrderService orderService;
-    private final CityRepository cityRepository;
     private final VnPayService vnPayService;
-    private final ShippingRateRepository shippingRateRepository;
-    // 1. Hiển thị trang thanh toán
+
+    // [MỚI] Tiêm 2 Service mới vào
+    private final UserAddressRepository userAddressRepository;
+    private final GhnApiService ghnApiService;
+
+    // --- 1. HIỂN THỊ TRANG THANH TOÁN ---
     @GetMapping("/checkout")
     public String showCheckoutPage(@RequestParam(value = "selectedItems", required = false) List<Long> selectedItems,
                                    Model model,
-                                   Authentication authentication) { // Dùng Authentication thay vì Principal
+                                   Authentication authentication) {
 
         User user = getUserFromAuthentication(authentication);
         if (user == null) return "redirect:/login";
 
-        // Kiểm tra nếu không có sản phẩm nào được chọn (từ giỏ hàng truyền sang)
         if (selectedItems == null || selectedItems.isEmpty()) {
             return "redirect:/cart?error=no_items_selected";
         }
 
         Cart cart = cartService.getCartByUser(user);
-
         if (cart == null || cart.getCartDetails().isEmpty()) {
             return "redirect:/cart";
         }
 
-        // Lọc ra các sản phẩm được chọn để hiển thị và tính tiền
         List<CartDetail> checkoutItems = new ArrayList<>();
         double totalPrice = 0;
 
@@ -63,39 +61,43 @@ public class CheckoutController {
             }
         }
 
-        // Nếu lọc xong mà danh sách rỗng (hack url) thì đá về giỏ hàng
-        if (checkoutItems.isEmpty()) {
-            return "redirect:/cart";
-        }
-        BigDecimal shippingFee = BigDecimal.valueOf(50000); // Phí mặc định nếu lỗi
-        if (user.getCity() != null && user.getCity().getRegion() != null) {
-            ShippingRate rate = shippingRateRepository.findByRegionRegionId(user.getCity().getRegion().getRegionId()).orElse(null);
-            if (rate != null) {
-                shippingFee = rate.getBaseFee();
+        if (checkoutItems.isEmpty()) return "redirect:/cart";
+
+        // [MỚI] XỬ LÝ SỔ ĐỊA CHỈ & TÍNH PHÍ SHIP MẶC ĐỊNH
+        BigDecimal shippingFee = BigDecimal.ZERO;
+        List<UserAddress> addresses = user.getAddresses();
+
+        if (addresses != null && !addresses.isEmpty()) {
+            // Tìm địa chỉ mặc định, nếu không có thì lấy cái đầu tiên
+            UserAddress defaultAddress = addresses.stream()
+                    .filter(UserAddress::getIsDefault)
+                    .findFirst()
+                    .orElse(addresses.get(0));
+
+            // Gọi API GHN tính phí ship cho địa chỉ mặc định
+            if (defaultAddress.getGhnDistrictId() != null && defaultAddress.getGhnWardCode() != null) {
+                int fee = ghnApiService.calculateShippingFee(defaultAddress.getGhnDistrictId(), defaultAddress.getGhnWardCode());
+                shippingFee = BigDecimal.valueOf(fee);
             }
         }
-        model.addAttribute("shippingFee", shippingFee); // Truyền phí Ship xuống HTML
+
+        model.addAttribute("shippingFee", shippingFee);
         model.addAttribute("cartItems", checkoutItems);
         model.addAttribute("totalPrice", totalPrice);
         model.addAttribute("user", user);
-
-        // Truyền danh sách ID này sang View để lát nữa form POST gửi lại
         model.addAttribute("selectedIds", selectedItems);
 
         return "client/checkout";
     }
 
-    // 2. Xử lý đặt hàng
+    // --- 2. XỬ LÝ ĐẶT HÀNG ---
     @PostMapping("/place-order")
-    public String placeOrder(@RequestParam("fullname") String fullname,
-                             @RequestParam("phone") String phone,
-                             @RequestParam("address") String address,
-                             @RequestParam("cityId") Long cityId,
+    public String placeOrder(@RequestParam("selectedAddressId") Long selectedAddressId, // [MỚI] Chỉ cần nhận ID địa chỉ
                              @RequestParam(value = "note", required = false) String note,
                              @RequestParam(value = "paymentMethod", defaultValue = "1") Long paymentMethodId,
                              @RequestParam("selectedIds") List<Long> selectedIds,
                              @RequestParam(value = "voucherCode", required = false) String voucherCode,
-                             Authentication authentication, // [SỬA] Dùng Authentication
+                             Authentication authentication,
                              HttpServletRequest request,
                              RedirectAttributes redirectAttributes) {
 
@@ -103,31 +105,43 @@ public class CheckoutController {
         if (user == null) return "redirect:/login";
 
         try {
-            // Bước 1: Tạo đơn hàng
-            Order order = orderService.placeOrder(user, note, address, fullname, phone, cityId, paymentMethodId, selectedIds, voucherCode);
+            // 1. Lấy thông tin địa chỉ từ Database
+            UserAddress address = userAddressRepository.findById(selectedAddressId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy địa chỉ giao hàng!"));
 
-            // Bước 2: Kiểm tra phương thức thanh toán
-            // Nếu là VNPAY (ID = 2)
+            // 2. Tạo đơn hàng (Đã đổi tham số truyền vào thành dữ liệu của Sổ địa chỉ)
+            Order order = orderService.placeOrder(
+                    user, note,
+                    address.getFullAddress(), address.getReceiverName(), address.getReceiverPhone(),
+                    address.getGhnDistrictId(), address.getGhnWardCode(), // Truyền 2 mã GHN thay vì CityId
+                    paymentMethodId, selectedIds, voucherCode
+            );
+
+            // 3. Xử lý VNPAY
             if (paymentMethodId == 2) {
-                // Tạm thời set trạng thái chờ thanh toán
                 orderService.updateOrderStatus(order.getOrderId(), "Chờ thanh toán");
-                // Tạo URL thanh toán và chuyển hướng
                 String vnpayUrl = vnPayService.createVnPayPayment(request, order);
                 return "redirect:" + vnpayUrl;
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            // [MỚI] Bắt lấy câu thông báo lỗi ở tầng Service và truyền sang file HTML
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            // Trả về trang Giỏ hàng để khách nhìn thấy lỗi và chỉnh sửa lại
             return "redirect:/cart";
         }
 
         return "redirect:/checkout/success";
     }
 
-    // 3. Xử lý kết quả trả về từ VNPAY
+    // --- 3. [MỚI] API AJAX TÍNH LẠI PHÍ SHIP KHI ĐỔI ĐỊA CHỈ TRÊN GIAO DIỆN ---
+    @GetMapping("/api/shipping/calculate-fee")
+    @ResponseBody
+    public Integer calculateFee(@RequestParam("districtId") Integer districtId,
+                                @RequestParam("wardCode") String wardCode) {
+        return ghnApiService.calculateShippingFee(districtId, wardCode);
+    }
+
+    // --- CÁC HÀM XỬ LÝ VNPAY VÀ LẤY USER GIỮ NGUYÊN NHƯ CŨ ---
     @GetMapping("/vnpay-payment-return")
     public String vnpayReturn(HttpServletRequest request, Model model) {
         int paymentStatus = vnPayService.orderReturn(request);
@@ -144,15 +158,10 @@ public class CheckoutController {
         model.addAttribute("transactionId", transactionId);
 
         if (paymentStatus == 1) {
-            // 1. Cập nhật trạng thái đơn hàng (Đã có)
             orderService.updateOrderStatus(Long.parseLong(orderId), "Đã thanh toán");
-
-            // 2. LƯU GIAO DỊCH VÀO BẢNG TRANSACTIONS (BẠN HÃY THÊM DÒNG NÀY VÀO)
             orderService.saveTransaction(Long.parseLong(orderId), totalPrice, transactionId);
-
             return "client/order_success";
         } else {
-            // Thanh toán thất bại hoặc hủy bỏ
             orderService.cancelOrder(Long.parseLong(orderId));
             return "client/order_fail";
         }
@@ -163,23 +172,11 @@ public class CheckoutController {
         return "client/order_success";
     }
 
-    // --- LẤY USER CHUẨN ---
     private User getUserFromAuthentication(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return null;
-        }
-
-        String email = "";
-        if (authentication instanceof OAuth2AuthenticationToken) {
-            OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
-            email = oauthToken.getPrincipal().getAttribute("email");
-        } else {
-            email = authentication.getName();
-        }
-
-        if (email != null && !email.isEmpty()) {
-            return userService.findByEmail(email);
-        }
-        return null;
+        if (authentication == null || !authentication.isAuthenticated()) return null;
+        String email = authentication instanceof OAuth2AuthenticationToken ?
+                ((OAuth2AuthenticationToken) authentication).getPrincipal().getAttribute("email") :
+                authentication.getName();
+        return email != null && !email.isEmpty() ? userService.findByEmail(email) : null;
     }
 }

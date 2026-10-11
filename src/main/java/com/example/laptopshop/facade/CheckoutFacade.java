@@ -3,6 +3,7 @@ package com.example.laptopshop.facade;
 import com.example.laptopshop.entity.*;
 import com.example.laptopshop.repository.*;
 import com.example.laptopshop.service.EmailService;
+import com.example.laptopshop.service.GhnApiService;
 import com.example.laptopshop.strategy.PaymentContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -19,8 +20,6 @@ public class CheckoutFacade {
 
     // --- CÁC PHÂN HỆ (SUBSYSTEMS) ĐƯỢC FACADE CHE GIẤU VÀ ĐIỀU PHỐI ---
     private final CartDetailRepository cartDetailRepository;
-    private final CityRepository cityRepository;
-    private final ShippingRateRepository shippingRateRepository;
     private final VoucherRepository voucherRepository;
     private final PaymentMethodRepository paymentMethodRepository;
     private final OrderRepository orderRepository;
@@ -28,13 +27,18 @@ public class CheckoutFacade {
     private final ProductRepository productRepository;
     private final EmailService emailService;
     private final PaymentContext paymentContext;
+
+    // [MỚI] Tiêm Service của Giao Hàng Nhanh vào Facade
+    private final GhnApiService ghnApiService;
+
     /**
      * ĐÂY LÀ HÀM DUY NHẤT GIAO TIẾP VỚI BÊN NGOÀI
      * Controller chỉ cần gọi hàm này, mọi rắc rối Facade sẽ tự lo.
      */
     @Transactional
     public Order processCheckout(User user, String note, String shippingAddress,
-                                 String shippingName, String shippingPhone, Long cityId,
+                                 String shippingName, String shippingPhone,
+                                 Integer ghnDistrictId, String ghnWardCode, // [MỚI] Thay thế CityId bằng Mã GHN
                                  Long paymentMethodId, List<Long> selectedCartDetailIds,
                                  String voucherCode) {
 
@@ -44,21 +48,25 @@ public class CheckoutFacade {
 
         // 2. Phân hệ Tính Giá & Vận Chuyển (Pricing Subsystem)
         BigDecimal totalProductsPrice = calculateTotal(items);
-        BigDecimal shippingFee = calculateShipping(cityId);
+
+        // [MỚI] Gọi hàm tính phí ship bằng GHN API
+        BigDecimal shippingFee = calculateShipping(ghnDistrictId, ghnWardCode);
+
         Voucher voucher = validateAndGetVoucher(voucherCode, totalProductsPrice);
         BigDecimal discountAmount = calculateDiscount(voucher, totalProductsPrice);
 
         BigDecimal finalAmount = totalProductsPrice.add(shippingFee).subtract(discountAmount);
         if (finalAmount.compareTo(BigDecimal.ZERO) < 0) finalAmount = BigDecimal.ZERO;
 
-        // 3. Phân hệ Lưu Đơn Hàng (Sử dụng Builder Pattern từ bước trước)
+        // 3. Phân hệ Lưu Đơn Hàng (Sử dụng Builder Pattern)
         PaymentMethod pm = paymentMethodRepository.findById(paymentMethodId).orElse(null);
-        City city = cityRepository.findById(cityId).orElse(null);
 
+        // [MỚI] Xóa logic tìm City, thiết lập thẳng ghnDistrictId và ghnWardCode vào Order
         Order order = Order.builder()
                 .user(user).status("Chờ xác nhận").note(note)
                 .shippingAddress(shippingAddress).shippingName(shippingName).shippingPhone(shippingPhone)
-                .shippingCity(city).totalProductsPrice(totalProductsPrice).shippingFee(shippingFee)
+                .ghnDistrictId(ghnDistrictId).ghnWardCode(ghnWardCode) // Gắn mã ID vận chuyển
+                .totalProductsPrice(totalProductsPrice).shippingFee(shippingFee)
                 .discountAmount(discountAmount).voucher(voucher).finalAmount(finalAmount).paymentMethod(pm)
                 .build();
         Order savedOrder = orderRepository.save(order);
@@ -73,7 +81,7 @@ public class CheckoutFacade {
         cartDetailRepository.deleteAll(items);
 
         // 7. BÀN GIAO CHO CHIẾN LƯỢC THANH TOÁN
-        Long methodId = pm.getMethodId(); // Lấy ID (1 hoặc 2) từ PaymentMethod
+        Long methodId = pm.getMethodId();
         String redirectUrl = paymentContext.executePayment(methodId, savedOrder);
         return savedOrder;
     }
@@ -89,10 +97,13 @@ public class CheckoutFacade {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private BigDecimal calculateShipping(Long cityId) {
-        City city = cityRepository.findById(cityId).orElseThrow(() -> new RuntimeException("City not found"));
-        ShippingRate rate = shippingRateRepository.findByRegionRegionId(city.getRegion().getRegionId()).orElse(null);
-        return (rate != null) ? rate.getBaseFee() : BigDecimal.valueOf(50000);
+    // [MỚI] Hàm tính phí vận chuyển được viết lại hoàn toàn để gọi qua GHN API
+    private BigDecimal calculateShipping(Integer districtId, String wardCode) {
+        if (districtId == null || wardCode == null) {
+            return BigDecimal.valueOf(50000); // Phí dự phòng nếu lỗi dữ liệu
+        }
+        int fee = ghnApiService.calculateShippingFee(districtId, wardCode);
+        return BigDecimal.valueOf(fee);
     }
 
     private Voucher validateAndGetVoucher(String code, BigDecimal totalProductsPrice) {

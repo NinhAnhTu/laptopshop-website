@@ -45,10 +45,6 @@ public class Order {
     private String shippingName;
     private String shippingPhone;
 
-    @ManyToOne
-    @JoinColumn(name = "shipping_city_id")
-    private City shippingCity;
-
     private String note;
 
     @CreationTimestamp
@@ -62,6 +58,11 @@ public class Order {
 
     @OneToMany(mappedBy = "order")
     private List<Transaction> transactions;
+    @Column(name = "ghn_district_id")
+    private Integer ghnDistrictId;
+
+    @Column(name = "ghn_ward_code")
+    private String ghnWardCode;
 
     // =========================================================================
     // CODE ÁP DỤNG BUILDER PATTERN THỦ CÔNG
@@ -79,13 +80,14 @@ public class Order {
         this.shippingAddress = builder.shippingAddress;
         this.shippingName = builder.shippingName;
         this.shippingPhone = builder.shippingPhone;
-        this.shippingCity = builder.shippingCity;
         this.totalProductsPrice = builder.totalProductsPrice;
         this.shippingFee = builder.shippingFee;
         this.discountAmount = builder.discountAmount;
         this.voucher = builder.voucher;
         this.finalAmount = builder.finalAmount;
         this.paymentMethod = builder.paymentMethod;
+        this.ghnDistrictId = builder.ghnDistrictId; // [MỚI THÊM]
+        this.ghnWardCode = builder.ghnWardCode;     // [MỚI THÊM]
     }
 
     // 3. Hàm mồi để gọi Builder từ bên ngoài (Order.builder()...)
@@ -102,13 +104,14 @@ public class Order {
         private String shippingAddress;
         private String shippingName;
         private String shippingPhone;
-        private City shippingCity;
         private BigDecimal totalProductsPrice;
         private BigDecimal shippingFee;
         private BigDecimal discountAmount;
         private Voucher voucher;
         private BigDecimal finalAmount;
         private PaymentMethod paymentMethod;
+        private Integer ghnDistrictId; // [MỚI THÊM]
+        private String ghnWardCode;    // [MỚI THÊM]
 
         // Các hàm truyền tham số mang phong cách Fluent API (luôn return this)
         public OrderBuilder user(User user) {
@@ -141,8 +144,15 @@ public class Order {
             return this;
         }
 
-        public OrderBuilder shippingCity(City shippingCity) {
-            this.shippingCity = shippingCity;
+        // [MỚI THÊM] Hàm set cho District ID
+        public OrderBuilder ghnDistrictId(Integer ghnDistrictId) {
+            this.ghnDistrictId = ghnDistrictId;
+            return this;
+        }
+
+        // [MỚI THÊM] Hàm set cho Ward Code
+        public OrderBuilder ghnWardCode(String ghnWardCode) {
+            this.ghnWardCode = ghnWardCode;
             return this;
         }
 

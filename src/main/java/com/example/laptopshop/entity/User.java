@@ -7,6 +7,8 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -37,12 +39,6 @@ public class User {
     private String resetPasswordToken;
     private LocalDateTime resetTokenExpiry;
 
-    private String address;
-
-    @ManyToOne
-    @JoinColumn(name = "city_id")
-    private City city;
-
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -55,4 +51,7 @@ public class User {
     @OneToOne(mappedBy = "user")
     @JsonIgnore
     private Cart cart;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserAddress> addresses = new ArrayList<>();
 }

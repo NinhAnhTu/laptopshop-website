@@ -104,8 +104,9 @@ public class UserServiceImpl implements UserService {
         if (currentUser != null) {
             currentUser.setFullname(user.getFullname());
             currentUser.setPhone(user.getPhone());
-            currentUser.setAddress(user.getAddress());
-            currentUser.setCity(user.getCity());
+
+            // Đã xóa 2 dòng setAddress và setCity vì Sổ địa chỉ giờ được quản lý riêng
+
             userRepository.save(currentUser);
         }
     }

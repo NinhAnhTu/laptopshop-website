@@ -1,10 +1,10 @@
 package com.example.laptopshop.controller.client;
 
-import com.example.laptopshop.entity.City;
 import com.example.laptopshop.entity.Order;
 import com.example.laptopshop.entity.User;
+import com.example.laptopshop.entity.UserAddress;
 import com.example.laptopshop.entity.Warranty;
-import com.example.laptopshop.repository.CityRepository;
+import com.example.laptopshop.repository.UserAddressRepository;
 import com.example.laptopshop.service.OrderService;
 import com.example.laptopshop.service.UserService;
 import com.example.laptopshop.service.WarrantyService;
@@ -25,18 +25,13 @@ public class ClientController {
 
     private final UserService userService;
     private final OrderService orderService;
-    private final CityRepository cityRepository;
     private final WarrantyService warrantyService;
+    private final UserAddressRepository userAddressRepository;
+
+    // --- 1. HIỂN THỊ TRANG TÀI KHOẢN ---
     @GetMapping("/account")
     public String myAccount(Model model, Principal principal) {
-        if (principal == null) return "redirect:/login";
-
-        String email = principal.getName();
-        if (principal instanceof OAuth2AuthenticationToken) {
-            email = ((OAuth2AuthenticationToken) principal).getPrincipal().getAttribute("email");
-        }
-
-        User user = userService.findByEmail(email);
+        User user = getUserFromPrincipal(principal);
         if (user == null) return "redirect:/login";
 
         List<Order> orders = orderService.getOrdersByUser(user);
@@ -45,38 +40,64 @@ public class ClientController {
         List<Warranty> warranties = warrantyService.getWarrantiesByUser(user);
         if (warranties == null) warranties = Collections.emptyList();
 
-        // [MỚI] Load danh sách 34 tỉnh thành và đẩy xuống View
-        List<City> cities = cityRepository.findAll();
-        model.addAttribute("cities", cities);
+        // Đã xóa phần load Cities cũ vì Frontend giờ gọi trực tiếp từ API của GHN
         model.addAttribute("warranties", warranties);
         model.addAttribute("user", user);
         model.addAttribute("orders", orders);
         return "client/account";
     }
 
-    // --- 2. CẬP NHẬT THÔNG TIN ---
+    // --- 2. CẬP NHẬT THÔNG TIN CÁ NHÂN (CƠ BẢN) ---
     @PostMapping("/account/update")
     public String updateAccount(@ModelAttribute("user") User user,
-                                @RequestParam(value = "cityId", required = false) Long cityId, // [MỚI] Bắt tham số cityId từ form
                                 RedirectAttributes redirectAttributes) {
-
-        // [MỚI] Tìm và set City cho User trước khi lưu
-        if (cityId != null) {
-            City city = cityRepository.findById(cityId).orElse(null);
-            user.setCity(city);
-        }
-
         try {
+            // Hàm này giờ chỉ làm nhiệm vụ cập nhật Tên và SĐT của Account gốc
             userService.updateUser(user);
-            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin thành công!");
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin cá nhân thành công!");
         } catch (Exception e) {
-            // Đẩy câu báo lỗi về lại màn hình giao diện
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
         return "redirect:/account";
     }
 
-    // --- 3. HỦY ĐƠN HÀNG ---
+    // --- 3. [MỚI] THÊM ĐỊA CHỈ GIAO HÀNG VÀO SỔ ĐỊA CHỈ ---
+    @PostMapping("/account/add-address")
+    public String addAddress(@RequestParam("receiverName") String receiverName,
+                             @RequestParam("receiverPhone") String receiverPhone,
+                             @RequestParam("ghnProvinceId") Integer ghnProvinceId,
+                             @RequestParam("ghnDistrictId") Integer ghnDistrictId,
+                             @RequestParam("ghnWardCode") String ghnWardCode,
+                             @RequestParam("fullAddress") String fullAddress,
+                             Principal principal,
+                             RedirectAttributes redirectAttributes) {
+
+        User user = getUserFromPrincipal(principal);
+        if (user == null) return "redirect:/login";
+
+        UserAddress newAddress = new UserAddress();
+        newAddress.setUser(user);
+        newAddress.setReceiverName(receiverName);
+        newAddress.setReceiverPhone(receiverPhone);
+        newAddress.setGhnProvinceId(ghnProvinceId);
+        newAddress.setGhnDistrictId(ghnDistrictId);
+        newAddress.setGhnWardCode(ghnWardCode);
+        newAddress.setFullAddress(fullAddress);
+
+        // Nếu đây là địa chỉ đầu tiên được thêm vào, tự động thiết lập làm Mặc định
+        if (user.getAddresses() == null || user.getAddresses().isEmpty()) {
+            newAddress.setIsDefault(true);
+        } else {
+            newAddress.setIsDefault(false);
+        }
+
+        userAddressRepository.save(newAddress);
+
+        redirectAttributes.addFlashAttribute("successMessage", "Thêm địa chỉ nhận hàng mới thành công!");
+        return "redirect:/account";
+    }
+
+    // --- 4. HỦY ĐƠN HÀNG ---
     @GetMapping("/account/cancel-order/{id}")
     public String cancelOrder(@PathVariable Long id, Principal principal, RedirectAttributes redirectAttributes) {
         if (principal == null) return "redirect:/login";
@@ -136,6 +157,17 @@ public class ClientController {
 
         model.addAttribute("order", order);
         return "client/order_detail"; // Trỏ tới file HTML mới
+    }
+    // --- HÀM TIỆN ÍCH DÙNG CHUNG: LẤY USER ĐANG ĐĂNG NHẬP ---
+    private User getUserFromPrincipal(Principal principal) {
+        if (principal == null) return null;
+
+        String email = principal.getName();
+        // Xử lý trường hợp đăng nhập bằng Google (OAuth2)
+        if (principal instanceof OAuth2AuthenticationToken) {
+            email = ((OAuth2AuthenticationToken) principal).getPrincipal().getAttribute("email");
+        }
+        return userService.findByEmail(email);
     }
 
 }

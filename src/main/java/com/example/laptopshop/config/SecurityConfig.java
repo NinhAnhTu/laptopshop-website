@@ -45,7 +45,13 @@ public class SecurityConfig {
                         .requestMatchers("/cart/**", "/checkout/**", "/account/**").authenticated()
 
                         .requestMatchers("/api/products/**").permitAll()
+
+                        // 5. API vận chuyển Webhook
+                        .requestMatchers("/api/webhook/**").permitAll()
+
                         .anyRequest().authenticated()
+
+
                 )
                 .formLogin(form -> form
                         .loginPage("/login")

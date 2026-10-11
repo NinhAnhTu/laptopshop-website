@@ -38,11 +38,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public Order placeOrder(User user, String note, String shippingAddress,
-                            String shippingName, String shippingPhone, Long cityId, Long paymentMethodId,
+                            String shippingName, String shippingPhone, Integer ghnDistrictId, String ghnWardCode, Long paymentMethodId,
                             List<Long> selectedCartDetailIds, String voucherCode) {
         return checkoutFacade.processCheckout(
                 user, note, shippingAddress, shippingName, shippingPhone,
-                cityId, paymentMethodId, selectedCartDetailIds, voucherCode
+                ghnDistrictId, ghnWardCode, paymentMethodId, selectedCartDetailIds, voucherCode
         );
     }
 

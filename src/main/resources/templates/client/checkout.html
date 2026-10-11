@@ -180,24 +180,40 @@
                                     <input type="text" name="phone" class="form-control bg-light" th:value="${user.phone}" readonly required>
                                 </div>
 
+                                <!-- BẮT ĐẦU PHẦN CHỌN ĐỊA CHỈ -->
                                 <div class="col-12">
-                                    <div class="p-3 bg-light border border-secondary-subtle rounded-3 position-relative">
-                                        <label class="form-label text-muted small text-uppercase fw-bold"><i class="fas fa-map-marked-alt me-1"></i> Địa chỉ giao hàng</label>
+                                    <div class="p-3 bg-light border border-secondary-subtle rounded-3">
+                                        <label class="form-label text-muted small text-uppercase fw-bold mb-3"><i class="fas fa-map-marked-alt me-1"></i> Chọn địa chỉ giao hàng</label>
 
-                                        <div th:if="${user.city != null and user.address != null and user.address != ''}">
-                                            <p class="mb-1 fw-bold text-dark fs-6" th:text="${user.address}"></p>
-                                            <p class="mb-0 text-muted small" th:text="${user.city.cityName}"></p>
-
-                                            <input type="hidden" name="cityId" th:value="${user.city.cityId}">
-                                            <input type="hidden" name="address" th:value="${user.address}">
+                                        <!-- Nếu chưa có địa chỉ -->
+                                        <div th:if="${user.addresses == null or user.addresses.isEmpty()}">
+                                            <p class="text-danger fw-bold mb-0"><i class="fas fa-exclamation-triangle me-1"></i> Bạn chưa có địa chỉ!</p>
+                                            <a href="/account" class="btn btn-sm btn-danger mt-2 rounded-pill px-3">Thêm địa chỉ ngay</a>
                                         </div>
 
-                                        <div th:if="${user.city == null or user.address == null or user.address == ''}">
-                                            <p class="text-danger fw-bold mb-0"><i class="fas fa-exclamation-triangle me-1"></i> Bạn chưa thiết lập địa chỉ!</p>
-                                            <a href="/account" class="btn btn-sm btn-danger mt-2 rounded-pill px-3">Cập nhật ngay</a>
+                                        <!-- Vòng lặp hiển thị danh sách địa chỉ -->
+                                        <div class="address-list" th:if="${user.addresses != null and !user.addresses.isEmpty()}">
+                                            <div th:each="addr : ${user.addresses}" class="address-item bg-white p-3 border rounded-3 mb-2 shadow-sm">
+                                                <label class="form-check-label d-flex align-items-center w-100" style="cursor: pointer;">
+                                                    <input type="radio" name="selectedAddressId" class="form-check-input me-3 address-radio"
+                                                           th:value="${addr.addressId}"
+                                                           th:data-district="${addr.ghnDistrictId}"
+                                                           th:data-ward="${addr.ghnWardCode}"
+                                                           th:checked="${addr.isDefault}" required>
+
+                                                    <div class="flex-grow-1">
+                                                        <span th:if="${addr.isDefault}" class="badge bg-primary float-end small">Mặc định</span>
+                                                        <strong class="text-dark" th:text="${addr.receiverName}">Họ Tên</strong>
+                                                        <span class="text-muted ms-2">| <i class="fas fa-phone-alt mx-1"></i>[[${addr.receiverPhone}]]</span>
+                                                        <div class="small text-muted mt-1"><i class="fas fa-map-marker-alt text-danger me-1"></i>[[${addr.fullAddress}]]</div>
+                                                    </div>
+                                                </label>
+                                            </div>
                                         </div>
+
                                     </div>
                                 </div>
+                                <!-- KẾT THÚC PHẦN CHỌN ĐỊA CHỈ -->
 
                                 <div class="col-12">
                                     <label class="form-label"><i class="fas fa-clipboard-list me-1"></i> Ghi chú </label>
@@ -323,9 +339,10 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script th:inline="javascript">
+
     // Lấy thẳng số liệu từ Spring Boot vào biến Javascript
     const productsTotal = /*[[${totalPrice}]]*/ 0;
-    const shippingFee = /*[[${shippingFee}]]*/ 0;
+    let shippingFee = /*[[${shippingFee}]]*/ 0;    // <-- Đổi 'const' thành 'let' ở dòng này
 
     // Khởi tạo tổng tiền cuối cùng = Tiền Hàng + Tiền Ship
     let originalTotalWithShip = productsTotal + shippingFee;
@@ -484,6 +501,37 @@
 
         applyVoucher();
     }
+
+    // Bắt sự kiện mỗi khi khách hàng đổi địa chỉ (Radio button)
+    document.querySelectorAll('.address-radio').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const districtId = this.getAttribute('data-district');
+            const wardCode = this.getAttribute('data-ward');
+
+            if(!districtId || !wardCode) return;
+
+            // Gọi API tính tiền ship
+            fetch(`/api/shipping/calculate-fee?districtId=${districtId}&wardCode=${wardCode}`)
+                .then(res => res.json())
+                .then(fee => {
+                    // Update phí ship
+                    shippingFee = fee;
+                    document.getElementById('shippingFeeDisplay').innerText = "+ " + fee.toLocaleString('vi-VN') + " đ";
+
+                    // Tính lại tổng tiền
+                    originalTotalWithShip = productsTotal + fee;
+                    document.getElementById('finalTotalDisplay').innerText = originalTotalWithShip.toLocaleString('vi-VN') + " đ";
+
+                    // Xóa voucher hiện tại (nếu có) vì tổng đơn thay đổi
+                    document.getElementById('discountDisplay').innerText = "- 0 đ";
+                    document.getElementById("hiddenVoucherCode").value = "";
+                    document.getElementById("voucherCodeInput").value = "";
+                    document.getElementById("voucherCodeInput").readOnly = false;
+                    document.getElementById("voucherMessage").innerHTML = "";
+                })
+                .catch(err => console.error("Lỗi tính phí ship", err));
+        });
+    });
 </script>
 
 </body>

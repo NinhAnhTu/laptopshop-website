@@ -5,6 +5,7 @@ import com.example.laptopshop.entity.OrderDetail;
 import com.example.laptopshop.entity.ProductSerial;
 import com.example.laptopshop.entity.enums.SerialStatus;
 import com.example.laptopshop.repository.ProductSerialRepository;
+import com.example.laptopshop.service.GhnApiService;
 import com.example.laptopshop.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 public class AdminOrderController {
 
     private final OrderService orderService;
+    private final GhnApiService ghnApiService;
 
     // --- THÊM REPO ĐỂ XỬ LÝ SERIAL ---
     private final ProductSerialRepository productSerialRepository;
@@ -69,12 +71,26 @@ public class AdminOrderController {
         return "admin/order/detail";
     }
 
+    // Nhớ inject GhnApiService vào AdminOrderController nhé!
+
     @PostMapping("/update-status")
     public String updateStatus(@RequestParam("id") Long id,
                                @RequestParam("status") String status,
                                RedirectAttributes redirectAttributes) {
 
         orderService.updateOrderStatus(id, status);
+
+        // [TÍCH HỢP GHN]: Nếu admin đổi trạng thái thành "Đã xác nhận", lập tức đẩy đơn sang GHN
+        if ("Đã xác nhận".equals(status)) {
+            Order order = orderService.getOrderById(id);
+            String ghnCode = ghnApiService.createOrderOnGhn(order);
+
+            if(ghnCode != null) {
+                redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thành công & Đã đẩy đơn sang GHN (Mã: " + ghnCode + ")");
+                return "redirect:/admin/orders/view/" + id;
+            }
+        }
+
         redirectAttributes.addFlashAttribute("successMessage", "Cập nhật trạng thái thành công!");
         return "redirect:/admin/orders/view/" + id;
     }

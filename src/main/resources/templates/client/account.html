@@ -296,46 +296,124 @@
                                 </div>
                             </div>
 
+                            <!-- BẮT ĐẦU TAB PROFILE - CẬP NHẬT THÔNG TIN CƠ BẢN VÀ SỔ ĐỊA CHỈ -->
                             <div class="tab-pane fade" id="profile" role="tabpanel">
-                                <form action="/account/update" method="post" class="row g-4">
+
+                                <!-- Phần 1: Cập nhật thông tin cá nhân cơ bản -->
+                                <h6 class="fw-bold text-secondary mb-3 text-uppercase border-bottom pb-2"><i class="fas fa-id-card me-2"></i>Thông tin cá nhân</h6>
+                                <form action="/account/update" method="post" class="row g-3 mb-5">
                                     <input type="hidden" name="userId" th:value="${user.userId}">
 
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold text-secondary">Email</label>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold text-secondary small">Email</label>
                                         <input type="text" name="email" class="form-control bg-light" th:value="${user.email}" readonly>
-                                        <div class="form-text small"><i class="fas fa-lock me-1"></i>Email không thể thay đổi</div>
+                                        <div class="form-text small"><i class="fas fa-lock me-1"></i>Không thể thay đổi</div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold text-secondary">Họ và tên</label>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold text-secondary small">Họ và tên</label>
                                         <input type="text" name="fullname" class="form-control" th:value="${user.fullname}" required>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold text-secondary">Số điện thoại</label>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold text-secondary small">Số điện thoại</label>
                                         <input type="text" name="phone" class="form-control" th:value="${user.phone}" required>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold text-secondary">Tỉnh / Thành phố</label>
-                                        <select name="cityId" class="form-select" required>
-                                            <option value="" disabled th:selected="${user.city == null}">-- Chọn Tỉnh / Thành phố --</option>
-                                            <option th:each="city : ${cities}"
-                                                    th:value="${city.cityId}"
-                                                    th:text="${city.cityName}"
-                                                    th:selected="${user.city != null and user.city.cityId == city.cityId}">
-                                            </option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold text-secondary">Địa chỉ chi tiết</label>
-                                        <input type="text" name="address" class="form-control" th:value="${user.address}" placeholder="Số nhà, đường, phường/xã..." required>
-                                    </div>
 
-                                    <div class="col-12 text-end mt-4">
-                                        <button type="submit" class="btn btn-custom-orange px-5">
-                                            <i class="fas fa-save me-2"></i>Lưu thay đổi
+                                    <div class="col-12 text-end mt-3">
+                                        <button type="submit" class="btn btn-sm btn-custom-orange px-4">
+                                            <i class="fas fa-save me-1"></i>Lưu thông tin
                                         </button>
                                     </div>
                                 </form>
+
+                                <!-- Phần 2: Quản lý Sổ địa chỉ -->
+                                <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                                    <h6 class="fw-bold text-secondary mb-0 text-uppercase"><i class="fas fa-map-marked-alt me-2"></i>Sổ địa chỉ giao hàng</h6>
+                                    <button class="btn btn-sm btn-outline-primary rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#addressModal">
+                                        <i class="fas fa-plus me-1"></i>Thêm địa chỉ
+                                    </button>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-12 text-center py-4" th:if="${user.addresses == null or user.addresses.isEmpty()}">
+                                        <img src="https://cdn-icons-png.flaticon.com/512/2776/2776000.png" width="60" class="opacity-50 mb-2">
+                                        <p class="text-muted small">Bạn chưa có địa chỉ giao hàng nào. Vui lòng thêm mới!</p>
+                                    </div>
+
+                                    <!-- Vòng lặp hiển thị từng địa chỉ trong Sổ -->
+                                    <div class="col-md-6" th:each="addr : ${user.addresses}">
+                                        <div class="p-3 border rounded-3 h-100 position-relative" th:classappend="${addr.isDefault} ? 'border-primary bg-light shadow-sm' : 'border-secondary-subtle'">
+                                            <span th:if="${addr.isDefault}" class="badge bg-primary position-absolute top-0 end-0 m-2">Mặc định</span>
+
+                                            <h6 class="fw-bold mb-1 text-dark" th:text="${addr.receiverName}">Tên người nhận</h6>
+                                            <p class="text-muted small mb-2"><i class="fas fa-phone-alt me-2 text-secondary"></i><span th:text="${addr.receiverPhone}">0123</span></p>
+                                            <p class="small text-dark mb-0"><i class="fas fa-map-marker-alt me-2 text-danger"></i><span th:text="${addr.fullAddress}">Địa chỉ</span></p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+                            <!-- KẾT THÚC TAB PROFILE -->
+
+                            <!-- BẮT ĐẦU MODAL THÊM ĐỊA CHỈ MỚI -->
+                            <div class="modal fade" id="addressModal" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-lg modal-dialog-centered">
+                                    <div class="modal-content border-0 shadow-lg rounded-4">
+                                        <div class="modal-header bg-primary text-white border-0">
+                                            <h5 class="modal-title fw-bold"><i class="fas fa-map-plus me-2"></i>Thêm địa chỉ nhận hàng</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+
+                                        <!-- Trỏ tới API trong ClientController -->
+                                        <form action="/account/add-address" method="post" id="addressForm">
+                                            <div class="modal-body p-4">
+                                                <!-- Input Ẩn: Lưu chuỗi địa chỉ đầy đủ sau khi ghép bằng JS -->
+                                                <input type="hidden" name="fullAddress" id="fullAddress">
+
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label fw-bold text-secondary small">Tên người nhận hàng <span class="text-danger">*</span></label>
+                                                        <input type="text" name="receiverName" class="form-control" required placeholder="Nhập họ tên...">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label fw-bold text-secondary small">Số điện thoại <span class="text-danger">*</span></label>
+                                                        <input type="text" name="receiverPhone" class="form-control" required placeholder="Nhập SĐT nhận hàng...">
+                                                    </div>
+
+                                                    <!-- 3 Dropdown Gọi API GHN -->
+                                                    <div class="col-md-4">
+                                                        <label class="form-label fw-bold text-secondary small">Tỉnh / Thành phố <span class="text-danger">*</span></label>
+                                                        <select name="ghnProvinceId" id="provinceSelect" class="form-select" required onchange="loadDistricts()">
+                                                            <option value="">-- Chọn Tỉnh/Thành --</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-label fw-bold text-secondary small">Quận / Huyện <span class="text-danger">*</span></label>
+                                                        <select name="ghnDistrictId" id="districtSelect" class="form-select" required onchange="loadWards()" disabled>
+                                                            <option value="">-- Chọn Quận/Huyện --</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-label fw-bold text-secondary small">Phường / Xã <span class="text-danger">*</span></label>
+                                                        <select name="ghnWardCode" id="wardSelect" class="form-select" required disabled>
+                                                            <option value="">-- Chọn Phường/Xã --</option>
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="col-12">
+                                                        <label class="form-label fw-bold text-secondary small">Địa chỉ cụ thể (Số nhà, Tên đường) <span class="text-danger">*</span></label>
+                                                        <input type="text" id="streetInput" class="form-control" required placeholder="VD: Số 1, Đường Võ Văn Ngân...">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="modal-footer border-0 bg-light rounded-bottom-4">
+                                                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                                                <button type="submit" class="btn btn-custom-orange px-4">Lưu vào Sổ địa chỉ</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- KẾT THÚC MODAL THÊM ĐỊA CHỈ -->
 
                             <div class="tab-pane fade" id="password" role="tabpanel">
                                 <form action="/account/change-password" method="post" class="row g-4 justify-content-center p-3">
@@ -482,6 +560,125 @@
 
         newPassInput.addEventListener("input", validateMatch);
         confirmPassInput.addEventListener("input", validateMatch);
+    });
+
+    // Token của bạn (Giữ nguyên)
+    const GHN_TOKEN = '0ba5db0e-9f1f-426b-9342-c2ed9953098a';
+    const headers = { 'Content-Type': 'application/json', 'Token': GHN_TOKEN };
+
+    // 1. TẢI TỈNH / THÀNH PHỐ (Dùng GET)
+    function loadProvinces() {
+        fetch('https://online-gateway.ghn.vn/shiip/public-api/master-data/province', {
+            method: 'GET',
+            headers: headers
+        })
+            .then(res => res.json())
+            .then(data => {
+                if(data.code === 200 && data.data) {
+                    let html = '<option value="">-- Chọn Tỉnh/Thành --</option>';
+                    data.data.forEach(p => {
+                        html += `<option value="${p.ProvinceID}">${p.ProvinceName}</option>`;
+                    });
+                    document.getElementById('provinceSelect').innerHTML = html;
+                } else {
+                    alert("Lỗi tải Tỉnh: " + data.message);
+                }
+            }).catch(err => console.error(err));
+    }
+
+    // 2. TẢI QUẬN / HUYỆN (Dùng GET + Truyền ID trực tiếp vào Link)
+    function loadDistricts() {
+        const provinceId = document.getElementById('provinceSelect').value;
+        const districtSelect = document.getElementById('districtSelect');
+        const wardSelect = document.getElementById('wardSelect');
+
+        wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+        wardSelect.disabled = true;
+
+        if (!provinceId) {
+            districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+            districtSelect.disabled = true;
+            return;
+        }
+
+        districtSelect.disabled = false;
+        districtSelect.innerHTML = '<option value="">Đang tải...</option>';
+
+        // Đã sửa thành phương thức GET và nối biến provinceId vào URL
+        fetch(`https://online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id=${provinceId}`, {
+            method: 'GET',
+            headers: headers
+        })
+            .then(res => res.json())
+            .then(data => {
+                if(data.code === 200 && data.data) {
+                    let html = '<option value="">-- Chọn Quận/Huyện --</option>';
+                    data.data.forEach(d => {
+                        html += `<option value="${d.DistrictID}">${d.DistrictName}</option>`;
+                    });
+                    districtSelect.innerHTML = html;
+                } else {
+                    districtSelect.innerHTML = '<option value="">Lỗi tải Quận/Huyện</option>';
+                    console.error("Lỗi từ GHN:", data.message);
+                }
+            }).catch(err => console.error(err));
+    }
+
+    // 3. TẢI PHƯỜNG / XÃ (Dùng GET + Truyền ID trực tiếp vào Link)
+    function loadWards() {
+        const districtId = document.getElementById('districtSelect').value;
+        const wardSelect = document.getElementById('wardSelect');
+
+        if (!districtId) {
+            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+            wardSelect.disabled = true;
+            return;
+        }
+
+        wardSelect.disabled = false;
+        wardSelect.innerHTML = '<option value="">Đang tải...</option>';
+
+        // Đã sửa thành phương thức GET và nối biến districtId vào URL
+        fetch(`https://online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=${districtId}`, {
+            method: 'GET',
+            headers: headers
+        })
+            .then(res => res.json())
+            .then(data => {
+                if(data.code === 200 && data.data) {
+                    let html = '<option value="">-- Chọn Phường/Xã --</option>';
+                    data.data.forEach(w => {
+                        html += `<option value="${w.WardCode}">${w.WardName}</option>`;
+                    });
+                    wardSelect.innerHTML = html;
+                } else {
+                    wardSelect.innerHTML = '<option value="">Lỗi tải Phường/Xã</option>';
+                    console.error("Lỗi từ GHN:", data.message);
+                }
+            }).catch(err => console.error(err));
+    }
+
+    // Khởi chạy khi load trang
+    document.addEventListener("DOMContentLoaded", function() {
+        loadProvinces();
+
+        // Xử lý ghép địa chỉ khi submit
+        const addressForm = document.getElementById('addressForm');
+        if(addressForm) {
+            addressForm.addEventListener('submit', function(e) {
+                const street = document.getElementById('streetInput').value.trim();
+                const pSelect = document.getElementById('provinceSelect');
+                const dSelect = document.getElementById('districtSelect');
+                const wSelect = document.getElementById('wardSelect');
+
+                const pText = pSelect.options[pSelect.selectedIndex].text;
+                const dText = dSelect.options[dSelect.selectedIndex].text;
+                const wText = wSelect.options[wSelect.selectedIndex].text;
+
+                const fullAddress = `${street}, ${wText}, ${dText}, ${pText}`;
+                document.getElementById('fullAddress').value = fullAddress;
+            });
+        }
     });
 </script>
 
