@@ -9,6 +9,7 @@ import com.example.laptopshop.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,6 +23,7 @@ public class UserServiceImpl implements UserService {
     private final UserTypeRepository userTypeRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private static final int MAX_RESET_REQUESTS_PER_DAY = 5;
 
     // Triển khai hàm đổi mật khẩu
     @Override
@@ -208,6 +210,12 @@ public class UserServiceImpl implements UserService {
             }
         }
         return userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public boolean tryRegisterResetRequest(String email) {
+        return userRepository.tryRegisterResetRequest(email, MAX_RESET_REQUESTS_PER_DAY) > 0;
     }
 
     @Override

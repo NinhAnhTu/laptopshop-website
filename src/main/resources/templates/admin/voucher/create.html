@@ -18,11 +18,6 @@
         </a>
     </div>
 
-    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3" role="alert">
-        <i class="fas fa-exclamation-triangle me-2"></i> <span th:text="${errorMessage}">Lỗi</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-
     <div class="card border-0 shadow-sm rounded-4" style="max-width: 900px; margin: 0 auto;">
         <div class="card-body p-4">
             <form action="/admin/vouchers/save" method="post" th:object="${voucher}">
@@ -131,9 +126,56 @@
             </form>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            const errorMessage = /*[[${errorMessage}]]*/ null;
+            if (errorMessage && errorMessage.trim() !== '') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Không hợp lệ!',
+                    text: errorMessage,
+                    confirmButtonColor: '#f37021'
+                });
+            }
+
+            document.querySelector("form").addEventListener("submit", function (event) {
+                const startVal = document.getElementById("startDate").value;
+                const endVal = document.getElementById("endDate").value;
+                if (startVal && endVal && new Date(endVal) <= new Date(startVal)) {
+                    event.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Lỗi thời gian!',
+                        text: 'Ngày kết thúc phải SAU ngày bắt đầu.',
+                        confirmButtonColor: '#f37021'
+                    });
+                }
+            });
+        });
+    </script>
 </div>
 
-<script>
+<!-- Thêm thư viện SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function() {
+        // 1. BẮT LỖI TỪ SERVER (Ví dụ: Trùng mã Code)
+        // Sử dụng cú pháp Thymeleaf an toàn để nhúng giá trị
+        const errorMessage = /*[[${errorMessage}]]*/ null;
+
+        if (errorMessage && errorMessage.trim() !== '') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Không hợp lệ!',
+                text: errorMessage,
+                confirmButtonColor: '#f37021'
+            });
+        }
+    });
+
+    // 2. BẮT LỖI TẠI CLIENT (Lỗi ngày tháng)
     document.querySelector("form").addEventListener("submit", function(event) {
         const startDateVal = document.getElementById("startDate").value;
         const endDateVal = document.getElementById("endDate").value;
@@ -143,8 +185,14 @@
             const end = new Date(endDateVal);
 
             if (end <= start) {
-                alert("Lỗi logic thời gian: Ngày kết thúc phải lớn hơn ngày bắt đầu!");
-                event.preventDefault();
+                event.preventDefault(); // Chặn form không cho gửi đi
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Lỗi thời gian!',
+                    text: 'Ngày kết thúc phải SAU ngày bắt đầu.',
+                    confirmButtonColor: '#f37021'
+                });
             }
         }
     });

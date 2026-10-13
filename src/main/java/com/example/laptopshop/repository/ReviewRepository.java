@@ -1,6 +1,8 @@
 package com.example.laptopshop.repository;
 
+import com.example.laptopshop.entity.Product;
 import com.example.laptopshop.entity.Review;
+import com.example.laptopshop.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,4 +25,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     List<Review> searchReviews(@Param("keyword") String keyword,
                                @Param("rating") Integer rating,
                                @Param("status") String status);
+    Review findByUserAndProduct(User user, Product product);
+
 }

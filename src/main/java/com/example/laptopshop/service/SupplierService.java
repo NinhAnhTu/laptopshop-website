@@ -9,4 +9,6 @@ public interface SupplierService {
     Supplier saveSupplier(Supplier supplier);
     void deleteSupplier(Long id);
     List<Supplier> searchSuppliers(String keyword);
+    // SupplierService (interface)
+    boolean isSupplierNameExists(String name, Long excludeId);
 }

@@ -64,11 +64,17 @@
                 <div class="col-md-3">
                     <label class="form-label fw-bold small text-muted">Khoảng giá</label>
                     <div class="input-group">
+                        <!-- SỬA LỖI 1: Thêm min="0" để chặn số âm -->
+                        <!-- SỬA LỖI 2: Dùng #numbers.formatInteger để ép số thành chuỗi không chứa chữ 'E' hay dấu phẩy (0 đằng sau ý nghĩa loại bỏ dấu thập phân) -->
                         <input type="number" class="form-control rounded-start-pill py-2" name="minPrice"
-                               placeholder="Min" th:value="${minPrice}">
+                               placeholder="Min" min="0"
+                               th:value="${minPrice != null ? #numbers.formatInteger(minPrice, 1) : ''}">
+
                         <span class="input-group-text bg-light border-start-0 border-end-0 text-muted">-</span>
+
                         <input type="number" class="form-control rounded-end-pill py-2" name="maxPrice"
-                               placeholder="Max" th:value="${maxPrice}">
+                               placeholder="Max" min="0"
+                               th:value="${maxPrice != null ? #numbers.formatInteger(maxPrice, 1) : ''}">
                     </div>
                 </div>
 

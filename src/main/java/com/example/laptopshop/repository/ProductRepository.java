@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -54,8 +55,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findTop5ByProductNameContainingIgnoreCase(String productName);
 
     @Query("SELECT p.productName, SUM(od.quantity) " +
-            "FROM OrderDetail od JOIN od.product p " +
+            "FROM OrderDetail od " +
+            "JOIN od.product p " +
+            "JOIN od.order o " +
+            "WHERE o.createdAt BETWEEN :start AND :end " +
+            "AND o.status = 'Đã giao' " +
             "GROUP BY p.productName " +
             "ORDER BY SUM(od.quantity) DESC")
-    List<Object[]> getTopSellingProductsData(Pageable pageable);
+    List<Object[]> getTopSellingProductsDataBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end, Pageable pageable);
 }

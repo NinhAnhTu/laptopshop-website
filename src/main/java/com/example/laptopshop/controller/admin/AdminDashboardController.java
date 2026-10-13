@@ -1,81 +1,78 @@
 package com.example.laptopshop.controller.admin;
 
-import com.example.laptopshop.repository.OrderRepository;
-import com.example.laptopshop.repository.ProductRepository;
-import com.example.laptopshop.service.OrderService;
+import com.example.laptopshop.service.DashboardService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/admin")
 @RequiredArgsConstructor
 public class AdminDashboardController {
 
-    private final OrderService orderService;
-    private final OrderRepository orderRepository;
-    private final ProductRepository productRepository;
+    private final DashboardService dashboardService;
 
     @GetMapping("/dashboard")
-    public String dashboard(Model model) {
-        List<Object[]> revenueData = orderService.getMonthlyRevenue();
-        List<Long> monthlyRevenue = new ArrayList<>(Collections.nCopies(12, 0L));
+    public String dashboard(
+            @RequestParam(required = false) String panelRange,
+            @RequestParam(required = false) String revenueYear,
+            @RequestParam(required = false) String topProdRange,
+            @RequestParam(required = false) String statusRange,
+            Model model) {
 
-        if (revenueData != null) {
-            for (Object[] row : revenueData) {
-                if (row[0] != null && row[1] != null) {
-                    int month = (int) row[0];
-                    BigDecimal amount = (BigDecimal) row[1];
-                    monthlyRevenue.set(month - 1, amount.longValue());
-                }
-            }
-        }
-        model.addAttribute("monthlyRevenue", monthlyRevenue);
+        String todayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " - " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 
-        // --- 2. DỮ LIỆU THỐNG KÊ TỔNG QUAN (CARD) ---
-        long totalOrders = orderRepository.count();
-        long deliveredOrders = orderRepository.countByStatus("Đã giao");
-        long cancelledOrders = orderRepository.countByStatus("Đã hủy");
-        long pendingOrders = orderRepository.countByStatus("Chờ xác nhận");
+        panelRange = (panelRange == null || panelRange.isEmpty()) ? todayStr : panelRange;
+        topProdRange = (topProdRange == null || topProdRange.isEmpty()) ? todayStr : topProdRange;
+        statusRange = (statusRange == null || statusRange.isEmpty()) ? todayStr : statusRange;
+        revenueYear = (revenueYear == null || revenueYear.isEmpty()) ? String.valueOf(LocalDate.now().getYear()) : revenueYear;
 
-        // Tính tổng doanh thu thực tế (Tổng của biểu đồ)
-        long totalRevenue = monthlyRevenue.stream().mapToLong(Long::longValue).sum();
+        // 1. CARDS TỔNG QUAN
+        model.addAttribute("totalOrders", dashboardService.countTotalOrders(panelRange));
+        model.addAttribute("deliveredOrders", dashboardService.countDeliveredOrders(panelRange));
+        model.addAttribute("cancelledOrders", dashboardService.countCancelledOrders(panelRange));
+        model.addAttribute("totalRevenue", dashboardService.calculateTotalRevenue(panelRange));
 
-        model.addAttribute("totalOrders", totalOrders);
-        model.addAttribute("deliveredOrders", deliveredOrders);
-        model.addAttribute("cancelledOrders", cancelledOrders);
-        model.addAttribute("totalRevenue", totalRevenue);
+        // 2. BIỂU ĐỒ DOANH THU (ĐỘNG)
+        Map<String, Object> revenueChartData = dashboardService.getDynamicMonthlyRevenue(revenueYear);
+        model.addAttribute("revLabels", revenueChartData.get("labels"));
+        model.addAttribute("revData", revenueChartData.get("data"));
 
-        // --- 3. DỮ LIỆU BIỂU ĐỒ TRÒN: TRẠNG THÁI ĐƠN HÀNG ---
-        // Thứ tự mảng: [Chờ xác nhận, Đã giao, Đã hủy]
-        List<Long> orderStatusData = List.of(pendingOrders, deliveredOrders, cancelledOrders);
-        model.addAttribute("orderStatusData", orderStatusData);
-
-        // --- 4. DỮ LIỆU BIỂU ĐỒ NGANG: TOP 5 SẢN PHẨM BÁN CHẠY ---
-        // Gọi hàm getTopSellingProductsData từ Repository
-        List<Object[]> topProducts = productRepository.getTopSellingProductsData(PageRequest.of(0, 5));
-
-        List<String> topProductNames = new ArrayList<>();
-        List<Long> topProductSales = new ArrayList<>();
-
+        // 3. TOP 5 SẢN PHẨM
+        List<Object[]> topProducts = dashboardService.getTopSellingProducts(topProdRange);
+        List<String> topNames = new ArrayList<>();
+        List<Long> topSales = new ArrayList<>();
         if (topProducts != null) {
             for (Object[] row : topProducts) {
-                topProductNames.add((String) row[0]); // Tên sản phẩm
-                topProductSales.add((Long) row[1]);   // Số lượng bán
+                topNames.add((String) row[0]);
+                topSales.add((Long) row[1]);
             }
         }
-        model.addAttribute("topProductNames", topProductNames);
-        model.addAttribute("topProductSales", topProductSales);
+        model.addAttribute("topNames", topNames);
+        model.addAttribute("topSales", topSales);
 
-        // --- 5. CẤU HÌNH GIAO DIỆN ---
+        // 4. TRẠNG THÁI ĐƠN HÀNG
+        List<Long> statusData = List.of(
+                dashboardService.countPendingOrders(statusRange),
+                dashboardService.countDeliveredOrders(statusRange),
+                dashboardService.countCancelledOrders(statusRange)
+        );
+        model.addAttribute("statusData", statusData);
+
+        // Giữ lại state cho UI
+        model.addAttribute("panelRange", panelRange);
+        model.addAttribute("revenueYear", revenueYear);
+        model.addAttribute("topProdRange", topProdRange);
+        model.addAttribute("statusRange", statusRange);
         model.addAttribute("activePage", "dashboard");
 
         return "admin/dashboard";

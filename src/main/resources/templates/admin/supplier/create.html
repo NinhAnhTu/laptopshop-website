@@ -83,6 +83,24 @@
         </div>
     </div>
 
+    <!-- QUAN TRỌNG: script phải nằm BÊN TRONG .content-body, nếu không layout sẽ bỏ đi -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            // Lỗi từ server (trùng tên, sđt không hợp lệ, trùng sđt...)
+            const errorMessage = /*[[${errorMessage}]]*/ null;
+            if (errorMessage && errorMessage.trim() !== '') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Không hợp lệ!',
+                    text: errorMessage,
+                    confirmButtonColor: '#f37021',
+                    customClass: { popup: 'rounded-4' }
+                });
+            }
+        });
+    </script>
+
 </div>
 
 </body>

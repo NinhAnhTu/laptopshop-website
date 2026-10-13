@@ -14,7 +14,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.dao.DataIntegrityViolationException;
 import java.util.List;
 
 @Controller
@@ -76,27 +77,64 @@ public class AdminProductController {
         return "admin/product/create";
     }
 
-    // AdminProductController.java
     @PostMapping("/products/create")
-    public String createProduct(@Valid @ModelAttribute ProductCreateDTO productDTO,
+    public String createProduct(@Valid @ModelAttribute("productDTO") ProductCreateDTO productDTO,
                                 BindingResult bindingResult,
+                                RedirectAttributes redirectAttributes,
                                 Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("productDTO", productDTO);
             model.addAttribute("brands", brandRepository.findAll());
             model.addAttribute("categories", categoryRepository.findAll());
             model.addAttribute("warranties", warrantyPolicyRepository.findAll());
-            return "admin/product/create"; // Trả về form kèm lỗi
+            return "admin/product/create";
         }
-        productService.createProduct(productDTO);
-        return "redirect:/admin/products";
+
+        try {
+            productService.createProduct(productDTO);
+            redirectAttributes.addFlashAttribute("successMessage", "Thêm sản phẩm thành công!");
+            return "redirect:/admin/products";
+
+        } catch (DataIntegrityViolationException e) {
+            // [MỚI BỔ SUNG] BẮT LỖI TRÙNG TÊN / TRÙNG SLUG TỪ DATABASE
+            model.addAttribute("errorMessage", "Lỗi: Tên sản phẩm này đã tồn tại (trùng đường dẫn web). Vui lòng đặt thêm hậu tố để phân biệt!");
+            model.addAttribute("productDTO", productDTO);
+            model.addAttribute("brands", brandRepository.findAll());
+            model.addAttribute("categories", categoryRepository.findAll());
+            model.addAttribute("warranties", warrantyPolicyRepository.findAll());
+
+            return "admin/product/create";
+
+        } catch (RuntimeException e) {
+            // [BẮT LỖI LOGIC: Giá bán > Giá gốc]
+            model.addAttribute("errorMessage", e.getMessage());
+            model.addAttribute("productDTO", productDTO);
+            model.addAttribute("brands", brandRepository.findAll());
+            model.addAttribute("categories", categoryRepository.findAll());
+            model.addAttribute("warranties", warrantyPolicyRepository.findAll());
+
+            return "admin/product/create";
+
+        } catch (Exception e) {
+            // Lỗi hệ thống khác
+            model.addAttribute("errorMessage", "Lỗi hệ thống: " + e.getMessage());
+            model.addAttribute("productDTO", productDTO);
+            model.addAttribute("brands", brandRepository.findAll());
+            model.addAttribute("categories", categoryRepository.findAll());
+            model.addAttribute("warranties", warrantyPolicyRepository.findAll());
+
+            return "admin/product/create";
+        }
     }
 
     @PostMapping("/products/update/{id}")
     public String updateProduct(@PathVariable Long id,
-                                @Valid @ModelAttribute ProductCreateDTO productDTO,
+                                @Valid @ModelAttribute("productDTO") ProductCreateDTO productDTO,
                                 BindingResult bindingResult,
+                                RedirectAttributes redirectAttributes,
                                 Model model) {
+
+        // 1. Nếu có lỗi Validate cơ bản (Bỏ trống)
         if (bindingResult.hasErrors()) {
             model.addAttribute("productDTO", productDTO);
             model.addAttribute("productId", id);
@@ -105,8 +143,43 @@ public class AdminProductController {
             model.addAttribute("warranties", warrantyPolicyRepository.findAll());
             return "admin/product/edit";
         }
-        productService.updateProduct(id, productDTO);
-        return "redirect:/admin/products";
+
+        try {
+            // 2. Cập nhật sản phẩm
+            productService.updateProduct(id, productDTO);
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật sản phẩm thành công!");
+            return "redirect:/admin/products";
+
+        } catch (DataIntegrityViolationException e) {
+            // 3. Bắt lỗi trùng tên/trùng slug Database
+            model.addAttribute("errorMessage", "Lỗi: Tên sản phẩm này đã tồn tại (trùng đường dẫn web). Vui lòng đặt thêm hậu tố để phân biệt!");
+            model.addAttribute("productDTO", productDTO);
+            model.addAttribute("productId", id);
+            model.addAttribute("brands", brandRepository.findAll());
+            model.addAttribute("categories", categoryRepository.findAll());
+            model.addAttribute("warranties", warrantyPolicyRepository.findAll());
+            return "admin/product/edit";
+
+        } catch (RuntimeException e) {
+            // 4. Bắt lỗi Logic (Ví dụ: Giá bán > Giá gốc)
+            model.addAttribute("errorMessage", e.getMessage());
+            model.addAttribute("productDTO", productDTO);
+            model.addAttribute("productId", id);
+            model.addAttribute("brands", brandRepository.findAll());
+            model.addAttribute("categories", categoryRepository.findAll());
+            model.addAttribute("warranties", warrantyPolicyRepository.findAll());
+            return "admin/product/edit";
+
+        } catch (Exception e) {
+            // 5. Lỗi hệ thống khác
+            model.addAttribute("errorMessage", "Lỗi hệ thống: " + e.getMessage());
+            model.addAttribute("productDTO", productDTO);
+            model.addAttribute("productId", id);
+            model.addAttribute("brands", brandRepository.findAll());
+            model.addAttribute("categories", categoryRepository.findAll());
+            model.addAttribute("warranties", warrantyPolicyRepository.findAll());
+            return "admin/product/edit";
+        }
     }
     @GetMapping("/products/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {

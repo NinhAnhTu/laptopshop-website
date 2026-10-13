@@ -4,6 +4,8 @@ import com.example.laptopshop.entity.WarrantyPolicy;
 import com.example.laptopshop.repository.WarrantyPolicyRepository;
 import com.example.laptopshop.service.WarrantyPolicyService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,5 +34,15 @@ public class WarrantyPolicyServiceImpl implements WarrantyPolicyService {
     @Override
     public void deleteById(Long id) {
         warrantyPolicyRepository.deleteById(id);
+    }
+
+    @Override
+    public Page<WarrantyPolicy> searchPolicies(String keyword, Integer duration, Pageable pageable) {
+        return warrantyPolicyRepository.searchPolicies(keyword, duration, pageable);
+    }
+
+    @Override
+    public boolean isPolicyNameExists(String name, Long excludeId) {
+        return warrantyPolicyRepository.existsByPolicyNameIgnoreCaseAndWarrantyIdNot(name, excludeId);
     }
 }

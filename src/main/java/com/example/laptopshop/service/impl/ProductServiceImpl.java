@@ -92,8 +92,8 @@ public class ProductServiceImpl implements ProductService {
         product.setCategory(categoryRepository.findById(dto.getCategoryId()).orElse(null));
         product.setWarrantyPolicy(warrantyPolicyRepository.findById(dto.getWarrantyPolicyId()).orElse(null));
 
-        Product savedProduct = productRepository.save(product);
-// --- ĐOẠN CODE THÊM MỚI: LƯU THÔNG SỐ LINH KIỆN TƯƠNG ỨNG ---
+        Product savedProduct = productRepository.saveAndFlush(product);
+        // --- ĐOẠN CODE THÊM MỚI: LƯU THÔNG SỐ LINH KIỆN TƯƠNG ỨNG ---
         Long catId = dto.getCategoryId();
         if (catId != null) {
             if (catId == 4L) { // RAM
@@ -184,6 +184,11 @@ public class ProductServiceImpl implements ProductService {
 
         // Cập nhật thông tin cơ bản
         product.setProductName(dto.getProductName());
+
+        // [MỚI BỔ SUNG]: Ép cập nhật lại Slug khi đổi tên
+        String slug = dto.getProductName().toLowerCase().replace(" ", "-");
+        product.setSlug(slug);
+
         product.setOriginalPrice(dto.getOriginalPrice());
         product.setSalePrice(dto.getSalePrice());
         product.setCpu(dto.getCpu());
@@ -200,8 +205,8 @@ public class ProductServiceImpl implements ProductService {
         product.setWarrantyPolicy(warrantyPolicyRepository.findById(dto.getWarrantyPolicyId()).orElse(null));
 
         // Lưu thông tin text trước
-        Product savedProduct = productRepository.save(product);
-// --- ĐOẠN CODE THÊM MỚI: CẬP NHẬT THÔNG SỐ LINH KIỆN ---
+        Product savedProduct = productRepository.saveAndFlush(product);
+        // --- ĐOẠN CODE THÊM MỚI: CẬP NHẬT THÔNG SỐ LINH KIỆN ---
         Long catId = dto.getCategoryId();
         if (catId != null) {
             if (catId == 4L) {

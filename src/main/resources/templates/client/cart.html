@@ -126,11 +126,12 @@
                                 </td>
 
                                 <td class="text-center">
+                                    <!-- ĐÃ SỬA: Đổi onclick thành gọi hàm confirmDelete() -->
                                     <a th:href="@{'/cart/remove/' + ${item.cartDetailId}}"
                                        class="btn btn-sm btn-light text-danger rounded-circle shadow-sm"
                                        title="Xóa"
                                        style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;"
-                                       onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?')">
+                                       onclick="confirmDelete(event, this.href)">
                                         <i class="fas fa-trash-alt"></i>
                                     </a>
                                 </td>
@@ -208,25 +209,95 @@
     // Hàm chọn tất cả
     function toggleAll(source) {
         const checkboxes = document.querySelectorAll('.item-checkbox');
+        let savedChecks = [];
+
         checkboxes.forEach(checkbox => {
             checkbox.checked = source.checked;
+            if (source.checked) {
+                savedChecks.push(checkbox.value);
+            }
         });
+
+        // Cập nhật SessionStorage ngay khi bấm Chọn tất cả
+        sessionStorage.setItem('cartSelectedItems', JSON.stringify(savedChecks));
         updateTotalPrice();
     }
 
-    document.addEventListener("DOMContentLoaded", function() {
-        updateTotalPrice();
+    // --- SỬA LẠI HÀM XÓA SẢN PHẨM BẰNG SWEETALERT2 ---
+    function confirmDelete(event, url) {
+        event.preventDefault(); // Chặn hành vi chuyển trang mặc định của thẻ <a>
 
+        Swal.fire({
+            title: 'Bạn có chắc chắn?',
+            text: "Sản phẩm sẽ bị xóa khỏi giỏ hàng của bạn!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-trash-alt me-1"></i> Xóa ngay',
+            cancelButtonText: 'Hủy bỏ',
+            reverseButtons: true // Đảo ngược vị trí nút OK và Hủy
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Nếu người dùng đồng ý xóa, mới thực hiện chuyển trang
+                window.location.href = url;
+            }
+        });
+    }
+
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // ==========================================
+        // 1. LOGIC PHỤC HỒI TRẠNG THÁI CHECKBOX
+        // ==========================================
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+
+        // Lấy danh sách ID đã lưu từ phiên trước
+        let savedChecks = JSON.parse(sessionStorage.getItem('cartSelectedItems')) || [];
+
+        itemCheckboxes.forEach(cb => {
+            // Phục hồi lại tick
+            if (savedChecks.includes(cb.value)) {
+                cb.checked = true;
+            }
+
+            // Bắt sự kiện mỗi khi người dùng thay đổi trạng thái tick
+            cb.addEventListener('change', function() {
+                if (this.checked) {
+                    if (!savedChecks.includes(this.value)) savedChecks.push(this.value);
+                } else {
+                    savedChecks = savedChecks.filter(id => id !== this.value);
+                }
+
+                // Lưu lại vào bộ nhớ trình duyệt
+                sessionStorage.setItem('cartSelectedItems', JSON.stringify(savedChecks));
+                updateSelectAllState();
+            });
+        });
+
+        // Hàm cập nhật trạng thái ô "Chọn tất cả" dựa vào các ô con
+        function updateSelectAllState() {
+            if (selectAllCheckbox && itemCheckboxes.length > 0) {
+                const allChecked = Array.from(itemCheckboxes).every(cb => cb.checked);
+                selectAllCheckbox.checked = allChecked;
+            }
+        }
+
+        updateSelectAllState(); // Gọi lần đầu khi load trang
+        updateTotalPrice();     // Cập nhật lại tổng tiền
+
+        // ==========================================
+        // 2. LOGIC KIỂM TRA KHI BẤM THANH TOÁN
+        // ==========================================
         const checkoutForm = document.getElementById('checkoutForm');
 
         checkoutForm.addEventListener('submit', function(e) {
             const checkboxes = document.querySelectorAll('.item-checkbox:checked');
 
-            // 1. Kiểm tra xem có chọn sản phẩm nào chưa
+            // 2.1 Kiểm tra xem có chọn sản phẩm nào chưa
             if (checkboxes.length === 0) {
-                e.preventDefault(); // Chặn submit
-
-                // DÙNG SWEETALERT THAY CHO ALERT
+                e.preventDefault();
                 Swal.fire({
                     icon: 'warning',
                     title: 'Chưa chọn sản phẩm',
@@ -237,7 +308,7 @@
                 return;
             }
 
-            // 2. Kiểm tra số lượng so với tồn kho
+            // 2.2 Kiểm tra số lượng so với tồn kho
             let hasError = false;
             let errorMessage = '<div style="text-align: left; font-size: 0.95rem;">';
 
@@ -250,16 +321,13 @@
 
                 if (quantity > stock) {
                     hasError = true;
-                    // Format lỗi bằng HTML cho đẹp
                     errorMessage += `<div class="mb-2 text-danger"><i class="fas fa-times-circle me-1"></i> <b>${productName}</b><br>Kho chỉ còn <b>${stock}</b> (Bạn đang chọn ${quantity})</div>`;
                 }
             });
             errorMessage += '</div>';
 
             if (hasError) {
-                e.preventDefault(); // Hủy lệnh chuyển trang thanh toán
-
-                // DÙNG SWEETALERT THAY CHO ALERT
+                e.preventDefault();
                 Swal.fire({
                     icon: 'error',
                     title: 'Vượt quá số lượng tồn kho!',
@@ -268,6 +336,9 @@
                     confirmButtonColor: '#f37021',
                     confirmButtonText: 'Quay lại giỏ hàng'
                 });
+            } else {
+                // Nếu hợp lệ hết, xóa bộ nhớ SessionStorage đi để không ảnh hưởng lần đặt hàng sau
+                sessionStorage.removeItem('cartSelectedItems');
             }
         });
     });

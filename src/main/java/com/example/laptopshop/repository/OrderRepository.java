@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -40,4 +41,22 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     BigDecimal sumTotalSpentByUser(@Param("user") User user);
 
     long countByStatus(String status);
+
+    // ... (Giữ nguyên các code cũ)
+
+
+    @Query("SELECT SUM(o.finalAmount) FROM Order o WHERE o.createdAt BETWEEN :start AND :end AND o.status IN :statuses")
+    BigDecimal calculateRevenueBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("statuses") List<String> statuses);
+
+    @Query("SELECT MONTH(o.createdAt), SUM(o.finalAmount) FROM Order o WHERE YEAR(o.createdAt) = :year AND o.status IN :statuses GROUP BY MONTH(o.createdAt)")
+    List<Object[]> getMonthlyRevenueByYear(@Param("year") int year, @Param("statuses") List<String> statuses);
+
+    long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+    long countByStatusAndCreatedAtBetween(String status, LocalDateTime start, LocalDateTime end);
+
+    @Query("SELECT SUM(o.finalAmount) FROM Order o WHERE o.createdAt BETWEEN :start AND :end AND o.status = 'Đã giao'")
+    BigDecimal calculateRevenueBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    @Query("SELECT MONTH(o.createdAt), SUM(o.finalAmount) FROM Order o WHERE YEAR(o.createdAt) = :year AND o.status = 'Đã giao' GROUP BY MONTH(o.createdAt) ORDER BY MONTH(o.createdAt)")
+    List<Object[]> getMonthlyRevenueByYear(@Param("year") int year);
 }

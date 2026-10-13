@@ -1,5 +1,6 @@
 package com.example.laptopshop.service;
 
+import com.example.laptopshop.entity.Product;
 import com.example.laptopshop.entity.Review;
 import com.example.laptopshop.entity.User;
 import org.springframework.data.domain.Page;
@@ -13,4 +14,7 @@ public interface ReviewService {
     void replyToReview(Long reviewId, String content); // Admin trả lời
     void deleteReview(Long reviewId, String reason);   // Admin xóa
     List<Review> getAllReviewss(String keyword, Integer rating, String status);
+
+    Review findReviewByUserAndProduct(User user, Product product);
+
 }

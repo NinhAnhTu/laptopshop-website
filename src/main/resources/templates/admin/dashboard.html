@@ -1,152 +1,309 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/admin_layout :: layout(~{:: .dashboard-content})}">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/admin_layout :: layout(~{:: .dashboard-content})}">
 <head>
     <title>Dashboard - ChaosCoders</title>
 </head>
 <body>
 
-<div class="dashboard-content">
+<div class="dashboard-content" style="background-color: #f4f7f6; min-height: 100vh; padding: 2rem;">
+    <!-- THƯ VIỆN LỊCH VÀ CHART -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <style>
+        /* CSS GIAO DIỆN SÁNG HIỆN ĐẠI */
+        .modern-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(149, 157, 165, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.02);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .modern-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(149, 157, 165, 0.15);
+        }
 
-    <h2 class="fw-bold text-dark mb-4">Tổng quan hệ thống</h2>
+        .daterange-picker {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: #4a5568;
+            cursor: pointer;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            transition: all 0.2s;
+        }
+        .daterange-picker:hover {
+            border-color: #cbd5e0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        select.daterange-picker:focus {
+            outline: none;
+            border-color: #6c5ce7;
+        }
+
+        /* Tùy chỉnh màu sắc Icon */
+        .text-mint { color: #00b894; }      /* Xanh lá đậm mượt */
+        .text-neon-red { color: #ff7675; }  /* Đỏ pastel */
+        .text-primary-blue { color: #0984e3; }
+        .text-purple { color: #6c5ce7; }
+
+        /* Tùy chỉnh Daterangepicker Modal cho giao diện sáng */
+        .daterangepicker { border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .daterangepicker .ranges li:hover, .daterangepicker .ranges li.active { background-color: #6c5ce7; color: white; border: none; }
+        .daterangepicker td.active, .daterangepicker td.active:hover { background-color: #0984e3; }
+    </style>
+
+    <!-- 1. TỔNG QUAN HỆ THỐNG -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold m-0 text-dark">Tổng quan hệ thống</h3>
+        <form action="/admin/dashboard" method="get" id="panelForm">
+            <input type="hidden" name="revenueYear" th:value="${revenueYear}">
+            <input type="hidden" name="topProdRange" th:value="${topProdRange}">
+            <input type="hidden" name="statusRange" th:value="${statusRange}">
+            <div class="daterange-picker" id="panelRangePicker">
+                <i class="far fa-calendar-alt me-2 text-primary-blue"></i><span th:text="${panelRange}"></span> <i class="fas fa-chevron-down ms-2 small text-muted"></i>
+                <input type="hidden" name="panelRange" id="panelRangeInput" th:value="${panelRange}">
+            </div>
+        </form>
+    </div>
 
     <div class="row g-4 mb-4">
         <div class="col-md-3">
-            <div class="card text-white border-0 shadow-sm rounded-4" style="background: linear-gradient(45deg, #11998e, #38ef7d);">
-                <div class="card-body p-3">
-                    <h6 class="text-uppercase opacity-75 small">Doanh Thu Năm</h6>
-                    <h4 class="fw-bold mb-0" th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</h4>
+            <div class="modern-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h6 class="text-uppercase text-muted fw-bold small mb-1">Doanh Thu</h6>
+                        <h4 class="fw-bold mb-0 text-dark" th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'"></h4>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle d-flex align-items-center justify-content-center">
+                        <i class="fas fa-wallet text-primary-blue fs-5"></i>
+                    </div>
                 </div>
             </div>
         </div>
+
         <div class="col-md-3">
-            <div class="card text-white border-0 shadow-sm rounded-4" style="background: linear-gradient(45deg, #3a7bd5, #3a6073);">
-                <div class="card-body p-3">
-                    <h6 class="text-uppercase opacity-75 small">Tổng Đơn Hàng</h6>
-                    <h4 class="fw-bold mb-0" th:text="${totalOrders}">0</h4>
+            <div class="modern-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h6 class="text-uppercase text-muted fw-bold small mb-1">Tổng Đơn</h6>
+                        <h4 class="fw-bold mb-0 text-dark" th:text="${totalOrders}"></h4>
+                    </div>
+                    <div class="p-3 rounded-circle d-flex align-items-center justify-content-center" style="background-color: rgba(108, 92, 231, 0.1);">
+                        <i class="fas fa-box text-purple fs-5"></i>
+                    </div>
                 </div>
             </div>
         </div>
+
         <div class="col-md-3">
-            <div class="card text-white border-0 shadow-sm rounded-4" style="background: linear-gradient(45deg, #FFB75E, #ED8F03);">
-                <div class="card-body p-3">
-                    <h6 class="text-uppercase opacity-75 small">Đã Giao</h6>
-                    <h4 class="fw-bold mb-0" th:text="${deliveredOrders}">0</h4>
+            <div class="modern-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h6 class="text-uppercase text-muted fw-bold small mb-1">Đã Giao</h6>
+                        <h4 class="fw-bold mb-0 text-dark" th:text="${deliveredOrders}"></h4>
+                    </div>
+                    <div class="p-3 rounded-circle d-flex align-items-center justify-content-center" style="background-color: rgba(0, 184, 148, 0.1);">
+                        <i class="fas fa-check-circle text-mint fs-5"></i>
+                    </div>
                 </div>
             </div>
         </div>
+
         <div class="col-md-3">
-            <div class="card text-white border-0 shadow-sm rounded-4" style="background: linear-gradient(45deg, #eb3349, #f45c43);">
-                <div class="card-body p-3">
-                    <h6 class="text-uppercase opacity-75 small">Đã Hủy</h6>
-                    <h4 class="fw-bold mb-0" th:text="${cancelledOrders}">0</h4>
+            <div class="modern-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h6 class="text-uppercase text-muted fw-bold small mb-1">Đã Hủy</h6>
+                        <h4 class="fw-bold mb-0 text-dark" th:text="${cancelledOrders}"></h4>
+                    </div>
+                    <div class="p-3 rounded-circle d-flex align-items-center justify-content-center" style="background-color: rgba(255, 118, 117, 0.1);">
+                        <i class="fas fa-times-circle text-neon-red fs-5"></i>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm rounded-4">
-        <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-            <h5 class="fw-bold text-secondary"><i class="fas fa-chart-pie me-2"></i>Phân tích dữ liệu</h5>
+    <!-- 2. BIỂU ĐỒ DOANH THU (FULL WIDTH) -->
+    <div class="modern-card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+            <h5 class="fw-bold m-0 text-dark"><i class="fas fa-chart-line me-2 text-primary-blue"></i>Hiệu suất doanh thu</h5>
+            <form action="/admin/dashboard" method="get" id="revForm">
+                <input type="hidden" name="panelRange" th:value="${panelRange}">
+                <input type="hidden" name="topProdRange" th:value="${topProdRange}">
+                <input type="hidden" name="statusRange" th:value="${statusRange}">
+                <select name="revenueYear" class="daterange-picker" onchange="document.getElementById('revForm').submit()">
+                    <option value="2026" th:selected="${revenueYear == '2026'}">Năm 2026</option>
+                    <option value="2025" th:selected="${revenueYear == '2025'}">Năm 2025</option>
+                    <option value="2024" th:selected="${revenueYear == '2024'}">Năm 2024</option>
+                </select>
+            </form>
+        </div>
+        <div style="height: 350px;">
+            <canvas id="revenueLineChart"></canvas>
+        </div>
+    </div>
 
-            <div>
-                <button class="btn btn-sm btn-outline-secondary rounded-circle" type="button" data-bs-target="#chartCarousel" data-bs-slide="prev">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-secondary rounded-circle" type="button" data-bs-target="#chartCarousel" data-bs-slide="next">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
+    <!-- 3. TOP SẢN PHẨM & TRẠNG THÁI -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-7">
+            <div class="modern-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                    <h5 class="fw-bold m-0 text-dark"><i class="fas fa-trophy me-2 text-warning"></i>Top 5 Bán Chạy</h5>
+                    <form action="/admin/dashboard" method="get" id="topForm">
+                        <input type="hidden" name="panelRange" th:value="${panelRange}">
+                        <input type="hidden" name="revenueYear" th:value="${revenueYear}">
+                        <input type="hidden" name="statusRange" th:value="${statusRange}">
+                        <div class="daterange-picker" id="topRangePicker">
+                            <span th:text="${topProdRange}"></span>
+                            <input type="hidden" name="topProdRange" id="topRangeInput" th:value="${topProdRange}">
+                        </div>
+                    </form>
+                </div>
+                <div style="height: 300px;">
+                    <canvas id="topProductChart"></canvas>
+                </div>
             </div>
         </div>
 
-        <div class="card-body p-4">
-            <div id="chartCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000"> <div class="carousel-inner">
-
-                <div class="carousel-item active">
-                    <h6 class="text-center fw-bold text-success mb-3">BIỂU ĐỒ DOANH THU THEO THÁNG</h6>
-                    <div style="height: 400px;">
-                        <canvas id="revenueChart"></canvas>
-                    </div>
+        <div class="col-md-5">
+            <div class="modern-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                    <h5 class="fw-bold m-0 text-dark"><i class="fas fa-chart-pie me-2 text-purple"></i>Tỉ Lệ Đơn Hàng</h5>
+                    <form action="/admin/dashboard" method="get" id="statusForm">
+                        <input type="hidden" name="panelRange" th:value="${panelRange}">
+                        <input type="hidden" name="revenueYear" th:value="${revenueYear}">
+                        <input type="hidden" name="topProdRange" th:value="${topProdRange}">
+                        <div class="daterange-picker" id="statusRangePicker">
+                            <span th:text="${statusRange}"></span>
+                            <input type="hidden" name="statusRange" id="statusRangeInput" th:value="${statusRange}">
+                        </div>
+                    </form>
                 </div>
-
-                <div class="carousel-item">
-                    <h6 class="text-center fw-bold text-primary mb-3">TOP 5 SẢN PHẨM BÁN CHẠY NHẤT</h6>
-                    <div style="height: 400px;">
-                        <canvas id="topProductChart"></canvas>
-                    </div>
+                <div style="height: 280px; display: flex; justify-content: center;">
+                    <canvas id="orderStatusChart"></canvas>
                 </div>
-
-                <div class="carousel-item">
-                    <h6 class="text-center fw-bold text-warning mb-3">TỶ LỆ TRẠNG THÁI ĐƠN HÀNG</h6>
-                    <div style="height: 400px; display: flex; justify-content: center;">
-                        <canvas id="orderStatusChart"></canvas>
-                    </div>
-                </div>
-
-            </div>
             </div>
         </div>
     </div>
+
+    <!-- SCRIPTS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script th:inline="javascript">
-        // --- DATA TỪ SERVER ---
-        var revenueData = /*[[${monthlyRevenue}]]*/ [];
-        var topProductNames = /*[[${topProductNames}]]*/ [];
-        var topProductSales = /*[[${topProductSales}]]*/ [];
-        var orderStatusData = /*[[${orderStatusData}]]*/ []; // [Chờ xử lý, Đã giao, Đã hủy]
+        // Khởi tạo Daterangepicker dùng chung
+        function initPicker(elementId, inputId, formId) {
+            $(elementId).daterangepicker({
+                ranges: {
+                    'Hôm nay': [moment(), moment()],
+                    'Hôm qua': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Tuần qua': [moment().subtract(6, 'days'), moment()],
+                    'Tháng qua': [moment().subtract(29, 'days'), moment()],
+                    'Năm qua': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')]
+                },
+                locale: { format: 'DD/MM/YYYY', customRangeLabel: 'Tùy chọn', applyLabel: 'Áp dụng', cancelLabel: 'Hủy' },
+                alwaysShowCalendars: true,
+                opens: 'left'
+            }, function(start, end) {
+                $(inputId).val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+                $(formId).submit();
+            });
+        }
 
-        // --- CHART 1: DOANH THU ---
-        new Chart(document.getElementById('revenueChart'), {
-            type: 'bar',
+        initPicker('#panelRangePicker', '#panelRangeInput', '#panelForm');
+        initPicker('#topRangePicker', '#topRangeInput', '#topForm');
+        initPicker('#statusRangePicker', '#statusRangeInput', '#statusForm');
+
+        // --- CẤU HÌNH CHART.JS CHO THEME SÁNG ---
+        Chart.defaults.color = '#718096'; // Màu text xám nhạt
+        Chart.defaults.borderColor = '#f1f5f9'; // Đường lưới cực mờ
+
+        // 1. BIỂU ĐỒ LINE DOANH THU
+        const ctxRev = document.getElementById('revenueLineChart').getContext('2d');
+        const gradient = ctxRev.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(108, 92, 231, 0.25)'); // Tím nhạt ở trên
+        gradient.addColorStop(1, 'rgba(108, 92, 231, 0.0)');  // Trong suốt ở dưới
+
+        new Chart(ctxRev, {
+            type: 'line',
             data: {
-                labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+                labels: /*[[${revLabels}]]*/ [],
                 datasets: [{
                     label: 'Doanh thu (VNĐ)',
-                    data: revenueData,
-                    backgroundColor: '#38ef7d',
-                    borderRadius: 5
+                    data: /*[[${revData}]]*/ [],
+                    borderColor: '#6c5ce7', // Viền tím chủ đạo
+                    borderWidth: 3,
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: 0.4, // Đường cong mượt
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#6c5ce7',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } }
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true }
+                }
             }
         });
 
-        // --- CHART 2: TOP SẢN PHẨM ---
+        // 2. BIỂU ĐỒ BAR TOP SẢN PHẨM (Ngang)
         new Chart(document.getElementById('topProductChart'), {
             type: 'bar',
-            indexAxis: 'y', // Biểu đồ ngang
+            indexAxis: 'y',
             data: {
-                labels: topProductNames,
+                labels: /*[[${topNames}]]*/ [],
                 datasets: [{
                     label: 'Số lượng đã bán',
-                    data: topProductSales,
-                    backgroundColor: '#3a7bd5',
-                    borderRadius: 5
+                    data: /*[[${topSales}]]*/ [],
+                    backgroundColor: 'rgba(9, 132, 227, 0.85)', // Xanh dương
+                    borderRadius: 6,
+                    barPercentage: 0.6
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true } }
             }
         });
 
-        // --- CHART 3: TRẠNG THÁI ĐƠN ---
+        // 3. BIỂU ĐỒ DOUGHNUT TRẠNG THÁI
         new Chart(document.getElementById('orderStatusChart'), {
             type: 'doughnut',
             data: {
-                labels: ['Chờ xác nhận', 'Đã giao', 'Đã hủy'],
+                labels: ['Chờ xử lý', 'Đã giao', 'Đã hủy'],
                 datasets: [{
-                    data: orderStatusData,
-                    backgroundColor: ['#ffc107', '#28a745', '#dc3545'],
-                    borderWidth: 0
+                    data: /*[[${statusData}]]*/ [],
+                    backgroundColor: ['#fdcb6e', '#00b894', '#ff7675'], // Vàng nhạt, Xanh lá, Đỏ nhạt
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                    hoverOffset: 6
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 20, font: { weight: 'bold' } }
+                    }
+                }
             }
         });
     </script>

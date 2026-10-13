@@ -62,4 +62,8 @@ public class SupplierServiceImpl implements SupplierService {
         }
         return supplierRepository.searchSuppliers(keyword);
     }
+    @Override
+    public boolean isSupplierNameExists(String name, Long excludeId) {
+        return supplierRepository.existsByNameExcludingId(name, excludeId);
+    }
 }

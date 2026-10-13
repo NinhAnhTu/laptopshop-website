@@ -3,9 +3,11 @@ package com.example.laptopshop.repository;
 import com.example.laptopshop.entity.ChatRoom;
 import com.example.laptopshop.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,4 +24,9 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 
     // Dành cho Admin: Tìm các phòng mà Admin này đang phụ trách
     List<ChatRoom> findByAssignedAdminOrderByLastMessageAtDesc(User admin);
+
+    @Transactional
+    @Modifying
+    @Query("UPDATE ChatRoom r SET r.adminReadCount = :count WHERE r.roomId = :roomId")
+    int updateAdminReadCount(@Param("roomId") Long roomId, @Param("count") int count);
 }

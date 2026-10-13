@@ -18,6 +18,12 @@
         </a>
     </div>
 
+    <!-- BỔ SUNG KHỐI HIỂN THỊ LỖI Ở ĐÂY -->
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
     <div class="card border-0 shadow-sm rounded-4">
         <div class="card-body p-4">
             <form th:action="@{/admin/products/create}"
@@ -81,8 +87,15 @@
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-muted">Màn hình (inch)</label>
                                 <div class="input-group">
-                                    <input type="number" step="0.1" th:field="*{screen}" class="form-control" placeholder="15.6">
-                                    <span class="input-group-text bg-white text-muted">inch</span>
+                                    <!-- [ĐÃ SỬA]: Thêm min="0" và logic hiện viền đỏ is-invalid nếu backend báo lỗi -->
+                                    <input type="number" step="0.1" min="0" th:field="*{screen}" class="form-control" placeholder="15.6"
+                                           th:classappend="${#fields.hasErrors('screen')} ? 'is-invalid'">
+                                    <span class="input-group-text bg-light text-muted">inch</span>
+
+                                    <!-- Hiển thị dòng chữ báo lỗi bên dưới -->
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('screen')}" th:errors="*{screen}">
+                                        Kích thước màn hình không hợp lệ
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -168,13 +181,15 @@
 
                         <div class="mb-3">
                             <label class="form-label fw-bold small text-muted">Ảnh đại diện (Thumbnail)</label>
-                            <input type="file" th:field="*{imageFile}" class="form-control" accept="image/*">
+                            <!-- [ĐÃ BỔ SUNG ID]: id="imageFile" -->
+                            <input type="file" th:field="*{imageFile}" id="imageFile" class="form-control" accept=".jpg, .jpeg, .png, .webp, .gif">
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold small text-muted">Ảnh chi tiết (Nhiều ảnh)</label>
-                            <input type="file" th:field="*{detailFiles}" class="form-control" accept="image/*" multiple>
-                            <div class="form-text small">Giữ phím Ctrl để chọn nhiều file.</div>
+                            <!-- [ĐÃ BỔ SUNG ID]: id="detailFiles" -->
+                            <input type="file" th:field="*{detailFiles}" id="detailFiles" class="form-control" accept=".jpg, .jpeg, .png, .webp, .gif" multiple>
+                            <div class="form-text small">Giữ phím Ctrl để chọn nhiều file. Chỉ chấp nhận JPG, PNG, WEBP, GIF.</div>
                         </div>
                     </div>
                 </div>
@@ -228,5 +243,45 @@
         });
     </script>
 
+    <!-- BỔ SUNG ĐOẠN SCRIPT KIỂM TRA ĐUÔI FILE TRƯỚC KHI SUBMIT -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const productForm = document.querySelector('form[action="/admin/products/create"]');
+            const imageFileInput = document.getElementById('imageFile');
+            const detailFilesInput = document.getElementById('detailFiles');
+
+            const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+
+            function checkFileExtension(fileInput) {
+                if (!fileInput.files || fileInput.files.length === 0) return true; // Chấp nhận nếu trống (sẽ có Validate ở Backend lo)
+
+                for (let i = 0; i < fileInput.files.length; i++) {
+                    let fileName = fileInput.files[i].name;
+                    let ext = fileName.split('.').pop().toLowerCase();
+
+                    if (!allowedExtensions.includes(ext)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            productForm.addEventListener('submit', function(e) {
+                let isThumbValid = checkFileExtension(imageFileInput);
+                let isDetailValid = checkFileExtension(detailFilesInput);
+
+                if (!isThumbValid || !isDetailValid) {
+                    e.preventDefault(); // Chặn Form Submit
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Định dạng file không hỗ trợ!',
+                        text: 'Hệ thống chỉ chấp nhận hình ảnh có đuôi: .JPG, .JPEG, .PNG, .WEBP, .GIF',
+                        confirmButtonColor: '#f37021'
+                    });
+                }
+            });
+        });
+    </script>
 </div> </body>
 </html>

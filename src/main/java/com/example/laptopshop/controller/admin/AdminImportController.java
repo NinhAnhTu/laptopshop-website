@@ -79,6 +79,7 @@ public class AdminImportController {
     @PostMapping("/create")
     public String createImportReceipt(@ModelAttribute("importDTO") ImportReceiptDTO dto,
                                       Principal principal,
+                                      Model model,
                                       RedirectAttributes redirectAttributes) {
         try {
             // Lấy thông tin người dùng đang đăng nhập hệ thống
@@ -92,11 +93,18 @@ public class AdminImportController {
             return "redirect:/admin/import";
 
         } catch (Exception e) {
-            // Nếu có bất kỳ lỗi nào (Trùng serial, lệch số lượng...), hệ thống tự rollback và báo lỗi ra màn hình
-            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi nhập kho: " + e.getMessage());
-            return "redirect:/admin/import/create";
+            // Có lỗi (trùng serial, lệch số lượng, giá/số lượng không hợp lệ...) -> service tự rollback.
+            // KHÔNG redirect: trả thẳng về view để giữ nguyên dữ liệu người dùng đã nhập (importDTO
+            // đã nằm sẵn trong model nhờ @ModelAttribute("importDTO")).
+            model.addAttribute("errorMessage", "Lỗi nhập kho: " + e.getMessage());
+
+            // Nạp lại dữ liệu cho các dropdown vì request này là request mới
+            model.addAttribute("suppliers", supplierRepository.findAll());
+            model.addAttribute("products", productService.getAllProducts());
+            return "admin/import/create";
         }
     }
+
     @ModelAttribute("activePage")
     public String activePage() {
         return "import";

@@ -2,177 +2,292 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/admin_layout :: layout(~{:: .content-body})}">
 <head>
-  <title>Tạo phiếu nhập kho - ChaosCoders</title>
+    <title>Tạo phiếu nhập kho - ChaosCoders</title>
 </head>
 <body>
 
 <div class="content-body">
 
-  <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
-    <div>
-      <h2 class="fw-bold text-dark mb-0">Tạo phiếu nhập kho mới</h2>
-      <small class="text-muted">Nhập sản phẩm và khởi tạo danh sách số Serial</small>
-    </div>
-    <a href="/admin/import" class="btn btn-outline-secondary rounded-pill px-4">
-      <i class="fas fa-arrow-left me-2"></i>Lịch sử nhập kho
-    </a>
-  </div>
-
-  <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3" role="alert">
-    <i class="fas fa-exclamation-circle me-2"></i> <span th:text="${errorMessage}"></span>
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-  </div>
-
-  <form th:action="@{/admin/import/create}" th:object="${importDTO}" method="post" id="importForm">
-    <div class="row g-4">
-
-      <div class="col-lg-4">
-        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
-          <h6 class="fw-bold text-secondary text-uppercase mb-3">
-            <i class="fas fa-file-invoice me-2 text-primary"></i>Thông tin phiếu
-          </h6>
-
-          <div class="mb-3">
-            <label class="form-label fw-bold small text-muted">Nhà cung cấp <span class="text-danger">*</span></label>
-            <select th:field="*{supplierId}" class="form-select py-2 rounded-3" required>
-              <option value="">-- Chọn nhà cung cấp --</option>
-              <option th:each="s : ${suppliers}" th:value="${s.supplierId}" th:text="${s.supplierName}"></option>
-            </select>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label fw-bold small text-muted">Ghi chú nhập kho</label>
-            <textarea th:field="*{note}" class="form-control rounded-3" rows="4" placeholder="Lý do nhập, đợt nhập hàng... " style="resize: none;"></textarea>
-          </div>
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Tạo phiếu nhập kho mới</h2>
+            <small class="text-muted">Nhập sản phẩm và khởi tạo danh sách số Serial</small>
         </div>
-      </div>
+        <a href="/admin/import" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="fas fa-arrow-left me-2"></i>Lịch sử nhập kho
+        </a>
+    </div>
 
-      <div class="col-lg-8">
-        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="fw-bold text-secondary text-uppercase m-0">
-              <i class="fas fa-boxes me-2 text-primary"></i>Danh sách mặt hàng nhập
-            </h6>
-            <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-bold" id="add-item-btn">
-              <i class="fas fa-plus me-1"></i> Thêm mặt hàng
-            </button>
-          </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
 
-          <div id="import-items-container">
-            <div class="import-item-row p-3 mb-3 border rounded-4 bg-light position-relative" data-index="0">
-              <div class="row g-3">
-                <div class="col-md-12">
-                  <label class="form-label small fw-bold text-muted">Sản phẩm nhập</label>
-                  <select name="items[0].productId" class="form-select select-product" required>
-                    <option value="">-- Chọn sản phẩm cần nhập kho --</option>
-                    <option th:each="p : ${products}" th:value="${p.productId}" th:text="${p.productName} + ' (Hiện tồn: ' + ${p.stock} + ')'"></option>
-                  </select>
+    <form th:action="@{/admin/import/create}" th:object="${importDTO}" method="post" id="importForm">
+        <div class="row g-4">
+
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <h6 class="fw-bold text-secondary text-uppercase mb-3">
+                        <i class="fas fa-file-invoice me-2 text-primary"></i>Thông tin phiếu
+                    </h6>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">Nhà cung cấp <span class="text-danger">*</span></label>
+                        <select th:field="*{supplierId}" class="form-select py-2 rounded-3" required>
+                            <option value="">-- Chọn nhà cung cấp --</option>
+                            <option th:each="s : ${suppliers}" th:value="${s.supplierId}" th:text="${s.supplierName}"></option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">Ghi chú nhập kho</label>
+                        <textarea th:field="*{note}" class="form-control rounded-3" rows="4" placeholder="Lý do nhập, đợt nhập hàng... " style="resize: none;"></textarea>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                  <label class="form-label small fw-bold text-muted">Số lượng nhập</label>
-                  <input type="number" name="items[0].quantity" class="form-control input-qty" min="1" value="1" required>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label small fw-bold text-muted">Giá nhập đơn vị (VNĐ)</label>
-                  <input type="number" name="items[0].importPrice" class="form-control" min="0" placeholder="Ví dụ: 15000000" required>
-                </div>
-                <div class="col-md-12">
-                  <label class="form-label small fw-bold text-muted">Danh sách mã Serial Number</label>
-                  <textarea name="items[0].serialList" class="form-control font-monospace" rows="3" placeholder="Nhập các mã Serial cách nhau bởi dấu phẩy (,) hoặc xuống dòng..." required style="resize: none; font-size: 0.85rem;"></textarea>
-                  <div class="form-text small text-secondary check-serial-msg">Mẹo: Đang nhập 1 sản phẩm -> Cần điền đúng 1 mã Serial.</div>
-                </div>
-              </div>
             </div>
-          </div>
 
-          <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-            <a href="/admin/import" class="btn btn-light rounded-pill px-4 fw-bold">Hủy bỏ</a>
-            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" style="background-color: #f37021; border-color: #f37021;">
-              <i class="fas fa-save me-2"></i> Hoàn tất nhập kho
-            </button>
-          </div>
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold text-secondary text-uppercase m-0">
+                            <i class="fas fa-boxes me-2 text-primary"></i>Danh sách mặt hàng nhập
+                        </h6>
+                        <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-bold" id="add-item-btn">
+                            <i class="fas fa-plus me-1"></i> Thêm mặt hàng
+                        </button>
+                    </div>
+
+                    <div id="import-items-container">
+                        <!-- Vòng lặp lấy lại thông tin các sản phẩm nếu có lỗi xảy ra -->
+                        <div th:if="${importDTO.items != null and !#lists.isEmpty(importDTO.items)}">
+                            <div th:each="item, stat : ${importDTO.items}" class="import-item-row p-3 mb-3 border border-dashed border-primary rounded-4 bg-light position-relative" th:data-index="${stat.index}">
+
+                                <button th:if="${stat.index > 0}" type="button" class="btn btn-sm btn-outline-danger position-absolute end-0 top-0 m-2 rounded-circle remove-row-btn" style="width: 30px; height: 30px; padding:0;"><i class="fas fa-times"></i></button>
+
+                                <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label small fw-bold text-muted">Sản phẩm nhập</label>
+                                        <select th:field="*{items[__${stat.index}__].productId}" class="form-select select-product" required>
+                                            <option value="">-- Chọn sản phẩm cần nhập kho --</option>
+                                            <option th:each="p : ${products}" th:value="${p.productId}" th:text="${p.productName} + ' (Hiện tồn: ' + ${p.stock} + ')'"></option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted">Số lượng nhập</label>
+                                        <!-- [SỬA LẠI]: Loại bỏ check null rườm rà ở classappend -->
+                                        <input type="number" th:field="*{items[__${stat.index}__].quantity}"
+                                               class="form-control input-qty"
+                                               th:classappend="${#fields.hasErrors('items[__${stat.index}__].quantity')} ? 'is-invalid' : (${item.quantity != null and item.quantity <= 0} ? 'is-invalid' : '')"
+                                               min="1" required>
+                                        <!-- [SỬA LẠI]: Check an toàn không gây đệ quy -->
+                                        <div class="invalid-feedback d-block check-qty-msg"
+                                             th:if="${item.quantity != null and item.quantity <= 0}">Số lượng nhập phải lớn hơn 0</div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted">Giá nhập đơn vị (VNĐ)</label>
+                                        <!-- [SỬA LẠI]: Loại bỏ check null rườm rà ở classappend -->
+                                        <input type="number" th:field="*{items[__${stat.index}__].importPrice}"
+                                               class="form-control input-price"
+                                               th:classappend="${#fields.hasErrors('items[__${stat.index}__].importPrice')} ? 'is-invalid' : (${item.importPrice != null and item.importPrice < 0} ? 'is-invalid' : '')"
+                                               min="0" placeholder="Ví dụ: 15000000" required>
+                                        <!-- [SỬA LẠI]: Check an toàn không gây đệ quy -->
+                                        <div class="invalid-feedback d-block check-price-msg"
+                                             th:if="${item.importPrice != null and item.importPrice < 0}">Giá nhập không được âm</div>
+                                    </div>
+
+                                    <div class="col-md-12">
+                                        <label class="form-label small fw-bold text-muted">Danh sách mã Serial Number</label>
+                                        <textarea th:field="*{items[__${stat.index}__].serialList}" class="form-control font-monospace" rows="3" placeholder="Nhập các mã Serial cách nhau bởi dấu phẩy (,) hoặc xuống dòng..." required style="resize: none; font-size: 0.85rem;"></textarea>
+
+                                        <!-- [SỬA LẠI]: Bảo vệ đệ quy vô hạn khi in text -->
+                                        <div class="form-text small text-secondary check-serial-msg">
+                                            Mẹo: Đang nhập <b th:text="${item.quantity != null ? item.quantity : 1}">1</b> sản phẩm -> Cần điền đúng <b th:text="${item.quantity != null ? item.quantity : 1}">1</b> mã Serial độc lập!
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Nếu không có dữ liệu lỗi trả về (khi mới vào trang lần đầu) -->
+                        <div th:if="${importDTO.items == null or #lists.isEmpty(importDTO.items)}">
+                            <div class="import-item-row p-3 mb-3 border rounded-4 bg-light position-relative" data-index="0">
+                                <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label small fw-bold text-muted">Sản phẩm nhập</label>
+                                        <select name="items[0].productId" class="form-select select-product" required>
+                                            <option value="">-- Chọn sản phẩm cần nhập kho --</option>
+                                            <option th:each="p : ${products}" th:value="${p.productId}" th:text="${p.productName} + ' (Hiện tồn: ' + ${p.stock} + ')'"></option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted">Số lượng nhập</label>
+                                        <input type="number" name="items[0].quantity" class="form-control input-qty" min="1" value="1" required>
+                                        <div class="invalid-feedback check-qty-msg" style="display:none;"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted">Giá nhập đơn vị (VNĐ)</label>
+                                        <input type="number" name="items[0].importPrice" class="form-control input-price" min="0" placeholder="Ví dụ: 15000000" required>
+                                        <div class="invalid-feedback check-price-msg" style="display:none;"></div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label small fw-bold text-muted">Danh sách mã Serial Number</label>
+                                        <textarea name="items[0].serialList" class="form-control font-monospace" rows="3" placeholder="Nhập các mã Serial cách nhau bởi dấu phẩy (,) hoặc xuống dòng..." required style="resize: none; font-size: 0.85rem;"></textarea>
+                                        <div class="form-text small text-secondary check-serial-msg">Mẹo: Đang nhập <b>1</b> sản phẩm -> Cần điền đúng <b>1</b> mã Serial độc lập.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a href="/admin/import" class="btn btn-light rounded-pill px-4 fw-bold">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" style="background-color: #f37021; border-color: #f37021;" id="btnSubmitImport">
+                            <i class="fas fa-save me-2"></i> Hoàn tất nhập kho
+                        </button>
+                    </div>
+                </div>
+            </div>
+
         </div>
-      </div>
+    </form>
 
-    </div>
-  </form>
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function() {
+            const container = document.getElementById('import-items-container');
+            const addItemBtn = document.getElementById('add-item-btn');
+            const form = document.getElementById('importForm');
 
-  <script th:inline="javascript">
-    document.addEventListener("DOMContentLoaded", function() {
-      const container = document.getElementById('import-items-container');
-      const addItemBtn = document.getElementById('add-item-btn');
+            // Không serialize cả entity Product (dễ lỗi Jackson do lazy/vòng lặp quan hệ),
+            // chỉ lấy 3 trường cần dùng cho dropdown.
+            const productsList = [
+                /*[# th:each="p : ${products}"]*/
+                {
+                    productId: /*[[${p.productId}]]*/ 0,
+                    productName: /*[[${p.productName}]]*/ '',
+                    stock: /*[[${p.stock}]]*/ 0
+                },
+                /*[/]*/
+            ];
 
-      // Lấy danh sách sản phẩm từ Thymeleaf đổ sang biến Javascript để dùng lại khi vẽ dòng mới
-      const productsList = [[${products}]];
+            // Đếm số lượng item row hiện tại để set index mới
+            let itemIndex = document.querySelectorAll('.import-item-row').length;
 
-      let itemIndex = 1;
+            // Xử lý sự kiện Thêm mặt hàng
+            addItemBtn.addEventListener('click', function() {
+                let optionsHtml = '<option value="">-- Chọn sản phẩm cần nhập kho --</option>';
+                productsList.forEach(p => {
+                    optionsHtml += `<option value="${p.productId}">${p.productName} (Hiện tồn: ${p.stock})</option>`;
+                });
 
-      // Xử lý sự kiện bấm nút Thêm dòng mới
-      addItemBtn.addEventListener('click', function() {
-        // Tạo chuỗi option chọn sản phẩm
-        let optionsHtml = '<option value="">-- Chọn sản phẩm cần nhập kho --</option>';
-        productsList.forEach(p => {
-          optionsHtml += `<option value="${p.productId}">${p.productName} (Hiện tồn: ${p.stock})</option>`;
-        });
-
-        // Cấu trúc HTML dòng mới gán chỉ số mảng động [itemIndex]
-        let rowHtml = `
+                let rowHtml = `
                     <div class="import-item-row p-3 mb-3 border border-dashed border-primary rounded-4 bg-light position-relative" data-index="${itemIndex}" style="animation: fadeIn 0.3s ease;">
                         <button type="button" class="btn btn-sm btn-outline-danger position-absolute end-0 top-0 m-2 rounded-circle remove-row-btn" style="width: 30px; height: 30px; padding:0;"><i class="fas fa-times"></i></button>
                         <div class="row g-3">
                             <div class="col-md-12">
                                 <label class="form-label small fw-bold text-muted">Sản phẩm nhập</label>
-                                <select name="items[itemIndex].productId" class="form-select select-product" required>${optionsHtml}</select>
+                                <select name="items[${itemIndex}].productId" class="form-select select-product" required>${optionsHtml}</select>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-muted">Số lượng nhập</label>
-                                <input type="number" name="items[itemIndex].quantity" class="form-control input-qty" min="1" value="1" required>
+                                <input type="number" name="items[${itemIndex}].quantity" class="form-control input-qty" min="1" value="1" required>
+                                <div class="invalid-feedback check-qty-msg" style="display:none;"></div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-muted">Giá nhập đơn vị (VNĐ)</label>
-                                <input type="number" name="items[itemIndex].importPrice" class="form-control" min="0" placeholder="Ví dụ: 15000000" required>
+                                <input type="number" name="items[${itemIndex}].importPrice" class="form-control input-price" min="0" placeholder="Ví dụ: 15000000" required>
+                                <div class="invalid-feedback check-price-msg" style="display:none;"></div>
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label small fw-bold text-muted">Danh sách mã Serial Number</label>
-                                <textarea name="items[itemIndex].serialList" class="form-control font-monospace" rows="3" placeholder="Nhập các mã Serial cách nhau bởi dấu phẩy (,) hoặc xuống dòng..." required style="resize: none; font-size: 0.85rem;"></textarea>
-                                <div class="form-text small text-secondary check-serial-msg">Mẹo: Đang nhập 1 sản phẩm -> Cần điền đúng 1 mã Serial.</div>
+                                <textarea name="items[${itemIndex}].serialList" class="form-control font-monospace" rows="3" placeholder="Nhập các mã Serial cách nhau bởi dấu phẩy (,) hoặc xuống dòng..." required style="resize: none; font-size: 0.85rem;"></textarea>
+                                <div class="form-text small text-secondary check-serial-msg">Mẹo: Đang nhập <b>1</b> sản phẩm -> Cần điền đúng <b>1</b> mã Serial độc lập.</div>
                             </div>
                         </div>
                     </div>
                 `;
 
-        // Thay chữ biến ảo thành số thực tế trước khi chèn vào trang HTML
-        rowHtml = rowHtml.replaceAll('itemIndex', itemIndex);
-        container.insertAdjacentHTML('beforeend', rowHtml);
-        itemIndex++;
-      });
+                container.insertAdjacentHTML('beforeend', rowHtml);
+                itemIndex++;
+            });
 
-      // Xử lý xóa dòng sản phẩm nhập kho
-      container.addEventListener('click', function(e) {
-        if (e.target.closest('.remove-row-btn')) {
-          const row = e.target.closest('.import-item-row');
-          row.remove();
+            // Xóa dòng
+            container.addEventListener('click', function(e) {
+                if (e.target.closest('.remove-row-btn')) {
+                    e.target.closest('.import-item-row').remove();
+                    reindexRows();
+                }
+            });
+
+            // Cập nhật thông báo theo thời gian thực và check valid cho giá nhập và số lượng
+            container.addEventListener('input', function(e) {
+                const row = e.target.closest('.import-item-row');
+
+                // Check số lượng
+                if (e.target.classList.contains('input-qty')) {
+                    const qty = parseInt(e.target.value) || 0;
+                    const msgEl = row.querySelector('.check-serial-msg');
+                    const errorMsg = row.querySelector('.check-qty-msg');
+
+                    if(qty <= 0) {
+                        e.target.classList.add('is-invalid');
+                        errorMsg.innerHTML = 'Số lượng nhập phải lớn hơn 0';
+                        errorMsg.style.display = 'block';
+                        msgEl.innerHTML = `<i class="fas fa-exclamation-circle text-danger me-1"></i> Số lượng không hợp lệ!`;
+                    } else {
+                        e.target.classList.remove('is-invalid');
+                        errorMsg.style.display = 'none';
+                        msgEl.innerHTML = `<i class="fas fa-info-circle text-primary me-1"></i> Mẹo: Đang nhập <b>${qty}</b> sản phẩm -> Cần điền đúng <b>${qty}</b> mã Serial độc lập.`;
+                    }
+                }
+
+                // Check giá nhập
+                if(e.target.classList.contains('input-price')){
+                    const price = parseInt(e.target.value) || 0;
+                    const errorMsg = row.querySelector('.check-price-msg');
+
+                    if(price < 0){
+                        e.target.classList.add('is-invalid');
+                        errorMsg.innerHTML = 'Giá nhập không được nhỏ hơn 0';
+                        errorMsg.style.display = 'block';
+                    } else {
+                        e.target.classList.remove('is-invalid');
+                        errorMsg.style.display = 'none';
+                    }
+                }
+            });
+
+            // Hàm cập nhật lại index cho các input khi xóa một dòng ở giữa để Spring Boot binding data đúng
+            function reindexRows() {
+                const rows = container.querySelectorAll('.import-item-row');
+                rows.forEach((row, index) => {
+                    row.setAttribute('data-index', index);
+                    row.querySelector('.select-product').name = `items[${index}].productId`;
+                    row.querySelector('.input-qty').name = `items[${index}].quantity`;
+                    row.querySelector('.input-price').name = `items[${index}].importPrice`;
+                    row.querySelector('textarea').name = `items[${index}].serialList`;
+                });
+                itemIndex = rows.length;
+            }
+
+            // Chặn submit form nếu có dữ liệu bị sai
+            form.addEventListener('submit', function(e) {
+                const invalidInputs = container.querySelectorAll('.is-invalid');
+                if(invalidInputs.length > 0){
+                    e.preventDefault();
+                    alert('Vui lòng kiểm tra lại thông tin số lượng hoặc giá nhập bị lỗi (màu đỏ) trước khi hoàn tất!');
+                }
+            });
+        });
+    </script>
+
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-      });
-
-      // Gợi ý số lượng dòng Serial theo số lượng nhập thời gian thực
-      container.addEventListener('input', function(e) {
-        if (e.target.classList.contains('input-qty')) {
-          const row = e.target.closest('.import-item-row');
-          const qty = e.target.value;
-          const msgEl = row.querySelector('.check-serial-msg');
-          msgEl.innerHTML = `<i class="fas fa-info-circle text-primary me-1"></i> Bạn đã nhập số lượng là <b>${qty}</b>. Nội dung ô dưới bắt buộc phải điền đủ đúng <b>${qty}</b> mã Serial độc lập!`;
-        }
-      });
-    });
-  </script>
-
-  <style>
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+    </style>
 </div>
 
 </body>

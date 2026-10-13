@@ -20,4 +20,8 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
     List<Supplier> searchSuppliers(@Param("keyword") String keyword);
     boolean existsByPhone(String phone);
     boolean existsByPhoneAndSupplierIdNot(String phone, Long supplierId);
+
+    @Query("SELECT COUNT(s) > 0 FROM Supplier s " +
+            "WHERE LOWER(s.supplierName) = LOWER(:name) AND (:id IS NULL OR s.supplierId <> :id)")
+    boolean existsByNameExcludingId(@Param("name") String name, @Param("id") Long id);
 }

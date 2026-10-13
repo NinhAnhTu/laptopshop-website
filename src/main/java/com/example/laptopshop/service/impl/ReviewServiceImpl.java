@@ -47,32 +47,54 @@ public class ReviewServiceImpl implements ReviewService {
             throw new RuntimeException("Bạn phải mua và nhận hàng thành công mới được đánh giá!");
         }
 
-        // 2. Nếu thỏa mãn thì lưu
-        Product product = productRepository.findById(productId).orElse(null);
-        if (product != null) {
-            Review review = new Review();
-            review.setUser(user);
-            review.setProduct(product);
-            review.setComment(comment);
-            review.setRating(rating);
-            review.setIsVerifiedPurchase(true);
+        // 2. Tìm kiếm sản phẩm
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm!"));
 
-            // Lưu xuống DB để có ID và đối tượng chuẩn
-            Review savedReview = reviewRepository.save(review);
+        // 3. LOGIC UPSERT: Kiểm tra xem User này đã từng đánh giá sản phẩm này chưa
+        Review existingReview = reviewRepository.findByUserAndProduct(user, product);
+        Review reviewToProcess;
 
-            // Lấy toàn bộ đánh giá của sản phẩm này để tính trung bình
-            List<Review> allReviews = reviewRepository.findByProductProductIdOrderByCreatedAtDesc(productId);
-            double avgRating = allReviews.stream()
-                    .mapToInt(Review::getRating)
-                    .average()
-                    .orElse(0.0);
+        if (existingReview != null) {
+            // [CẬP NHẬT ĐÁNH GIÁ CŨ]
+            existingReview.setComment(comment);
+            existingReview.setRating(rating);
+            existingReview.setCreatedAt(java.time.LocalDateTime.now()); // Reset lại thời gian về hiện tại
+            reviewToProcess = reviewRepository.save(existingReview);
 
-            // Làm tròn đến 1 chữ số thập phân (ví dụ: 4.5, 4.8)
-            double roundedRating = Math.round(avgRating * 10.0) / 10.0;
-            product.setRating(roundedRating);
-            productRepository.save(product);
-            processAutoReviewAction(savedReview);
+            // Xóa câu trả lời cũ của Admin (nếu có) vì nội dung đánh giá đã thay đổi
+            if(existingReview.getReply() != null) {
+                reviewReplyRepository.delete(existingReview.getReply());
+                existingReview.setReply(null);
+            }
+        } else {
+            // [TẠO ĐÁNH GIÁ MỚI]
+            Review newReview = new Review();
+            newReview.setUser(user);
+            newReview.setProduct(product);
+            newReview.setComment(comment);
+            newReview.setRating(rating);
+            newReview.setIsVerifiedPurchase(true);
+            reviewToProcess = reviewRepository.save(newReview);
         }
+
+        // 4. Tính toán và cập nhật lại điểm Rating trung bình cho Product
+        // (Bắt buộc phải gọi saveAndFlush để DB ghi nhận review vừa thêm/sửa trước khi tính trung bình)
+        reviewRepository.flush();
+
+        List<Review> allReviews = reviewRepository.findByProductProductIdOrderByCreatedAtDesc(productId);
+        double avgRating = allReviews.stream()
+                .mapToInt(Review::getRating)
+                .average()
+                .orElse(0.0);
+
+        // Làm tròn đến 1 chữ số thập phân (ví dụ: 4.5, 4.8)
+        double roundedRating = Math.round(avgRating * 10.0) / 10.0;
+        product.setRating(roundedRating);
+        productRepository.save(product);
+
+        // 5. Gọi hàm AI Tự động phản hồi (Chỉ chạy nếu là đánh giá mới hoặc vừa được cập nhật)
+        processAutoReviewAction(reviewToProcess);
     }
 
     /**
@@ -164,5 +186,12 @@ public class ReviewServiceImpl implements ReviewService {
 
         // Xóa review (Reply đi kèm cũng sẽ bị xóa nhờ CascadeType.ALL bên Entity Review)
         reviewRepository.delete(review);
+    }
+
+    @Override
+    public Review findReviewByUserAndProduct(User user, Product product) {
+        if (user == null || product == null) return null;
+        // Bắt buộc bạn phải có hàm findByUserAndProduct bên trong ReviewRepository nhé
+        return reviewRepository.findByUserAndProduct(user, product);
     }
 }

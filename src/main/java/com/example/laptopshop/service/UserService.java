@@ -22,4 +22,6 @@ public interface UserService {
     User getUserByEmail(String email);
     List<User> searchUsers(String keyword, Long roleId);
     void changeClientPassword(User currentUser, String oldPassword, String newPassword);
+    boolean tryRegisterResetRequest(String email);
+
 }

@@ -1,66 +1,140 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/admin_layout :: layout(~{:: .policy-content})}">
+      th:replace="~{fragments/admin_layout :: layout(~{:: .content-body})}">
 <head>
     <title>Chính sách bảo hành - ChaosCoders</title>
 </head>
 <body>
 
-<div class="policy-content">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-dark">Chính sách bảo hành</h2>
-        <a th:href="@{/admin/warranty-policies/create}" class="btn btn-primary shadow-sm">
-            <i class="fas fa-plus me-1"></i> Thêm chính sách mới
+<div class="content-body">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Chính sách bảo hành</h2>
+            <small class="text-muted"></small>
+        </div>
+        <a th:href="@{/admin/warranty-policies/create}" class="btn btn-primary rounded-pill px-4 fw-bold" style="background-color: #f37021; border-color: #f37021;">
+            <i class="fas fa-plus me-2"></i>Thêm chính sách mới
         </a>
     </div>
 
-    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
-        <span th:text="${successMessage}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <!-- Thông báo Alert (Nếu có) -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm rounded-3 border-0" role="alert">
+        <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
-    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <span th:text="${errorMessage}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3 border-0" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 
-    <div class="card border-0 shadow-sm rounded-4">
+    <!-- Bộ Lọc -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0">
+            <h6 class="fw-bold text-secondary text-uppercase mb-0">
+                <i class="fas fa-filter me-2 text-primary"></i>Bộ lọc tìm kiếm
+            </h6>
+        </div>
         <div class="card-body p-4">
+            <form action="/admin/warranty-policies" method="get" class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label fw-bold small text-muted">Tên chính sách</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" name="keyword" class="form-control border-start-0 ps-0" placeholder="Nhập tên chính sách..." th:value="${keyword}">
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small text-muted">Thời hạn (Tháng)</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="far fa-clock text-muted"></i></span>
+                        <input type="number" name="duration" class="form-control border-start-0 ps-0" placeholder="Ví dụ: 12" th:value="${duration}">
+                    </div>
+                </div>
+
+                <div class="col-md-3 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary fw-bold flex-grow-1" style="background-color: #f37021; border-color: #f37021;">
+                        <i class="fas fa-search me-1"></i> Lọc
+                    </button>
+                    <a href="/admin/warranty-policies" class="btn btn-light border fw-bold" data-bs-toggle="tooltip" title="Xóa bộ lọc">
+                        <i class="fas fa-redo-alt text-secondary"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Danh sách -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold text-secondary">Danh sách chính sách</h6>
+            <span class="badge bg-light text-dark border rounded-pill px-3" th:text="${policyPage.totalElements} + ' chính sách'"></span>
+        </div>
+
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-secondary text-uppercase small">
                     <tr>
-                        <th>ID</th>
-                        <th>Tên chính sách</th>
-                        <th>Thời hạn (Tháng)</th>
-                        <th>Mô tả</th>
-                        <th class="text-center">Thao tác</th>
+                        <th class="ps-4 py-3" width="10%">ID</th>
+                        <th class="py-3" width="30%">Tên chính sách</th>
+                        <th class="py-3 text-center" width="15%">Thời hạn</th>
+                        <th class="py-3" width="30%">Mô tả</th>
+                        <th class="text-end pe-4 py-3" width="15%">Thao tác</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="p : ${policies}">
-                        <td th:text="${p.warrantyId}"></td>
-                        <td class="fw-bold text-primary" th:text="${p.policyName}"></td>
-                        <td><span class="badge bg-info" th:text="${p.durationMonths} + ' Tháng'"></span></td>
-                        <td th:text="${p.description}"></td>
+                    <tr th:if="${policyPage.content.isEmpty()}">
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <div class="opacity-50 mb-3"><i class="fas fa-shield-alt fa-3x"></i></div>
+                            <p class="mb-0">Chưa có chính sách bảo hành nào.</p>
+                        </td>
+                    </tr>
+                    <tr th:each="p : ${policyPage.content}">
+                        <td class="ps-4 fw-bold text-muted" th:text="'#' + ${p.warrantyId}"></td>
+                        <td class="fw-bold text-dark" th:text="${p.policyName}"></td>
                         <td class="text-center">
-                            <a th:href="@{/admin/warranty-policies/edit/{id}(id=${p.warrantyId})}" class="btn btn-sm btn-outline-primary" title="Sửa">
+                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-3 py-2" th:text="${p.durationMonths} + ' Tháng'"></span>
+                        </td>
+                        <td class="text-muted small" th:text="${p.description}"></td>
+                        <td class="text-end pe-4">
+                            <a th:href="@{/admin/warranty-policies/edit/{id}(id=${p.warrantyId})}" class="btn btn-outline-warning btn-sm rounded-circle me-1" title="Sửa" data-bs-toggle="tooltip">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a th:href="@{/admin/warranty-policies/delete/{id}(id=${p.warrantyId})}" class="btn btn-sm btn-outline-danger"
-                               onclick="return confirm('Bạn có chắc chắn muốn xóa chính sách này?');" title="Xóa">
+                            <a th:href="@{/admin/warranty-policies/delete/{id}(id=${p.warrantyId})}" class="btn btn-outline-danger btn-sm rounded-circle" onclick="return confirm('Bạn có chắc chắn muốn xóa chính sách này?');" title="Xóa" data-bs-toggle="tooltip">
                                 <i class="fas fa-trash"></i>
                             </a>
                         </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(policies)}">
-                        <td colspan="5" class="text-center text-muted py-4">Chưa có chính sách bảo hành nào.</td>
                     </tr>
                     </tbody>
                 </table>
             </div>
         </div>
+
+        <!-- Phân trang -->
+        <div class="card-footer bg-white py-3 border-top-0 d-flex justify-content-center" th:if="${policyPage.totalPages > 1}">
+            <ul class="pagination pagination-sm m-0">
+                <li class="page-item" th:classappend="${policyPage.first ? 'disabled' : ''}">
+                    <a class="page-link shadow-sm" th:href="@{/admin/warranty-policies(page=${policyPage.number}, keyword=${keyword}, duration=${duration})}"><i class="fas fa-chevron-left"></i></a>
+                </li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(1, policyPage.totalPages)}" th:classappend="${policyPage.number + 1 == i ? 'active' : ''}">
+                    <a class="page-link shadow-sm" th:href="@{/admin/warranty-policies(page=${i}, keyword=${keyword}, duration=${duration})}" th:text="${i}"></a>
+                </li>
+                <li class="page-item" th:classappend="${policyPage.last ? 'disabled' : ''}">
+                    <a class="page-link shadow-sm" th:href="@{/admin/warranty-policies(page=${policyPage.number + 2}, keyword=${keyword}, duration=${duration})}"><i class="fas fa-chevron-right"></i></a>
+                </li>
+            </ul>
+        </div>
     </div>
 </div>
 
+<script>
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
 </body>
 </html>

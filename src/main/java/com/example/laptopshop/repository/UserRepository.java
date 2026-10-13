@@ -2,6 +2,7 @@ package com.example.laptopshop.repository;
 
 import com.example.laptopshop.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -37,4 +38,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 // Hàm lấy danh sách user dựa trên tên quyền (từ bảng user_type) để gửi mail
     List<User> findByUserType_UserTypeId(Long userTypeId);
+
+    @Modifying
+    @Query(value = "UPDATE users SET " +
+            "reset_request_count = IF(reset_request_date = CURDATE(), reset_request_count + 1, 1), " +
+            "reset_request_date = CURDATE() " +
+            "WHERE email = :email " +
+            "AND (reset_request_date IS NULL OR reset_request_date <> CURDATE() OR reset_request_count < :max)",
+            nativeQuery = true)
+    int tryRegisterResetRequest(@Param("email") String email, @Param("max") int max);
 }

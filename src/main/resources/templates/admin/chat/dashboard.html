@@ -12,20 +12,38 @@
         .user-list-panel { width: 340px; border-right: 1px solid #f0f0f0; display: flex; flex-direction: column; background: #fff; }
         .user-list-header { padding: 20px; border-bottom: 1px solid #f0f0f0; font-weight: 700; color: #0f2027; background: #fcfcfc; }
         .user-scroll-container { flex: 1; overflow-y: auto; }
+
+        /* [ZALO STYLE CSS] */
         .user-item { padding: 15px 20px; border-bottom: 1px solid #f9f9f9; cursor: pointer; display: flex; align-items: center; transition: all 0.2s ease; }
         .user-item:hover { background-color: #f8f9fa; }
-        .user-item.active { background-color: #fff3e0; border-left: 4px solid #f37021; }
-        .user-avatar-circle { width: 45px; height: 45px; background: linear-gradient(135deg, #203a43, #2c5364); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 15px; flex-shrink: 0; font-size: 1.1rem; }
-        .chat-main-panel { flex: 1; display: flex; flex-direction: column; background: #f9fafb; }
+        .user-item.active { background-color: #e5f1ff; } /* Màu xanh lơ nhạt kiểu chọn item Zalo */
+
+        .user-avatar-circle { width: 45px; height: 45px; background: linear-gradient(135deg, #1e88e5, #1565c0); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 15px; flex-shrink: 0; font-size: 1.1rem; }
+
+        .user-info-wrapper { overflow: hidden; width: 100%; display: flex; flex-direction: column; justify-content: center;}
+        .user-top-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3px; }
+        .user-name { font-weight: 600; color: #111; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%; }
+        .user-time { font-size: 0.75rem; color: #888; flex-shrink: 0; }
+
+        .user-bottom-row { display: flex; justify-content: space-between; align-items: center; }
+        .user-last-msg { font-size: 0.85rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
+        .user-last-msg.unread { font-weight: bold; color: #111; }
+
+        /* Badge chưa đọc: màu đỏ + số tin nhắn */
+        .unread-badge { background-color: #dc3545 !important; color: #fff; font-size: 0.7rem; min-width: 22px; padding: 0.35em 0.6em; font-weight: 700; }
+        .user-item.has-unread .user-name { font-weight: 800; }
+        .user-item.has-unread .user-time { color: #dc3545; font-weight: 600; }
+
+        .chat-main-panel { flex: 1; display: flex; flex-direction: column; background: #e2e8f0; } /* Nền xám nhạt Zalo */
         .chat-top-bar { height: 70px; background: white; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; font-weight: 600; }
         .chat-messages-area { flex: 1; padding: 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
         .msg-bubble { padding: 12px 18px; border-radius: 18px; max-width: 70%; font-size: 0.95rem; position: relative; word-wrap: break-word; }
-        .msg-user { align-self: flex-start; background: white; color: #333; border-bottom-left-radius: 2px; border: 1px solid #eee; }
-        .msg-admin { align-self: flex-end; background: linear-gradient(45deg, #f37021, #ff9f43); color: white; border-bottom-right-radius: 2px; }
-        .msg-system { align-self: center; background: transparent; font-size: 0.85rem; color: #6c757d; font-style: italic; }
+        .msg-user { align-self: flex-start; background: white; color: #333; border-bottom-left-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .msg-admin { align-self: flex-end; background: #e5f1ff; color: #000; border-bottom-right-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); } /* Xanh nhạt Zalo */
+        .msg-system { align-self: center; background: rgba(0,0,0,0.1); font-size: 0.8rem; color: #555; padding: 5px 12px; border-radius: 20px;}
         .chat-input-wrapper { padding: 20px; background: white; border-top: 1px solid #eee; display: flex; gap: 10px; }
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 
     <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 9999">
@@ -48,17 +66,48 @@
         <div class="user-list-panel">
             <div class="user-list-header"><i class="fas fa-list-alt me-2 text-secondary"></i>Danh sách phiên Chat</div>
             <div class="user-scroll-container">
-                <div th:each="room : ${rooms}" class="user-item" th:classappend="${room.roomId == targetRoomId} ? 'active' : ''" th:data-id="${room.roomId}" th:data-name="${room.customer.fullname}" th:data-status="${room.status}" onclick="selectRoom(this.getAttribute('data-id'), this.getAttribute('data-name'), this.getAttribute('data-status'), this)">
+                <div th:each="room : ${rooms}" class="user-item"
+                     th:with="unread=${unreadCounts != null and unreadCounts[room.roomId] != null ? unreadCounts[room.roomId] : 0}"
+                     th:classappend="${(room.roomId == targetRoomId ? 'active ' : '') + (unread > 0 ? 'has-unread' : '')}"
+                     th:data-id="${room.roomId}"
+                     th:data-name="${room.customer.fullname}"
+                     th:data-status="${room.status}"
+                     onclick="selectRoom(this.getAttribute('data-id'), this.getAttribute('data-name'), this.getAttribute('data-status'), this)">
+
                     <div class="user-avatar-circle" th:text="${#strings.substring(room.customer.fullname, 0, 1)}">A</div>
-                    <div style="overflow: hidden; width: 100%;">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span th:text="${room.customer.fullname}" class="fw-bold text-dark text-truncate">Tên Khách</span>
-                            <div>
-                                <span class="badge bg-danger rounded-circle unread-badge me-1 d-none">0</span>
-                                <span class="badge status-badge" th:classappend="${room.status == 'WAITING_ADMIN'} ? 'bg-danger' : (${room.status == 'CHATTING'} ? 'bg-success' : 'bg-secondary')" th:text="${room.status == 'WAITING_ADMIN'} ? 'Cần hỗ trợ' : (${room.status == 'CHATTING'} ? 'Đang chat' : 'Bot xử lý')" style="font-size: 0.6rem;"></span>
+
+                    <div class="user-info-wrapper">
+                        <!-- Hàng trên: Tên + Thời gian + Status -->
+                        <div class="user-top-row">
+                            <div class="d-flex align-items-center" style="max-width: 70%;">
+                                <span class="user-name me-2" th:text="${room.customer.fullname}">Tên Khách</span>
+                                <!-- Hiển thị Status dạng Icon nhỏ gọn gọn -->
+                                <span th:if="${room.status == 'WAITING_ADMIN'}" class="badge bg-danger rounded-pill status-badge" style="font-size: 0.6rem;" title="Cần hỗ trợ">Cần HT</span>
+                                <span th:if="${room.status == 'CHATTING'}" class="badge bg-success rounded-pill status-badge" style="font-size: 0.6rem;" title="Đang chat">Đang chat</span>
+                                <span th:if="${room.status == 'WAITING_AI' or room.status == 'AI_REPLIED'}" class="badge bg-secondary rounded-pill status-badge" style="font-size: 0.6rem;" title="Bot xử lý">Bot</span>
                             </div>
+
+                            <!-- Thời gian tin nhắn cuối (Sử dụng hàm JS renderTimeAgo ở dưới) -->
+                            <span class="user-time last-msg-time"
+                                  th:data-time="${lastMessages != null and lastMessages[room.roomId] != null ? lastMessages[room.roomId].createdAt : room.lastMessageAt}">
+                            </span>
                         </div>
-                        <small class="text-muted text-truncate d-block" th:text="${room.customer.email}">email...</small>
+
+                        <!-- Hàng dưới: Nội dung tin nhắn cuối + Badge chưa đọc -->
+                        <div class="user-bottom-row">
+                            <!-- Hiển thị nội dung tin nhắn cuối -->
+                            <span class="user-last-msg" th:classappend="${unread > 0} ? 'unread' : ''" th:if="${lastMessages != null and lastMessages[room.roomId] != null}">
+                                <span th:if="${lastMessages[room.roomId].senderType == 'ADMIN'}">Bạn: </span>
+                                <span th:if="${lastMessages[room.roomId].senderType == 'AI'}">Bot: </span>
+                                <span th:text="${lastMessages[room.roomId].content}"></span>
+                            </span>
+                            <span class="user-last-msg fst-italic" th:unless="${lastMessages != null and lastMessages[room.roomId] != null}">
+                                Chưa có tin nhắn
+                            </span>
+
+                            <span class="badge rounded-pill unread-badge" th:classappend="${unread > 0} ? '' : 'd-none'"
+                                  th:data-count="${unread}" th:text="${unread > 99 ? '99+' : unread}">0</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -93,60 +142,243 @@
         var typingTimeout;
         var lastAdminDateStr = null;
         var initialTargetRoomId = /*[[${targetRoomId}]]*/ null;
+        var reconnectTimer = null;
+        var recentIncoming = {};
+        // CSRF (nếu Spring Security bật CSRF thì POST đánh dấu đã đọc vẫn qua được)
+        var csrfToken = /*[[${_csrf != null ? _csrf.token : null}]]*/ null;
+        var csrfHeader = /*[[${_csrf != null ? _csrf.headerName : null}]]*/ null;
 
+        // --- HÀM TÍNH THỜI GIAN KIỂU ZALO (VD: 5 phút, 10:30, Hôm qua, 12/10) ---
+        function renderTimeAgo(dateString) {
+            if (!dateString) return "";
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+
+            if (diffInSeconds < 60) return "Vừa xong";
+            if (diffInSeconds < 3600) return Math.floor(diffInSeconds / 60) + " phút";
+
+            const isToday = now.getDate() === date.getDate() && now.getMonth() === date.getMonth() && now.getFullYear() === date.getFullYear();
+            if (isToday) return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute:'2-digit' });
+
+            const yesterday = new Date(now);
+            yesterday.setDate(now.getDate() - 1);
+            const isYesterday = yesterday.getDate() === date.getDate() && yesterday.getMonth() === date.getMonth() && yesterday.getFullYear() === date.getFullYear();
+            if (isYesterday) return "Hôm qua";
+
+            return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+        }
+
+        // Chạy lúc load trang để render toàn bộ thời gian
+        document.querySelectorAll('.last-msg-time').forEach(el => {
+            let timeStr = el.getAttribute('data-time');
+            el.innerText = renderTimeAgo(timeStr);
+        });
+
+        // [MỚI] Tự động cập nhật thời gian theo chu kỳ 1 phút/lần
+        setInterval(() => {
+            document.querySelectorAll('.last-msg-time').forEach(el => {
+                let timeStr = el.getAttribute('data-time');
+                el.innerText = renderTimeAgo(timeStr);
+            });
+        }, 60000); // 60,000ms = 1 phút
+
+        // ================= TIỆN ÍCH =================
+        var NON_CUSTOMER_SENDERS = ['ADMIN', 'AI', 'SYSTEM'];
+
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        // Tin nhắn có phải do KHÁCH HÀNG gửi không
+        function isCustomerMsg(data) {
+            if (data.isNewUserMessage === true) return true;
+            return !!data.senderType && NON_CUSTOMER_SENDERS.indexOf(data.senderType) === -1;
+        }
+
+        // ================= CHƯA ĐỌC =================
+        function getUnread(roomEl) {
+            var badge = roomEl.querySelector('.unread-badge');
+            return badge ? (parseInt(badge.getAttribute('data-count')) || 0) : 0;
+        }
+
+        function setUnread(roomEl, count) {
+            var badge = roomEl.querySelector('.unread-badge');
+            var lastMsgEl = roomEl.querySelector('.user-last-msg');
+            if (badge) {
+                badge.setAttribute('data-count', count);
+                badge.innerText = count > 99 ? '99+' : count;
+                badge.classList.toggle('d-none', count <= 0);
+            }
+            if (lastMsgEl) lastMsgEl.classList.toggle('unread', count > 0);
+            roomEl.classList.toggle('has-unread', count > 0);
+        }
+
+        // Báo server: admin đã đọc hết tin của khách trong phòng này (để F5 không hiện lại badge)
+        function markRoomRead(roomId) {
+            var headers = {};
+            if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+            fetch('/admin/chat/read/' + roomId, { method: 'POST', headers: headers }).catch(function () {});
+        }
+
+        // ================= HIỂN THỊ TIN NHẮN REALTIME =================
+        // Cùng 1 tin có thể về qua cả /topic/room/{id} lẫn /topic/admin -> chống vẽ 2 lần
+        function isDuplicateIncoming(senderType, content) {
+            var key = senderType + '|' + content;
+            var now = Date.now();
+            Object.keys(recentIncoming).forEach(function (k) {
+                if (now - recentIncoming[k] > 3000) delete recentIncoming[k];
+            });
+            if (recentIncoming[key]) return true;
+            recentIncoming[key] = now;
+            return false;
+        }
+
+        function showIncomingMessage(body) {
+            var content = body.content || body.message;
+            // Tin của chính admin đã được vẽ ngay trong sendMsg() nên bỏ qua
+            if (!content || body.senderType === 'ADMIN') return;
+            if (isDuplicateIncoming(body.senderType, content)) return;
+
+            removeTypingIndicator();
+            var type = (body.senderType === 'SYSTEM') ? 'msg-system' : ((body.senderType === 'AI') ? 'msg-user bg-light' : 'msg-user');
+            appendMessage(content, type, body.createdAt || body.timestamp, body.suggestedProducts);
+            scrollToBottom();
+        }
+
+        function loadHistory(roomId) {
+            fetch('/api/chat/history/' + roomId).then(res => res.json()).then(data => {
+                if (roomId !== selectedRoomId) return; // admin đã chuyển sang phòng khác
+                var box = document.getElementById('chatHistory');
+                box.innerHTML = '';
+                lastAdminDateStr = null;
+                data.forEach(msg => {
+                    var type = (msg.senderType === 'ADMIN') ? 'msg-admin' : (msg.senderType === 'SYSTEM' ? 'msg-system' : (msg.senderType === 'AI' ? 'msg-user bg-light' : 'msg-user'));
+                    appendMessage(msg.content, type, msg.createdAt, msg.suggestedProducts);
+                });
+                scrollToBottom();
+            });
+        }
+
+        function subscribeRoom(roomId) {
+            try { if (currentSubscription) currentSubscription.unsubscribe(); } catch (e) {}
+            try { if (typingSubscription) typingSubscription.unsubscribe(); } catch (e) {}
+            currentSubscription = null;
+            typingSubscription = null;
+            if (!stompClient || !stompClient.connected) return; // sẽ được đăng ký lại khi kết nối xong
+
+            currentSubscription = stompClient.subscribe('/topic/room/' + roomId, function (msg) {
+                var body = JSON.parse(msg.body);
+                showIncomingMessage(body);
+                if (body.senderType !== 'ADMIN') markRoomRead(roomId);
+            });
+
+            typingSubscription = stompClient.subscribe('/topic/room/' + roomId + '/typing', function (payload) {
+                let data = JSON.parse(payload.body);
+                if (data.senderType === 'USER') showTypingIndicator("Khách đang soạn tin...");
+            });
+        }
+
+        // ================= SỰ KIỆN TOÀN CỤC /topic/admin =================
+        function onAdminEvent(payload) {
+            var data = JSON.parse(payload.body);
+            var evRoomId = Number(data.roomId);
+            var fromCustomer = isCustomerMsg(data);
+            var roomEl = document.querySelector(`.user-item[data-id='${data.roomId}']`);
+
+            if (!roomEl) {
+                // Có người lạ lần đầu tiên chat -> Tải lại danh sách
+                if (fromCustomer) location.reload();
+                return;
+            }
+
+            // 1. Cập nhật thẻ trạng thái (Status)
+            if (data.status) {
+                var statusBadge = roomEl.querySelector('.status-badge');
+                if (statusBadge) {
+                    if (data.status === 'WAITING_ADMIN') {
+                        statusBadge.className = 'badge bg-danger rounded-pill status-badge'; statusBadge.innerText = 'Cần HT';
+                    } else if (data.status === 'CHATTING') {
+                        statusBadge.className = 'badge bg-success rounded-pill status-badge'; statusBadge.innerText = 'Đang chat';
+                    } else {
+                        statusBadge.className = 'badge bg-secondary rounded-pill status-badge'; statusBadge.innerText = 'Bot';
+                    }
+                }
+                roomEl.setAttribute('data-status', data.status);
+            }
+
+            // 2. Cập nhật Tin nhắn cuối & Thời gian (ZALO STYLE)
+            var lastMsgEl = roomEl.querySelector('.user-last-msg');
+            if (lastMsgEl) {
+                let prefix = data.senderType === 'ADMIN' ? 'Bạn: ' : (data.senderType === 'AI' ? 'Bot: ' : '');
+                let msgContent = data.content || data.message || "Tin nhắn mới";
+                lastMsgEl.innerText = prefix + msgContent;
+                lastMsgEl.classList.remove('fst-italic');
+            }
+
+            var timeEl = roomEl.querySelector('.last-msg-time');
+            if (timeEl) {
+                let newTime = data.createdAt || data.timestamp || new Date().toISOString();
+                timeEl.setAttribute('data-time', newTime);
+                timeEl.innerText = "Vừa xong";
+            }
+
+            // 3. Tin của khách + admin KHÔNG đang mở phòng đó -> tăng badge đỏ chưa đọc
+            if (fromCustomer && evRoomId !== selectedRoomId) {
+                setUnread(roomEl, getUnread(roomEl) + 1);
+            }
+
+            // 4. Kéo khách hàng này lên đầu danh sách
+            document.querySelector('.user-scroll-container').prepend(roomEl);
+
+            // 5. Đang mở đúng phòng này -> cập nhật nút + đẩy tin mới lên khung chat
+            if (evRoomId === selectedRoomId) {
+                if (lastMsgEl) lastMsgEl.classList.remove('unread');
+                if (data.status) updateActionButtons(data.status, data.roomId);
+
+                if (data.content || data.message) {
+                    showIncomingMessage(data);
+                } else if (fromCustomer || data.senderType === 'AI') {
+                    // Payload không kèm nội dung -> tải lại lịch sử từ server
+                    loadHistory(selectedRoomId);
+                }
+                if (fromCustomer) markRoomRead(selectedRoomId);
+            }
+
+            // 6. BẬT POP-UP BÁO ĐỘNG NẾU AI KÊU CỨU
+            if (data.needsHelp) {
+                let name = roomEl.getAttribute('data-name');
+                document.getElementById('toastMessage').innerHTML = `<i class="fas fa-bell fa-shake me-2"></i> Khách hàng <b>${escapeHtml(name)}</b> đang cần bạn hỗ trợ gấp!`;
+                new bootstrap.Toast(document.getElementById('adminToast')).show();
+            }
+        }
+
+        // ================= KẾT NỐI WEBSOCKET (TỰ KẾT NỐI LẠI) =================
         function connect() {
             var socket = new SockJS('/ws');
             stompClient = Stomp.over(socket);
             stompClient.debug = null;
             stompClient.connect({}, function () {
+                clearTimeout(reconnectTimer);
 
-                // [MỚI] KÊNH LẮNG NGHE TOÀN CỤC CỦA ADMIN
-                stompClient.subscribe('/topic/admin', function (payload) {
-                    var data = JSON.parse(payload.body);
-                    var roomEl = document.querySelector(`.user-item[data-id='${data.roomId}']`);
+                // KÊNH LẮNG NGHE TOÀN CỤC CỦA ADMIN
+                stompClient.subscribe('/topic/admin', onAdminEvent);
 
-                    if (roomEl) {
-                        // 1. Cập nhật thẻ trạng thái (Status)
-                        var statusBadge = roomEl.querySelector('.status-badge');
-                        if (data.status === 'WAITING_ADMIN') {
-                            statusBadge.className = 'badge bg-danger status-badge'; statusBadge.innerText = 'Cần hỗ trợ';
-                        } else if (data.status === 'CHATTING') {
-                            statusBadge.className = 'badge bg-success status-badge'; statusBadge.innerText = 'Đang chat';
-                        } else {
-                            statusBadge.className = 'badge bg-secondary status-badge'; statusBadge.innerText = 'Bot xử lý';
-                        }
-                        roomEl.setAttribute('data-status', data.status);
-
-                        // 2. Cập nhật số tin nhắn chưa đọc (Nếu admin đang KHÔNG ở phòng đó)
-                        if (data.isNewUserMessage && data.roomId !== selectedRoomId) {
-                            var unreadBadge = roomEl.querySelector('.unread-badge');
-                            var count = parseInt(unreadBadge.innerText) || 0;
-                            unreadBadge.innerText = count + 1;
-                            unreadBadge.classList.remove('d-none');
-                        }
-
-                        // 3. Kéo khách hàng này lên đầu danh sách
-                        document.querySelector('.user-scroll-container').prepend(roomEl);
-
-                        // 4. Nếu đang mở phòng này, cập nhật lại bộ nút (Join/Leave)
-                        if (data.roomId === selectedRoomId) updateActionButtons(data.status, data.roomId);
-
-                        // 5. BẬT POP-UP BÁO ĐỘNG NẾU AI KÊU CỨU
-                        if (data.needsHelp) {
-                            let name = roomEl.getAttribute('data-name');
-                            document.getElementById('toastMessage').innerHTML = `<i class="fas fa-bell fa-shake me-2"></i> Khách hàng <b>${name}</b> đang cần bạn hỗ trợ gấp!`;
-                            new bootstrap.Toast(document.getElementById('adminToast')).show();
-                        }
-                    } else {
-                        // Có người lạ lần đầu tiên chat -> Tải lại danh sách
-                        if (data.isNewUserMessage) location.reload();
-                    }
-                });
-
-                if(initialTargetRoomId) {
+                if (selectedRoomId) {
+                    // Vừa kết nối lại (rớt mạng/restart server): đăng ký lại phòng đang mở + tải lại lịch sử để không sót tin
+                    subscribeRoom(selectedRoomId);
+                    loadHistory(selectedRoomId);
+                } else if (initialTargetRoomId) {
                     var roomEl = document.querySelector(`.user-item[data-id='${initialTargetRoomId}']`);
-                    if(roomEl) selectRoom(initialTargetRoomId, roomEl.getAttribute('data-name'), roomEl.getAttribute('data-status'), roomEl);
+                    if (roomEl) selectRoom(initialTargetRoomId, roomEl.getAttribute('data-name'), roomEl.getAttribute('data-status'), roomEl);
                 }
+            }, function () {
+                // Mất kết nối -> dọn dẹp rồi thử lại sau 3 giây
+                try { stompClient.disconnect(); } catch (e) {}
+                currentSubscription = null;
+                typingSubscription = null;
+                clearTimeout(reconnectTimer);
+                reconnectTimer = setTimeout(connect, 3000);
             });
         }
 
@@ -170,47 +402,20 @@
             selectedRoomId = roomId;
             lastAdminDateStr = null;
 
-            document.getElementById('chatHeaderTitle').innerHTML = `<div class="d-flex align-items-center"><div class="user-avatar-circle" style="width: 35px; height: 35px; font-size: 14px; margin-right: 10px;">${fullname.charAt(0)}</div><div class="fw-bold text-dark">${fullname}</div></div>`;
+            document.getElementById('chatHeaderTitle').innerHTML = `<div class="d-flex align-items-center"><div class="user-avatar-circle" style="width: 35px; height: 35px; font-size: 14px; margin-right: 10px;">${escapeHtml(fullname.charAt(0))}</div><div class="fw-bold text-dark">${escapeHtml(fullname)}</div></div>`;
 
-            // Xóa Badge chưa đọc khi Admin bấm vào
-            var unreadBadge = element.querySelector('.unread-badge');
-            if (unreadBadge) {
-                unreadBadge.innerText = '0';
-                unreadBadge.classList.add('d-none');
-            }
+            // Admin bấm vào phòng -> xóa badge đỏ + chữ in đậm, đồng thời báo server là đã đọc
+            if (element) setUnread(element, 0);
+            markRoomRead(roomId);
 
             updateActionButtons(status, roomId);
 
             document.querySelectorAll('.user-item').forEach(el => el.classList.remove('active'));
-            if(element) element.classList.add('active');
+            if (element) element.classList.add('active');
 
-            fetch('/api/chat/history/' + roomId).then(res => res.json()).then(data => {
-                var box = document.getElementById('chatHistory');
-                box.innerHTML = '';
-                data.forEach(msg => {
-                    var type = (msg.senderType === 'ADMIN') ? 'msg-admin' : (msg.senderType === 'SYSTEM' ? 'msg-system' : (msg.senderType === 'AI' ? 'msg-user bg-light' : 'msg-user'));
-                    appendMessage(msg.content, type, msg.createdAt, msg.suggestedProducts);
-                });
-                scrollToBottom();
-            });
-
-            if (currentSubscription) currentSubscription.unsubscribe();
-            if (typingSubscription) typingSubscription.unsubscribe();
-
-            if (stompClient && stompClient.connected) {
-                currentSubscription = stompClient.subscribe('/topic/room/' + roomId, function (msg) {
-                    removeTypingIndicator();
-                    var body = JSON.parse(msg.body);
-                    var type = (body.senderType === 'ADMIN') ? 'msg-admin' : (body.senderType === 'SYSTEM' ? 'msg-system' : (body.senderType === 'AI' ? 'msg-user bg-light' : 'msg-user'));
-                    appendMessage(body.content, type, body.createdAt, body.suggestedProducts);
-                    scrollToBottom();
-                });
-
-                typingSubscription = stompClient.subscribe('/topic/room/' + roomId + '/typing', function(payload) {
-                    let data = JSON.parse(payload.body);
-                    if (data.senderType === 'USER') showTypingIndicator("Khách đang soạn tin...");
-                });
-            }
+            removeTypingIndicator();
+            loadHistory(roomId);
+            subscribeRoom(roomId);
         };
 
         // ... CÁC HÀM formatTimeOnly, getNewDayDivider, showTypingIndicator, removeTypingIndicator, scrollToBottom, handleEnter, appendMessage giữ nguyên y hệt lần trước ...
@@ -238,7 +443,14 @@
             var input = document.getElementById('msgInput');
             var content = input.value.trim();
             if (!content || !selectedRoomId) return;
+
+            // Gửi API
             fetch('/api/chat/send/admin/' + selectedRoomId, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: content }) });
+
+            // [MỚI] VẼ NGAY TIN NHẮN LÊN MÀN HÌNH MÀ KHÔNG CẦN CHỜ WEBSOCKET TRẢ VỀ
+            appendMessage(content, 'msg-admin', new Date().toISOString(), null);
+            scrollToBottom();
+
             input.value = '';
         };
         function showTypingIndicator(text) {
@@ -274,7 +486,9 @@
             var div = document.createElement('div');
             div.className = 'msg-bubble ' + type;
             // Thay thế **text** thành in đậm
-            var html = `<span>${content.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>')}</span>`;
+            // Tin của khách (msg-user thuần) là dữ liệu không tin cậy -> escape trước khi chèn vào innerHTML
+            var safeContent = (type === 'msg-user') ? escapeHtml(content) : content;
+            var html = `<span>${safeContent.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>')}</span>`;
             if (products && products.length > 0) {
                 html += `<div class="d-flex flex-wrap gap-2 mt-2 ${type === 'msg-admin' ? 'justify-content-end' : 'justify-content-start'}">`;
                 products.forEach(p => {
@@ -284,8 +498,8 @@
                 html += `</div>`;
             }
 
-            html += `<div class="${type === 'msg-admin' ? 'text-end' : 'text-start'}" style="font-size: 0.65rem; opacity: 0.7; margin-top: 4px; ${type === 'msg-admin' ? 'color: #eee;' : 'color: #888;'}">${timeStr}</div>`;
-            div.innerHTML = html;
+// Mã mới (Chữ thời gian màu xám đậm cho cả khách và Admin)
+            html += `<div class="${type === 'msg-admin' ? 'text-end' : 'text-start'}" style="font-size: 0.65rem; opacity: 0.7; margin-top: 4px; color: #555;">${timeStr}</div>`;            div.innerHTML = html;
             box.appendChild(div);
         }
 

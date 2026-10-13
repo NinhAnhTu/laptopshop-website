@@ -77,6 +77,16 @@ public class AuthController {
     @PostMapping("/forgot-password")
     public String processForgotPassword(@RequestParam("email") String email, Model model) {
         try {
+            email = email.trim();
+
+            // Chỉ tính lượt khi email tồn tại. Email không tồn tại thì để generateResetToken báo lỗi như cũ.
+            if (userService.getUserByEmail(email) != null
+                    && !userService.tryRegisterResetRequest(email)) {
+                model.addAttribute("error",
+                        "Bạn đã yêu cầu đặt lại mật khẩu quá 5 lần trong hôm nay. Vui lòng thử lại vào ngày mai!");
+                return "auth/forgot_password";
+            }
+
             userService.generateResetToken(email);
             model.addAttribute("message", "Link đặt lại mật khẩu đã được gửi vào email của bạn!");
         } catch (Exception e) {

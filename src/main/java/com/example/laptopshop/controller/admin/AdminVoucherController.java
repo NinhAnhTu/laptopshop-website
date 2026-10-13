@@ -3,6 +3,7 @@ package com.example.laptopshop.controller.admin;
 import com.example.laptopshop.entity.Voucher;
 import com.example.laptopshop.service.VoucherService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -39,36 +40,31 @@ public class AdminVoucherController {
     }
 
     @PostMapping("/save")
-    public String saveVoucher(@ModelAttribute("voucher") Voucher voucher, RedirectAttributes redirectAttributes) {
+    public String saveVoucher(@ModelAttribute("voucher") Voucher voucher, RedirectAttributes redirectAttributes, Model model) {
         try {
-            // Validate Ngày tháng
+            // Validate Ngày tháng (Giữ nguyên logic cũ nhưng đổi cách trả về)
             if (voucher.getStartDate() != null && voucher.getEndDate() != null) {
                 if (voucher.getEndDate().isBefore(voucher.getStartDate())) {
-                    redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: Ngày kết thúc phải SAU ngày bắt đầu!");
-                    redirectAttributes.addFlashAttribute("voucher", voucher); // Giữ lại dữ liệu cũ để đỡ nhập lại
-
-                    if (voucher.getVoucherId() != null) {
-                        return "redirect:/admin/vouchers/edit/" + voucher.getVoucherId();
-                    } else {
-                        return "redirect:/admin/vouchers/create";
-                    }
+                    model.addAttribute("errorMessage", "Ngày kết thúc phải SAU ngày bắt đầu!");
+                    model.addAttribute("voucher", voucher);
+                    return voucher.getVoucherId() != null ? "admin/voucher/edit" : "admin/voucher/create";
                 }
             }
 
             voucherService.save(voucher);
             redirectAttributes.addFlashAttribute("successMessage", "Lưu mã giảm giá thành công!");
-        } catch (Exception e) {
-            e.printStackTrace();
-            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi hệ thống: " + e.getMessage());
-            redirectAttributes.addFlashAttribute("voucher", voucher);
+            return "redirect:/admin/vouchers";
 
-            if (voucher.getVoucherId() != null) {
-                return "redirect:/admin/vouchers/edit/" + voucher.getVoucherId();
-            } else {
-                return "redirect:/admin/vouchers/create";
-            }
+        } catch (DataIntegrityViolationException e) {
+            // BẮT LỖI TRÙNG MÃ CODE
+            model.addAttribute("errorMessage", "Lỗi: Mã Voucher này đã tồn tại!");
+            model.addAttribute("voucher", voucher);
+            return voucher.getVoucherId() != null ? "admin/voucher/edit" : "admin/voucher/create";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Lỗi hệ thống: " + e.getMessage());
+            model.addAttribute("voucher", voucher);
+            return voucher.getVoucherId() != null ? "admin/voucher/edit" : "admin/voucher/create";
         }
-        return "redirect:/admin/vouchers";
     }
 
     @GetMapping("/edit/{id}")

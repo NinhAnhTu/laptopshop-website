@@ -104,8 +104,7 @@
 
                         <td>
                             <div class="d-flex flex-column">
-                                        <span class="fw-bold text-danger" style="font-size: 1.1rem;"
-                                              th:text="${v.discountPercent} + '%'">10%</span>
+                                <span class="fw-bold text-danger" style="font-size: 1.1rem;" th:text="${#numbers.formatDecimal(v.discountPercent, 0, 'COMMA', 0, 'POINT')} + '%'">10%</span>
                                 <small class="text-muted" style="font-size: 0.8rem;">
                                     Tối đa: <span th:text="${#numbers.formatDecimal(v.maxDiscountAmount, 0, 'COMMA', 0, 'POINT')}"></span> đ
                                 </small>

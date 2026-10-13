@@ -18,7 +18,7 @@ import java.util.Map;
 @Service
 public class GeminiReviewService {
 
-    @Value("${gemini.api.key}")
+    @Value("${gemini.api.key.primary}")
     private String apiKey;
 
     @Value("${gemini.api.url}")

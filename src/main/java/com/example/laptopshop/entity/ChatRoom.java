@@ -39,6 +39,9 @@ public class ChatRoom {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "admin_read_count")
+    private Integer adminReadCount = 0;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
