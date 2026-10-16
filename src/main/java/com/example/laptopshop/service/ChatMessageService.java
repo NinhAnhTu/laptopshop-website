@@ -18,4 +18,7 @@ public interface ChatMessageService {
     void closeRoom(Long roomId);
 
     List<ChatMessage> getHistoryByRoomId(Long roomId);
+
+    void requestAdminFromUser(User user);
+    void leaveRoomFromUser(User user);
 }

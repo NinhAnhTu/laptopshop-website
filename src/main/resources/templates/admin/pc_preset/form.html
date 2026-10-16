@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin_layout :: layout(~{:: .content-body})}">
+<head>
+    <title>Cấu hình PC build sẵn - ChaosCoders</title>
+</head>
+<body>
+
+<div class="content-body">
+
+    <!-- CSRF (chỉ xuất hiện nếu Spring Security đang bật CSRF) -->
+    <meta th:if="${_csrf != null}" name="_csrf" th:content="${_csrf.token}">
+    <meta th:if="${_csrf != null}" name="_csrf_header" th:content="${_csrf.headerName}">
+
+    <style>
+        .pp-slot { border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;
+            display: flex; align-items: center; justify-content: space-between; background: white; }
+        .pp-slot-icon { width: 50px; height: 50px; border: 1px dashed #ccc; border-radius: 8px; display: flex;
+            align-items: center; justify-content: center; font-size: 1.5rem; color: #adb5bd; margin-right: 1rem; flex-shrink: 0; }
+        .pp-slot-content { flex-grow: 1; min-width: 0; }
+        .pp-slot-name { font-weight: 700; color: #333; margin-bottom: .2rem; font-size: .95rem; text-transform: uppercase; }
+        .pp-slot-placeholder { color: #6c757d; font-size: .85rem; }
+
+        .pp-filter-sidebar { border-right: 1px solid #eee; }
+        .pp-grid-item { border: 1px solid #eee; border-radius: 8px; padding: 1rem; position: relative; transition: all .2s; }
+        .pp-grid-item:hover { border-color: #f37021; box-shadow: 0 4px 10px rgba(0,0,0,.08); }
+        .pp-grid-img { height: 120px; object-fit: contain; margin-bottom: 1rem; }
+        .pp-discount { position: absolute; top: 10px; left: 10px; background: #6f42c1; color: #fff;
+            padding: 2px 8px; border-radius: 4px; font-size: .75rem; font-weight: bold; }
+
+        .pp-qty { display: flex; align-items: center; border: 1px solid #ccc; border-radius: 4px; overflow: hidden; width: fit-content; }
+        .pp-qty-btn { background: #f8f9fa; border: none; padding: 2px 10px; cursor: pointer; font-weight: bold; }
+        .pp-qty-btn:hover { background: #e9ecef; }
+        .pp-qty-input { width: 40px; border: none; text-align: center; border-left: 1px solid #ccc;
+            border-right: 1px solid #ccc; font-weight: bold; padding: 2px; }
+        .pp-qty-input:focus { outline: none; }
+        .pp-total { color: #dc3545; font-weight: 800; font-size: 1.5rem; }
+    </style>
+
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-0"
+                th:text="${preset == null} ? 'Thêm cấu hình PC build sẵn' : 'Sửa cấu hình PC build sẵn'">Cấu hình PC build sẵn</h2>
+            <small class="text-muted">Giá và tồn kho của cấu hình luôn tự tính theo các linh kiện bên dưới.</small>
+        </div>
+        <a href="/admin/pc-presets" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+        </a>
+    </div>
+
+    <!-- Cảnh báo: linh kiện không đưa lên được slot (khi sửa) -->
+    <div th:if="${skippedItems != null and !#lists.isEmpty(skippedItems)}"
+         class="alert alert-warning shadow-sm rounded-3">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        Các linh kiện sau không hiển thị được trong form (trùng loại hoặc không thuộc loại nào trong 12 slot).
+        <b>Nếu bấm Lưu, chúng sẽ bị gỡ khỏi cấu hình:</b>
+        <ul class="mb-0 mt-1">
+            <li th:each="n : ${skippedItems}" th:text="${n}"></li>
+        </ul>
+    </div>
+
+    <!-- Thông tin chung -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <h6 class="fw-bold text-secondary text-uppercase mb-3">
+                <i class="fas fa-info-circle me-2"></i>Thông tin chung
+            </h6>
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label fw-bold small text-muted">Tên cấu hình <span class="text-danger">*</span></label>
+                    <input type="text" id="presetName" class="form-control py-2 fw-bold"
+                           placeholder="VD: PC Gaming i5 12400F + RTX 4060"
+                           th:value="${preset?.name}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small text-muted">Loại PC <span class="text-danger">*</span></label>
+                    <select id="presetTag" class="form-select py-2">
+                        <option value="">-- Chọn loại --</option>
+                        <option value="Gaming" th:selected="${preset?.tag == 'Gaming'}">PC Gaming</option>
+                        <option value="Đồ họa" th:selected="${preset?.tag == 'Đồ họa'}">PC Đồ họa</option>
+                        <option value="Văn phòng" th:selected="${preset?.tag == 'Văn phòng'}">PC Văn phòng</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-bold small text-muted">Mô tả</label>
+                    <textarea id="presetDesc" class="form-control" rows="3"
+                              placeholder="Giới thiệu ngắn về cấu hình, đối tượng phù hợp..."
+                              th:text="${preset?.description}"></textarea>
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label fw-bold small text-muted">Link ảnh (không bắt buộc)</label>
+                    <input type="text" id="presetImage" class="form-control py-2"
+                           placeholder="Để trống sẽ tự lấy ảnh của Case trong cấu hình"
+                           th:value="${preset?.imageUrl}">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="presetActive"
+                               th:checked="${preset == null or preset.isActive}">
+                        <label class="form-check-label fw-bold small text-muted" for="presetActive">Hiển thị cho khách</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Danh sách slot linh kiện -->
+    <h6 class="fw-bold text-secondary text-uppercase mb-3">
+        <i class="fas fa-microchip me-2"></i>Linh kiện
+    </h6>
+    <div id="slots-container"></div>
+
+    <!-- Thanh tổng + nút lưu -->
+    <div class="position-sticky bottom-0 bg-white p-3 border-top shadow-lg rounded-top d-flex justify-content-between align-items-center"
+         style="z-index: 100;">
+        <div>
+            <div class="text-muted small">Tổng cộng</div>
+            <div class="pp-total" id="ppTotal">0 đ</div>
+            <div class="small text-muted" id="ppSets"></div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/admin/pc-presets" class="btn btn-light rounded-pill px-4 fw-bold">Hủy bỏ</a>
+            <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold"
+                    style="background-color: #f37021; border-color: #f37021;" onclick="savePreset()">
+                <i class="fas fa-save me-2"></i>Lưu cấu hình
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal chọn sản phẩm -->
+    <div class="modal fade" id="productSelectModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="modalSlotTitle">Chọn linh kiện</h5>
+                    <div class="flex-grow-1 mx-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                            <input type="text" id="searchInput" class="form-control border-start-0"
+                                   placeholder="Nhập từ khóa cần tìm..." oninput="filterProducts()">
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="row g-0">
+                        <div class="col-md-3 pp-filter-sidebar p-3 bg-white">
+                            <h6 class="fw-bold mb-3">Khoảng giá</h6>
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <input type="number" id="minPrice" class="form-control form-control-sm text-center" placeholder="Từ (đ)" onchange="filterProducts()">
+                                <span>-</span>
+                                <input type="number" id="maxPrice" class="form-control form-control-sm text-center" placeholder="Đến (đ)" onchange="filterProducts()">
+                            </div>
+                            <h6 class="fw-bold mb-3 mt-4">Thương hiệu</h6>
+                            <div id="brandFilters" class="mb-3" style="max-height: 200px; overflow-y: auto;"></div>
+                        </div>
+                        <div class="col-md-9 p-3 bg-light">
+                            <div class="d-flex gap-2 mb-3 overflow-auto pb-2">
+                                <span class="fw-bold me-2 align-self-center">Sắp xếp:</span>
+                                <button class="btn btn-sm rounded-pill sort-btn btn-primary active" data-sort="default" onclick="setSort('default', this)">Mặc định</button>
+                                <button class="btn btn-outline-secondary btn-sm rounded-pill sort-btn" data-sort="priceAsc" onclick="setSort('priceAsc', this)">Giá tăng dần</button>
+                                <button class="btn btn-outline-secondary btn-sm rounded-pill sort-btn" data-sort="priceDesc" onclick="setSort('priceDesc', this)">Giá giảm dần</button>
+                            </div>
+                            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-3" id="modalProductGrid"></div>
+                            <div id="modalLoading" class="text-center py-5 d-none">
+                                <div class="spinner-border text-primary" role="status"></div>
+                            </div>
+                            <div id="modalEmpty" class="text-center py-5 d-none text-muted">
+                                <i class="fas fa-box-open fa-3x mb-3"></i><p>Không tìm thấy sản phẩm phù hợp.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script th:inline="javascript">
+        // ===== Dữ liệu từ server =====
+        const PRESET_ID = /*[[${preset != null ? preset.presetId : null}]]*/ null;
+        const IS_EDIT = PRESET_ID !== null;
+        const INITIAL_BUILD = /*[[${initialBuild}]]*/ {};
+
+        // ===== Cấu hình 12 slot (khớp pc_builder.html) =====
+        const builderSlots = [
+            { id: 'cpu', name: 'Vi xử lý (CPU)', categoryId: 6, icon: 'fa-microchip' },
+            { id: 'mainboard', name: 'Bo mạch chủ (Mainboard)', categoryId: 8, icon: 'fa-chess-board' },
+            { id: 'ram', name: 'Bộ nhớ RAM', categoryId: 4, icon: 'fa-memory' },
+            { id: 'vga', name: 'Card màn hình (VGA)', categoryId: 7, icon: 'fa-vr-cardboard' },
+            { id: 'storage', name: 'Ổ cứng (SSD/HDD)', categoryId: 5, icon: 'fa-hdd' },
+            { id: 'psu', name: 'Nguồn máy tính (PSU)', categoryId: 9, icon: 'fa-bolt' },
+            { id: 'case', name: 'Vỏ máy tính (Case)', categoryId: 10, icon: 'fa-box' },
+            { id: 'cooler', name: 'Tản nhiệt', categoryId: 11, icon: 'fa-fan' },
+            { id: 'monitor', name: 'Màn hình', categoryId: 12, icon: 'fa-desktop' },
+            { id: 'keyboard', name: 'Bàn phím', categoryId: 13, icon: 'fa-keyboard' },
+            { id: 'mouse', name: 'Chuột', categoryId: 14, icon: 'fa-mouse' },
+            { id: 'speaker', name: 'Loa', categoryId: 15, icon: 'fa-volume-up' }
+        ];
+
+        let currentBuild = INITIAL_BUILD || {};
+        let activeSlotId = null;
+        let currentProducts = [];
+        let filteredList = [];
+        let currentSort = 'default';
+        let productModal;
+
+        function fmt(n) { return new Intl.NumberFormat('vi-VN').format(n) + ' đ'; }
+        function esc(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Đưa modal ra <body> để không bị layout admin che / lệch z-index
+            const modalEl = document.getElementById('productSelectModal');
+            document.body.appendChild(modalEl);
+            productModal = new bootstrap.Modal(modalEl);
+            renderSlots();
+        });
+
+        // ===== 1. Render slot =====
+        function renderSlots() {
+            const container = document.getElementById('slots-container');
+            container.innerHTML = '';
+            let grandTotal = 0;
+            let minSets = Infinity;
+
+            builderSlots.forEach(function (slot) {
+                const item = currentBuild[slot.id];
+                let html = '<div class="pp-slot shadow-sm">';
+
+                if (item) {
+                    const p = item.product;
+                    const qty = item.quantity;
+                    grandTotal += p.salePrice * qty;
+                    minSets = Math.min(minSets, Math.floor(p.stock / qty));
+
+                    html +=
+                        '<div class="d-flex align-items-center flex-grow-1" style="min-width:0">' +
+                        '<div class="pp-slot-icon bg-white p-1"><img src="' + esc(p.imageUrl) + '" class="w-100 h-100" style="object-fit:contain;"></div>' +
+                        '<div class="pp-slot-content">' +
+                        '<div class="pp-slot-name">' + slot.name + '</div>' +
+                        '<div class="fw-bold text-dark">' + esc(p.productName) + '</div>' +
+                        '<div class="text-danger fw-bold mt-1">' + fmt(p.salePrice) + '</div>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="d-flex align-items-center gap-3 flex-shrink-0">' +
+                        '<div class="pp-qty">' +
+                        '<button type="button" class="pp-qty-btn" onclick="updateQty(\'' + slot.id + '\', -1)">-</button>' +
+                        '<input type="text" class="pp-qty-input" value="' + qty + '" readonly>' +
+                        '<button type="button" class="pp-qty-btn" onclick="updateQty(\'' + slot.id + '\', 1)">+</button>' +
+                        '</div>' +
+                        '<div class="text-danger fw-bold d-none d-md-block" style="width:120px;text-align:right;">' + fmt(p.salePrice * qty) + '</div>' +
+                        '<button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" onclick="openModal(\'' + slot.id + '\')"><i class="fas fa-edit"></i> Sửa</button>' +
+                        '<button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="removeSlot(\'' + slot.id + '\')"><i class="fas fa-trash-alt"></i> Xóa</button>' +
+                        '</div>';
+                } else {
+                    html +=
+                        '<div class="d-flex align-items-center">' +
+                        '<div class="pp-slot-icon"><i class="fas ' + slot.icon + '"></i></div>' +
+                        '<div class="pp-slot-content">' +
+                        '<div class="pp-slot-name">' + slot.name + '</div>' +
+                        '<div class="pp-slot-placeholder">Chưa chọn linh kiện</div>' +
+                        '</div>' +
+                        '</div>' +
+                        '<button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" onclick="openModal(\'' + slot.id + '\')">Chọn</button>';
+                }
+                html += '</div>';
+                container.insertAdjacentHTML('beforeend', html);
+            });
+
+            document.getElementById('ppTotal').innerText = fmt(grandTotal);
+            document.getElementById('ppSets').innerText =
+                (minSets === Infinity) ? '' : 'Tồn kho hiện đủ cho ' + minSets + ' bộ';
+        }
+
+        // ===== 2. Modal chọn sản phẩm =====
+        function openModal(slotId) {
+            const slot = builderSlots.find(function (s) { return s.id === slotId; });
+            activeSlotId = slotId;
+            document.getElementById('modalSlotTitle').innerText = 'Chọn ' + slot.name;
+            document.getElementById('searchInput').value = '';
+            document.getElementById('minPrice').value = '';
+            document.getElementById('maxPrice').value = '';
+            document.getElementById('modalProductGrid').innerHTML = '';
+            document.getElementById('modalLoading').classList.remove('d-none');
+            document.getElementById('modalEmpty').classList.add('d-none');
+
+            currentSort = 'default';
+            document.querySelectorAll('.sort-btn').forEach(function (btn) {
+                btn.classList.remove('active', 'btn-primary');
+                btn.classList.add('btn-outline-secondary');
+            });
+            const defBtn = document.querySelector('.sort-btn[data-sort="default"]');
+            defBtn.classList.remove('btn-outline-secondary');
+            defBtn.classList.add('active', 'btn-primary');
+
+            productModal.show();
+
+            fetch('/api/builder/products?categoryId=' + slot.categoryId)
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    const brands = data.brands || [];
+                    const brandMap = {};
+                    brands.forEach(function (b) { brandMap[b.brandId] = b.brandName; });
+                    currentProducts = (data.products || []).map(function (p) {
+                        p.brandName = brandMap[p.brandId] || '';
+                        return p;
+                    });
+                    renderBrandFilters(brands);
+                    filterProducts();
+                })
+                .catch(function (err) {
+                    console.error(err);
+                    document.getElementById('modalLoading').classList.add('d-none');
+                });
+        }
+
+        function renderBrandFilters(brands) {
+            const container = document.getElementById('brandFilters');
+            container.innerHTML = '';
+            brands.forEach(function (b) {
+                container.insertAdjacentHTML('beforeend',
+                    '<div class="form-check mb-1">' +
+                    '<input class="form-check-input brand-checkbox" type="checkbox" value="' + b.brandId + '" id="brand_' + b.brandId + '" onchange="filterProducts()">' +
+                    '<label class="form-check-label small" for="brand_' + b.brandId + '">' + esc(b.brandName) + '</label>' +
+                    '</div>');
+            });
+        }
+
+        function setSort(sortType, btn) {
+            currentSort = sortType;
+            document.querySelectorAll('.sort-btn').forEach(function (b) {
+                b.classList.remove('active', 'btn-primary');
+                b.classList.add('btn-outline-secondary');
+            });
+            btn.classList.remove('btn-outline-secondary');
+            btn.classList.add('active', 'btn-primary');
+            filterProducts();
+        }
+
+        function filterProducts() {
+            document.getElementById('modalLoading').classList.add('d-none');
+            const grid = document.getElementById('modalProductGrid');
+            const emptyMsg = document.getElementById('modalEmpty');
+
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
+            const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+            const selectedBrands = Array.from(document.querySelectorAll('.brand-checkbox:checked'))
+                .map(function (cb) { return parseInt(cb.value); });
+
+            filteredList = currentProducts.filter(function (p) {
+                return p.productName.toLowerCase().includes(keyword)
+                    && p.salePrice >= minPrice && p.salePrice <= maxPrice
+                    && (selectedBrands.length === 0 || selectedBrands.includes(p.brandId));
+            });
+
+            if (currentSort === 'priceAsc') filteredList.sort(function (a, b) { return a.salePrice - b.salePrice; });
+            if (currentSort === 'priceDesc') filteredList.sort(function (a, b) { return b.salePrice - a.salePrice; });
+
+            grid.innerHTML = '';
+            if (filteredList.length === 0) {
+                emptyMsg.classList.remove('d-none');
+                return;
+            }
+            emptyMsg.classList.add('d-none');
+
+            filteredList.forEach(function (p, i) {
+                let discount = '';
+                if (p.originalPrice > p.salePrice) {
+                    const pct = Math.round((p.originalPrice - p.salePrice) / p.originalPrice * 100);
+                    discount = '<div class="pp-discount">-' + pct + '%</div>';
+                }
+                grid.insertAdjacentHTML('beforeend',
+                    '<div class="col"><div class="pp-grid-item bg-white h-100 d-flex flex-column text-start">' +
+                    discount +
+                    '<img src="' + esc(p.imageUrl) + '" class="pp-grid-img w-100">' +
+                    '<small class="text-muted mb-1">' + esc(p.brandName) + '</small>' +
+                    '<div class="fw-bold text-dark mb-2" style="font-size:.9rem;line-height:1.3;">' + esc(p.productName) + '</div>' +
+                    '<div class="mt-auto">' +
+                    '<div class="text-danger fw-bold fs-5">' + fmt(p.salePrice) + '</div>' +
+                    '<div class="small text-muted mb-2">Kho: ' + p.stock + '</div>' +
+                    '<button type="button" class="btn btn-outline-primary btn-sm w-100 fw-bold rounded-pill" onclick="selectByIndex(' + i + ')">Chọn</button>' +
+                    '</div>' +
+                    '</div></div>');
+            });
+        }
+
+        function selectByIndex(i) {
+            const p = filteredList[i];
+            if (!p) return;
+            currentBuild[activeSlotId] = { product: p, quantity: 1 };
+            productModal.hide();
+            renderSlots();
+        }
+
+        function updateQty(slotId, change) {
+            const item = currentBuild[slotId];
+            if (!item) return;
+            let newQty = item.quantity + change;
+            if (newQty < 1) newQty = 1;
+            if (newQty > item.product.stock) {
+                Swal.fire({
+                    icon: 'warning', title: 'Vượt quá tồn kho!',
+                    text: 'Sản phẩm này chỉ còn ' + item.product.stock + ' trong kho.',
+                    confirmButtonColor: '#f37021'
+                });
+                return;
+            }
+            item.quantity = newQty;
+            renderSlots();
+        }
+
+        function removeSlot(slotId) {
+            delete currentBuild[slotId];
+            renderSlots();
+        }
+
+        // ===== 3. Lưu cấu hình =====
+        function savePreset() {
+            const name = document.getElementById('presetName').value.trim();
+            if (!name) {
+                Swal.fire({ icon: 'warning', title: 'Thiếu tên cấu hình', text: 'Vui lòng nhập tên cấu hình.', confirmButtonColor: '#f37021' });
+                document.getElementById('presetName').focus();
+                return;
+            }
+
+            if (!document.getElementById('presetTag').value) {
+                Swal.fire({ icon: 'warning', title: 'Chưa chọn loại PC', text: 'Vui lòng chọn PC Gaming, Đồ họa hoặc Văn phòng.', confirmButtonColor: '#f37021' });
+                return;
+            }
+
+            const items = Object.keys(currentBuild).map(function (k) {
+                return { productId: currentBuild[k].product.productId, quantity: currentBuild[k].quantity };
+            });
+            if (items.length === 0) {
+                Swal.fire({ icon: 'warning', title: 'Chưa có linh kiện', text: 'Vui lòng chọn ít nhất 1 linh kiện.', confirmButtonColor: '#f37021' });
+                return;
+            }
+
+            const payload = {
+                name: name,
+                tag: document.getElementById('presetTag').value.trim(),
+                description: document.getElementById('presetDesc').value.trim(),
+                imageUrl: document.getElementById('presetImage').value.trim(),
+                isActive: document.getElementById('presetActive').checked,
+                items: items
+            };
+
+            const headers = { 'Content-Type': 'application/json' };
+            const csrfToken = document.querySelector('meta[name="_csrf"]');
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+            if (csrfToken && csrfHeader) headers[csrfHeader.content] = csrfToken.content;
+
+            Swal.fire({ title: 'Đang lưu...', allowOutsideClick: false, didOpen: function () { Swal.showLoading(); } });
+
+            fetch(IS_EDIT ? '/admin/pc-presets/' + PRESET_ID : '/admin/pc-presets', {
+                method: IS_EDIT ? 'PUT' : 'POST',
+                headers: headers,
+                body: JSON.stringify(payload)
+            })
+                .then(function (res) {
+                    if (res.redirected) { window.location.href = res.url; return null; } // hết phiên đăng nhập
+                    return res.text().then(function (text) { return { ok: res.ok, text: text }; });
+                })
+                .then(function (r) {
+                    if (!r) return;
+                    if (r.ok && r.text === 'success') {
+                        Swal.fire({
+                            icon: 'success', title: 'Đã lưu!', timer: 1200, showConfirmButton: false
+                        }).then(function () { window.location.href = '/admin/pc-presets'; });
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Lưu thất bại', text: r.text, confirmButtonColor: '#f37021' });
+                    }
+                })
+                .catch(function (err) {
+                    console.error(err);
+                    Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể kết nối máy chủ.', confirmButtonColor: '#f37021' });
+                });
+        }
+    </script>
+</div>
+</body>
+</html>

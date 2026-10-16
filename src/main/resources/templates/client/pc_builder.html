@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Xây Dựng Cấu Hình PC - ChaosCoders</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f4f6f8; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .builder-container { max-width: 1300px; margin: 2rem auto; }
+
+        /* Slot Item (Giao diện mới) */
+        .slot-item {
+            border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;
+            display: flex; align-items: center; justify-content: space-between;
+            transition: all 0.2s; background: white;
+        }
+        .slot-icon-box {
+            width: 50px; height: 50px; border: 1px dashed #ccc; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #adb5bd; margin-right: 1rem;
+        }
+        .slot-content { flex-grow: 1; }
+        .slot-name { font-weight: 700; color: #333; margin-bottom: 0.2rem; font-size: 1rem; text-transform: uppercase; }
+        .slot-placeholder { color: #6c757d; font-size: 0.85rem; }
+
+        /* Modal lọc sản phẩm */
+        .modal-xl { max-width: 1200px; }
+        .filter-sidebar { border-right: 1px solid #eee; padding-right: 1rem; }
+        .product-grid-item { border: 1px solid #eee; border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.2s; position: relative; }
+        .product-grid-item:hover { border-color: #0d6efd; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        .product-grid-img { height: 120px; object-fit: contain; margin-bottom: 1rem; }
+        .discount-badge { position: absolute; top: 10px; left: 10px; background: #6f42c1; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+
+        /* Bộ đếm số lượng */
+        .qty-controls { display: flex; align-items: center; border: 1px solid #ccc; border-radius: 4px; overflow: hidden; width: fit-content; }
+        .qty-btn { background: #f8f9fa; border: none; padding: 2px 10px; cursor: pointer; color: #333; font-weight: bold; }
+        .qty-btn:hover { background: #e9ecef; }
+        .qty-input { width: 40px; border: none; text-align: center; border-left: 1px solid #ccc; border-right: 1px solid #ccc; font-weight: bold; padding: 2px; }
+        .qty-input:focus { outline: none; }
+
+        .total-price { color: #dc3545; font-weight: 800; font-size: 1.5rem; }
+
+        /* ===== Cấu hình build sẵn ===== */
+        :root { --pp-accent: #1435b5; }  /* đổi 1 chỗ này để đổi màu cả khối */
+        .pp-tabs { display: flex; background: #fff; border-radius: 12px 12px 0 0; overflow: hidden; }
+        .pp-tab { flex: 1; border: 0; background: #fff; color: #8a8f98; padding: 14px 8px; text-align: center; transition: all .15s; }
+        .pp-tab:hover { color: var(--pp-accent); }
+        .pp-tab .pp-tab-title { font-weight: 800; font-size: 1.25rem; text-transform: uppercase; }
+        .pp-tab .pp-tab-sub { font-size: .8rem; }
+        .pp-tab.active { background: var(--pp-accent); color: #fff; border-radius: 12px 12px 0 0; }
+        .pp-panels { background: var(--pp-accent); border-radius: 0 0 12px 12px; padding: 16px; }
+        .pp-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; }
+        .pp-empty { color: #fff; text-align: center; padding: 2rem 0; }
+
+        .pp-card { background: #fff; border-radius: 6px; padding: 14px; flex: 0 0 230px; max-width: 230px; display: flex; flex-direction: column; }
+        .pp-img-wrap { position: relative; display: block; height: 190px; background: #f5f6f8; border-radius: 4px; overflow: hidden; }
+        .pp-img-wrap img { width: 100%; height: 100%; object-fit: contain; }
+        .pp-save { position: absolute; left: 0; bottom: 0; background: linear-gradient(135deg, #6f42c1, #3b5bdb); color: #fff;
+            padding: 3px 10px; border-radius: 0 8px 0 0; font-size: .7rem; font-weight: 800; line-height: 1.15; }
+        .pp-save b { font-size: .95rem; }
+        .pp-soldout { position: absolute; inset: 0; background: rgba(255,255,255,.7); display: flex; align-items: center;
+            justify-content: center; font-weight: 800; color: #6c757d; }
+        .pp-kind { font-size: .8rem; font-weight: 700; color: #6c757d; text-transform: uppercase; margin-top: 10px; }
+        .pp-name { display: block; color: #333; font-size: .9rem; line-height: 1.3; min-height: 2.35rem; margin: 4px 0 8px; text-decoration: none;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .pp-name:hover { color: var(--pp-accent); }
+        .pp-price { color: var(--pp-accent); font-weight: 800; font-size: 1.05rem; }
+        .pp-old { font-size: .8rem; color: #8a8f98; min-height: 1.2rem; }
+        .pp-old del { margin-right: 6px; }
+        .pp-old .pp-pct { color: #e03131; }
+        .pp-specs { background: #f1f3f5; border-radius: 8px; padding: 8px 10px; margin: 8px 0; }
+        .pp-spec { display: flex; align-items: center; gap: 6px; font-size: .75rem; color: #444; line-height: 1.6; }
+        .pp-spec i { width: 14px; text-align: center; color: #6c757d; flex-shrink: 0; }
+        .pp-spec span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pp-thumbs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 10px; scrollbar-width: none; }
+        .pp-thumbs::-webkit-scrollbar { display: none; }
+        .pp-thumbs img { width: 38px; height: 38px; object-fit: contain; flex: 0 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; padding: 2px; }
+        .pp-actions { display: flex; gap: 8px; margin-top: auto; }
+        .pp-btn-edit { border: 1px solid var(--pp-accent); background: #fff; color: var(--pp-accent); border-radius: 6px; width: 44px; flex: 0 0 44px; }
+        .pp-btn-edit:hover { background: var(--pp-accent); color: #fff; }
+        .pp-btn-add { flex: 1; border: 0; background: var(--pp-accent); color: #fff; border-radius: 6px; font-weight: 700; padding: 8px 0; }
+        .pp-btn-add:hover { filter: brightness(1.15); }
+        .pp-btn-add:disabled { background: #adb5bd; cursor: not-allowed; filter: none; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container builder-container">
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h2 class="fw-bold text-dark mb-1">Xây Dựng Cấu Hình PC</h2>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-outline-secondary rounded-pill fw-bold" onclick="resetBuilder()">
+                <i class="fas fa-redo-alt me-1"></i> Làm mới
+            </button>
+            <button class="btn btn-primary rounded-pill fw-bold ms-2" onclick="addAllToCart()">
+                <i class="fas fa-cart-plus me-1"></i> Thêm tất cả vào giỏ
+            </button>
+        </div>
+    </div>
+
+    <div class="alert alert-info border-0 shadow-sm rounded-3 mb-4">
+        <i class="fas fa-info-circle me-2"></i> Lưu ý: Vui lòng tự kiểm tra tính tương thích. Cần hỗ trợ? <a href="/chat" class="fw-bold text-decoration-none">Chat với chuyên gia</a>.
+    </div>
+
+    <!-- ===== CẤU HÌNH BUILD SẴN ===== -->
+    <div class="mb-5" th:if="${!#maps.isEmpty(presetData)}">
+        <div class="mb-3">
+            <h4 class="fw-bold text-dark mb-1">Cấu hình build sẵn</h4>
+            <div class="text-muted">
+                Thêm cả bộ vào giỏ chỉ với một cú bấm, hoặc bấm <i class="fas fa-edit"></i> để nạp vào cấu hình bên dưới và tự tùy chỉnh.
+            </div>
+        </div>
+
+        <div class="pp-tabs">
+            <button type="button" class="pp-tab" th:each="tab : ${presetTabs}" th:attr="data-tab=${tab.key}">
+                <div class="pp-tab-title" th:text="${tab.title}">PC GAMING</div>
+                <div class="pp-tab-sub" th:text="${tab.subtitle}">Khám phá ngay!</div>
+            </button>
+        </div>
+
+        <div class="pp-panels">
+            <div class="pp-panel d-none" th:each="tab : ${presetTabs}" th:attr="data-tab=${tab.key}">
+                <div class="pp-empty" th:if="${#lists.isEmpty(presetsByTag[tab.key])}">
+                    Chưa có cấu hình nào trong mục này.
+                </div>
+
+                <div class="pp-row">
+                    <div class="pp-card" th:each="p : ${presetsByTag[tab.key]}" th:attr="data-id=${p.presetId}">
+                        <a class="pp-img-wrap" th:href="@{'/pc-presets/' + ${p.slug}}">
+                            <img th:src="${p.resolveImageUrl()}" th:alt="${p.name}">
+                            <div class="pp-save" th:if="${p.calcSavings() > 0}">
+                                TIẾT KIỆM<br>
+                                <b th:text="${#numbers.formatDecimal(p.calcSavings(), 0, 'POINT', 0, 'COMMA')} + ' đ'">0 đ</b>
+                            </div>
+                            <div class="pp-soldout" th:if="${p.calcAvailableQty() <= 0}">Tạm hết hàng</div>
+                        </a>
+
+                        <div class="pp-kind" th:text="${tab.title}">PC GAMING</div>
+                        <a class="pp-name" th:href="@{'/pc-presets/' + ${p.slug}}" th:text="${p.name}" th:title="${p.name}">Tên cấu hình</a>
+
+                        <div class="pp-price"
+                             th:text="${#numbers.formatDecimal(p.calcTotalPrice(), 0, 'POINT', 0, 'COMMA')} + ' đ'">0 đ</div>
+                        <div class="pp-old">
+                            <th:block th:if="${p.calcSavings() > 0}">
+                                <del th:text="${#numbers.formatDecimal(p.calcTotalOriginalPrice(), 0, 'POINT', 0, 'COMMA')} + ' đ'">0 đ</del>
+                                <span class="pp-pct" th:text="'-' + ${p.calcDiscountPercent()} + '%'">-10%</span>
+                            </th:block>
+                        </div>
+
+                        <div class="pp-specs">
+                            <div class="pp-spec" th:each="it : ${p.keyItems()}" th:title="${it.product.productName}">
+                                <i class="fas" th:classappend="${it.iconClass()}"></i>
+                                <span th:text="${it.product.productName}">Linh kiện</span>
+                            </div>
+                        </div>
+
+                        <div class="pp-thumbs">
+                            <img th:each="it : ${p.items}" th:src="${it.resolveImageUrl()}" th:title="${it.product.productName}" alt="">
+                        </div>
+
+                        <div class="pp-actions">
+                            <button type="button" class="pp-btn-edit" data-action="edit" title="Chỉnh sửa cấu hình này">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button" class="pp-btn-add" data-action="add"
+                                    th:disabled="${p.calcAvailableQty() <= 0}">Thêm vào giỏ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h5 class="fw-bold text-dark mb-3">Cấu hình của bạn</h5>
+
+    <!-- Tabs Cấu hình -->
+    <ul class="nav nav-tabs mb-4" id="builderTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold px-4" id="tab-1" onclick="switchTab(1)" type="button">Cấu hình 1</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-4 text-muted" id="tab-2" onclick="switchTab(2)" type="button">Cấu hình 2</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-4 text-muted" id="tab-3" onclick="switchTab(3)" type="button">Cấu hình 3</button>
+        </li>
+    </ul>
+
+    <!-- Danh sách Slots -->
+    <div id="slots-container" class="row">
+        <!-- JS Render -->
+    </div>
+</div>
+
+<!-- Modal Chọn Sản Phẩm Full Màn -->
+<div class="modal fade" id="productSelectModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="modalSlotTitle">Chọn linh kiện</h5>
+                <div class="flex-grow-1 mx-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" id="searchInput" class="form-control border-start-0" placeholder="Nhập từ khóa cần tìm..." oninput="filterProducts()">
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="row g-0 h-100">
+                    <!-- Cột Bộ lọc (Trái) -->
+                    <div class="col-md-3 filter-sidebar p-3 bg-white">
+                        <!-- Lọc theo khoảng giá -->
+                        <h6 class="fw-bold mb-3">Khoảng giá</h6>
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <input type="number" id="minPrice" class="form-control form-control-sm text-center" placeholder="Từ (đ)" onchange="filterProducts()">
+                            <span>-</span>
+                            <input type="number" id="maxPrice" class="form-control form-control-sm text-center" placeholder="Đến (đ)" onchange="filterProducts()">
+                        </div>
+
+                        <!-- Lọc theo Thương hiệu -->
+                        <h6 class="fw-bold mb-3 mt-4">Thương hiệu</h6>
+                        <div id="brandFilters" class="mb-3" style="max-height: 200px; overflow-y: auto;">
+                            <!-- JS Render Checkboxes -->
+                        </div>
+                    </div>
+
+                    <!-- Cột Danh sách sản phẩm (Phải) -->
+                    <div class="col-md-9 p-3 bg-light">
+                        <!-- Sắp xếp -->
+                        <div class="d-flex gap-2 mb-3 overflow-auto pb-2">
+                            <span class="fw-bold me-2 align-self-center">Sắp xếp:</span>
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill sort-btn active" data-sort="default" onclick="setSort('default', this)">Khuyến mãi tốt nhất</button>
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill sort-btn" data-sort="priceAsc" onclick="setSort('priceAsc', this)">Giá tăng dần</button>
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill sort-btn" data-sort="priceDesc" onclick="setSort('priceDesc', this)">Giá giảm dần</button>
+                        </div>
+
+                        <!-- Lưới Sản Phẩm -->
+                        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-3" id="modalProductGrid">
+                            <!-- JS Render -->
+                        </div>
+
+                        <div id="modalLoading" class="text-center py-5 d-none">
+                            <div class="spinner-border text-primary" role="status"></div>
+                        </div>
+                        <div id="modalEmpty" class="text-center py-5 d-none text-muted">
+                            <i class="fas fa-box-open fa-3x mb-3"></i><p>Không tìm thấy sản phẩm phù hợp.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const builderSlots = [
+        { id: 'cpu', name: 'Vi xử lý (CPU)', categoryId: 6, icon: 'fa-microchip' },
+        { id: 'mainboard', name: 'Bo mạch chủ (Mainboard)', categoryId: 8, icon: 'fa-chess-board' },
+        { id: 'ram', name: 'Bộ nhớ RAM', categoryId: 4, icon: 'fa-memory' },
+        { id: 'vga', name: 'Card màn hình (VGA)', categoryId: 7, icon: 'fa-vr-cardboard' },
+        { id: 'storage', name: 'Ổ cứng (SSD/HDD)', categoryId: 5, icon: 'fa-hdd' },
+        { id: 'psu', name: 'Nguồn máy tính (PSU)', categoryId: 9, icon: 'fa-bolt' },
+        { id: 'case', name: 'Vỏ máy tính (Case)', categoryId: 10, icon: 'fa-box' },
+        { id: 'cooler', name: 'Tản nhiệt', categoryId: 11, icon: 'fa-fan' },
+        { id: 'monitor', name: 'Màn hình', categoryId: 12, icon: 'fa-desktop' },
+        { id: 'keyboard', name: 'Bàn phím', categoryId: 13, icon: 'fa-keyboard' },
+        { id: 'mouse', name: 'Chuột', categoryId: 14, icon: 'fa-mouse' },
+        { id: 'speaker', name: 'Loa', categoryId: 15, icon: 'fa-volume-up' }
+    ];
+
+    let buildsData = {
+        1: {},
+        2: {},
+        3: {}
+    };
+    let currentTabIndex = 1;
+    let currentBuild = buildsData[currentTabIndex];
+    let activeSlotId = null;
+    let currentProducts = []; // Lưu trữ SP để lọc/sort
+    let currentSort = 'default';
+    let productModal;
+
+    document.addEventListener("DOMContentLoaded", () => {
+        productModal = new bootstrap.Modal(document.getElementById('productSelectModal'));
+
+        // Load data từ Local Storage nếu có
+        const savedBuilds = localStorage.getItem('chaosCodersBuilds');
+        if(savedBuilds) {
+            buildsData = JSON.parse(savedBuilds);
+        }
+
+        switchTab(1); // Mặc định mở Tab 1
+    });
+    // Hàm chuyển Tab
+    function switchTab(index) {
+        currentTabIndex = index;
+        currentBuild = buildsData[currentTabIndex];
+
+        // Cập nhật UI Tabs
+        document.querySelectorAll('#builderTabs .nav-link').forEach(t => {
+            t.classList.remove('active', 'text-dark');
+            t.classList.add('text-muted');
+        });
+        const activeTab = document.getElementById('tab-' + index);
+        activeTab.classList.remove('text-muted');
+        activeTab.classList.add('active', 'text-dark');
+
+        renderSlots();
+    }
+
+    // [QUAN TRỌNG] Thêm hàm lưu xuống Storage
+    function saveToStorage() {
+        localStorage.setItem('chaosCodersBuilds', JSON.stringify(buildsData));
+    }
+
+    function formatCurrency(amount) { return new Intl.NumberFormat('vi-VN').format(amount) + ' đ'; }
+
+    // --- 1. RENDER SLOTS ---
+    function renderSlots() {
+        const container = document.getElementById('slots-container');
+        container.innerHTML = '';
+        let grandTotal = 0;
+
+        builderSlots.forEach(slot => {
+            const buildItem = currentBuild[slot.id];
+
+            let html = `<div class="col-12"><div class="slot-item shadow-sm">`;
+
+            if (buildItem) {
+                const p = buildItem.product;
+                const qty = buildItem.quantity;
+                grandTotal += (p.salePrice * qty);
+
+                html += `
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <div class="slot-icon-box bg-white p-1">
+                            <img src="${p.imageUrl}" class="w-100 h-100" style="object-fit: contain;">
+                        </div>
+                        <div class="slot-content">
+                            <div class="slot-name">${slot.name}</div>
+                            <div class="fw-bold text-dark">${p.productName}</div>
+                            <div class="text-danger fw-bold mt-1">${formatCurrency(p.salePrice)}</div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="qty-controls">
+                            <button class="qty-btn" onclick="updateQty('${slot.id}', -1)">-</button>
+                            <input type="text" class="qty-input" value="${qty}" readonly>
+                            <button class="qty-btn" onclick="updateQty('${slot.id}', 1)">+</button>
+                        </div>
+                        <div class="text-danger fw-bold d-none d-md-block" style="width: 120px; text-align: right;">
+                            ${formatCurrency(p.salePrice * qty)}
+                        </div>
+                        <button class="btn btn-outline-primary btn-sm rounded-pill px-3" onclick="openModal('${slot.id}', ${slot.categoryId}, '${slot.name}')"><i class="fas fa-edit"></i> Sửa</button>
+                        <button class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="removeSlot('${slot.id}')"><i class="fas fa-trash-alt"></i> Xóa</button>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="d-flex align-items-center">
+                        <div class="slot-icon-box"><i class="fas ${slot.icon}"></i></div>
+                        <div class="slot-content">
+                            <div class="slot-name">${slot.name}</div>
+                            <div class="slot-placeholder">Vui lòng chọn linh kiện</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary rounded-pill px-4 fw-bold" onclick="openModal('${slot.id}', ${slot.categoryId}, '${slot.name}')">Chọn</button>
+                `;
+            }
+            html += `</div></div>`;
+            container.insertAdjacentHTML('beforeend', html);
+        });
+
+        // Sticky Total Footer
+        const footerHtml = `
+            <div class="col-12 mt-3 position-sticky bottom-0 bg-white p-3 border-top shadow-lg rounded-top d-flex justify-content-between align-items-center" style="z-index: 100;">
+                <h4 class="mb-0 text-dark fw-bold">Tổng cộng:</h4>
+                <div class="total-price">${formatCurrency(grandTotal)}</div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', footerHtml);
+    }
+
+    // --- 2. MODAL & DATA FETCHING ---
+    function openModal(slotId, categoryId, slotName) {
+        activeSlotId = slotId;
+        document.getElementById('modalSlotTitle').innerText = 'Chọn ' + slotName;
+        document.getElementById('searchInput').value = '';
+        document.getElementById('minPrice').value = '';
+        document.getElementById('maxPrice').value = '';
+        document.getElementById('modalProductGrid').innerHTML = '';
+        document.getElementById('modalLoading').classList.remove('d-none');
+        document.getElementById('modalEmpty').classList.add('d-none');
+
+        // Cập nhật nút sort
+        document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active', 'btn-primary'));
+        document.querySelector('.sort-btn[data-sort="default"]').classList.add('active', 'btn-primary');
+        currentSort = 'default';
+
+        productModal.show();
+
+        fetch(`/api/builder/products?categoryId=${categoryId}`)
+            .then(res => res.json())
+            .then(data => {
+                currentProducts = data.products || [];
+                renderBrandFilters(data.brands || []);
+                filterProducts(); // Gọi hàm filter để render lưới
+            })
+            .catch(err => { console.error(err); document.getElementById('modalLoading').classList.add('d-none'); });
+    }
+
+    // --- 3. BỘ LỌC & TÌM KIẾM ---
+    function renderBrandFilters(brands) {
+        const container = document.getElementById('brandFilters');
+        container.innerHTML = '';
+        brands.forEach(b => {
+            container.insertAdjacentHTML('beforeend', `
+                <div class="form-check mb-1">
+                    <input class="form-check-input brand-checkbox" type="checkbox" value="${b.brandId}" id="brand_${b.brandId}" onchange="filterProducts()">
+                    <label class="form-check-label small" for="brand_${b.brandId}">${b.brandName}</label>
+                </div>
+            `);
+        });
+    }
+
+    function setSort(sortType, btnElement) {
+        currentSort = sortType;
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.classList.remove('active', 'btn-primary');
+            btn.classList.add('btn-outline-secondary');
+        });
+        btnElement.classList.remove('btn-outline-secondary');
+        btnElement.classList.add('active', 'btn-primary');
+        filterProducts();
+    }
+
+    function filterProducts() {
+        document.getElementById('modalLoading').classList.add('d-none');
+        const grid = document.getElementById('modalProductGrid');
+        const emptyMsg = document.getElementById('modalEmpty');
+
+        const keyword = document.getElementById('searchInput').value.toLowerCase();
+        const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
+        const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+
+        const selectedBrands = Array.from(document.querySelectorAll('.brand-checkbox:checked')).map(cb => parseInt(cb.value));
+
+        let filtered = currentProducts.filter(p => {
+            let matchKey = p.productName.toLowerCase().includes(keyword);
+            let matchPrice = p.salePrice >= minPrice && p.salePrice <= maxPrice;
+            let matchBrand = selectedBrands.length === 0 || selectedBrands.includes(p.brandId);
+            return matchKey && matchPrice && matchBrand;
+        });
+
+        // Sorting
+        if (currentSort === 'priceAsc') filtered.sort((a, b) => a.salePrice - b.salePrice);
+        if (currentSort === 'priceDesc') filtered.sort((a, b) => b.salePrice - a.salePrice);
+        // default: không sort lại (theo API trả về)
+
+        grid.innerHTML = '';
+        if (filtered.length > 0) {
+            emptyMsg.classList.add('d-none');
+            filtered.forEach(p => {
+                let discountHtml = '';
+                if (p.originalPrice > p.salePrice) {
+                    let pct = Math.round((p.originalPrice - p.salePrice) / p.originalPrice * 100);
+                    discountHtml = `<div class="discount-badge">-${pct}%</div>`;
+                }
+
+                let pStr = encodeURIComponent(JSON.stringify(p));
+                grid.insertAdjacentHTML('beforeend', `
+                    <div class="col">
+                        <div class="product-grid-item bg-white h-100 d-flex flex-column text-start">
+                            ${discountHtml}
+                            <img src="${p.imageUrl}" class="product-grid-img w-100">
+                            <small class="text-muted mb-1">${p.brandName || ''}</small>
+                            <div class="fw-bold text-dark mb-2" style="font-size: 0.9rem; line-height: 1.3;">${p.productName}</div>
+                            <div class="mt-auto">
+                                <div class="text-danger fw-bold fs-5">${formatCurrency(p.salePrice)}</div>
+                                ${p.originalPrice > p.salePrice ? `<div class="text-muted text-decoration-line-through small mb-2">${formatCurrency(p.originalPrice)}</div>` : '<div class="mb-2">&nbsp;</div>'}
+                                <button class="btn btn-outline-primary btn-sm w-100 fw-bold rounded-pill mt-2" onclick="selectProduct('${pStr}')">Chọn</button>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            });
+        } else {
+            emptyMsg.classList.remove('d-none');
+        }
+    }
+
+    // [CẦN SỬA LẠI CÁC HÀM CŨ ĐỂ GỌI saveToStorage]
+    function selectProduct(pStr) {
+        let p = JSON.parse(decodeURIComponent(pStr));
+        currentBuild[activeSlotId] = { product: p, quantity: 1 };
+        saveToStorage(); // <--- Thêm vào
+        productModal.hide();
+        renderSlots();
+    }
+
+    function updateQty(slotId, change) {
+        if (!currentBuild[slotId]) return;
+        let newQty = currentBuild[slotId].quantity + change;
+        if (newQty < 1) newQty = 1;
+
+        // Kiểm tra tồn kho và dùng SweetAlert2
+        if (newQty > currentBuild[slotId].product.stock) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Vượt quá tồn kho!',
+                text: `Sản phẩm này chỉ còn ${currentBuild[slotId].product.stock} trong kho.`,
+                confirmButtonColor: '#f37021'
+            });
+            return;
+        }
+
+        currentBuild[slotId].quantity = newQty;
+        saveToStorage();
+        renderSlots();
+    }
+
+    function removeSlot(slotId) {
+        delete currentBuild[slotId];
+        saveToStorage(); // <--- Thêm vào
+        renderSlots();
+    }
+
+    function resetBuilder() {
+        Swal.fire({
+            title: 'Làm mới cấu hình?',
+            text: "Toàn bộ linh kiện đã chọn trong cấu hình hiện tại sẽ bị xóa sạch!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-redo-alt me-1"></i> Làm mới ngay',
+            cancelButtonText: 'Hủy bỏ',
+            reverseButtons: true // Đảo ngược nút OK và Hủy để tránh bấm nhầm
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Nếu khách hàng bấm đồng ý
+                currentBuild = {};
+                buildsData[currentTabIndex] = currentBuild;
+                saveToStorage();
+                renderSlots();
+
+                // Hiện thông báo thành công xíu rồi tự tắt
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Đã làm mới!',
+                    text: 'Cấu hình của bạn đã được dọn sạch.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+        });
+    }
+
+    // --- SỬA LẠI HÀM GỬI LÊN SERVER CHO ĐẸP (SweetAlert) ---
+    function addAllToCart() {
+        let itemsToCart = [];
+        for (let key in currentBuild) {
+            itemsToCart.push({
+                productId: currentBuild[key].product.productId,
+                quantity: currentBuild[key].quantity
+            });
+        }
+
+        if (itemsToCart.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'Chưa có linh kiện', text: 'Vui lòng chọn ít nhất 1 linh kiện!' });
+            return;
+        }
+
+        // Tạm đổi text nút để báo loading
+        Swal.showLoading();
+
+        fetch('/cart/add-multiple', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(itemsToCart)
+        })
+            .then(res => {
+                if(res.redirected) { window.location.href = res.url; return; }
+                return res.text();
+            })
+            .then(msg => {
+                Swal.close();
+                if(msg === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công!',
+                        text: 'Đã thêm cấu hình vào giỏ hàng.',
+                        showCancelButton: true,
+                        confirmButtonColor: '#f37021',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Đến giỏ hàng ngay',
+                        cancelButtonText: 'Tiếp tục build',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = "/cart"; // Chỉ đi đến giỏ nếu khách bấm OK
+                        }
+                    });
+                } else if (msg) {
+                    Swal.fire({ icon: 'error', title: 'Lỗi', text: msg });
+                }
+            }).catch(err => console.error(err));
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script th:inline="javascript">
+    // ===== CẤU HÌNH BUILD SẴN =====
+    // presetId -> { name, build: {slotId: {product, quantity}}, cart: [{productId, quantity}] }
+    const PRESET_DATA = /*[[${presetData}]]*/ {};
+
+    function selectPresetTab(key) {
+        document.querySelectorAll('.pp-tab').forEach(function (b) {
+            b.classList.toggle('active', b.dataset.tab === key);
+        });
+        document.querySelectorAll('.pp-panel').forEach(function (p) {
+            p.classList.toggle('d-none', p.dataset.tab !== key);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const tabs = Array.from(document.querySelectorAll('.pp-tab'));
+        if (tabs.length === 0) return;
+        // Mặc định mở tab đầu tiên có cấu hình
+        const first = tabs.find(function (t) {
+            const panel = Array.from(document.querySelectorAll('.pp-panel')).find(function (p) { return p.dataset.tab === t.dataset.tab; });
+            return panel && panel.querySelector('.pp-card');
+        }) || tabs[0];
+        selectPresetTab(first.dataset.tab);
+    });
+
+    document.addEventListener('click', function (e) {
+        const tabBtn = e.target.closest('.pp-tab');
+        if (tabBtn) { selectPresetTab(tabBtn.dataset.tab); return; }
+
+        const actionBtn = e.target.closest('.pp-card [data-action]');
+        if (!actionBtn) return;
+        const id = actionBtn.closest('.pp-card').dataset.id;
+        if (actionBtn.dataset.action === 'edit') loadPresetToBuilder(id);
+        else if (actionBtn.dataset.action === 'add') addPresetToCart(id);
+    });
+
+    // Nạp cấu hình sẵn vào tab "Cấu hình 1/2/3" đang chọn
+    function loadPresetToBuilder(id) {
+        const data = PRESET_DATA[id];
+        if (!data) return;
+
+        function apply() {
+            const build = JSON.parse(JSON.stringify(data.build || {}));
+            const dropped = [];
+            Object.keys(build).forEach(function (slot) {
+                const it = build[slot];
+                const stock = Number(it.product.stock) || 0;
+                if (stock <= 0) { dropped.push(it.product.productName); delete build[slot]; return; }
+                if (it.quantity > stock) it.quantity = stock;
+            });
+
+            currentBuild = build;
+            buildsData[currentTabIndex] = currentBuild;
+            saveToStorage();
+            renderSlots();
+            document.getElementById('builderTabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            if (dropped.length > 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Một số linh kiện đã hết hàng',
+                    text: 'Đã bỏ qua: ' + dropped.join(', '),
+                    confirmButtonColor: '#f37021'
+                });
+            } else {
+                Swal.fire({
+                    toast: true, position: 'top-end', icon: 'success', showConfirmButton: false, timer: 2200,
+                    title: 'Đã tải vào Cấu hình ' + currentTabIndex
+                });
+            }
+        }
+
+        if (Object.keys(currentBuild).length > 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Thay thế cấu hình hiện tại?',
+                text: 'Cấu hình ' + currentTabIndex + ' đang có linh kiện và sẽ bị thay thế bởi "' + data.name + '".',
+                showCancelButton: true,
+                confirmButtonColor: '#f37021',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Thay thế',
+                cancelButtonText: 'Hủy bỏ',
+                reverseButtons: true
+            }).then(function (r) { if (r.isConfirmed) apply(); });
+        } else {
+            apply();
+        }
+    }
+
+    // Thêm cả bộ vào giỏ (cùng API với nút "Thêm tất cả vào giỏ")
+    function addPresetToCart(id) {
+        const data = PRESET_DATA[id];
+        if (!data || !data.cart || data.cart.length === 0) return;
+
+        Swal.fire({ title: 'Đang thêm vào giỏ...', allowOutsideClick: false, didOpen: function () { Swal.showLoading(); } });
+
+        fetch('/cart/add-multiple', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data.cart)
+        })
+            .then(function (res) {
+                if (res.redirected) { window.location.href = res.url; return; }
+                return res.text();
+            })
+            .then(function (msg) {
+                if (msg === undefined) return; // đã chuyển trang (ví dụ chưa đăng nhập)
+                Swal.close();
+                if (msg === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công!',
+                        text: 'Đã thêm "' + data.name + '" vào giỏ hàng.',
+                        showCancelButton: true,
+                        confirmButtonColor: '#f37021',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Đến giỏ hàng ngay',
+                        cancelButtonText: 'Tiếp tục xem'
+                    }).then(function (r) { if (r.isConfirmed) window.location.href = '/cart'; });
+                } else if (msg) {
+                    Swal.fire({ icon: 'error', title: 'Lỗi', text: msg });
+                }
+            })
+            .catch(function (err) {
+                console.error(err);
+                Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể kết nối máy chủ.' });
+            });
+    }
+</script>
+
+</body>
+</html>

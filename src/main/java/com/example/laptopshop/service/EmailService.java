@@ -7,6 +7,7 @@ import com.example.laptopshop.entity.ChatMessage;
 import com.example.laptopshop.entity.Review;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public interface EmailService {
     void sendOrderStatusEmail(Order order);
@@ -17,5 +18,7 @@ public interface EmailService {
     void sendOrderCancellationNotification(Order order);
     void sendReviewReplyEmail(Review review);
     void sendReviewRemovedEmail(Review review, String reason);
-    void sendAdminReviewAlert(com.example.laptopshop.entity.Review review);
+    void sendAdminReviewAlert(Review review);
+
+    void sendBulkMarketingEmail(List<String> toEmails, String subject, String body);
 }

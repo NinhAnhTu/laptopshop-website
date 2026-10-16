@@ -58,15 +58,23 @@
     <!-- 1. TỔNG QUAN HỆ THỐNG -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="fw-bold m-0 text-dark">Tổng quan hệ thống</h3>
-        <form action="/admin/dashboard" method="get" id="panelForm">
-            <input type="hidden" name="revenueYear" th:value="${revenueYear}">
-            <input type="hidden" name="topProdRange" th:value="${topProdRange}">
-            <input type="hidden" name="statusRange" th:value="${statusRange}">
-            <div class="daterange-picker" id="panelRangePicker">
-                <i class="far fa-calendar-alt me-2 text-primary-blue"></i><span th:text="${panelRange}"></span> <i class="fas fa-chevron-down ms-2 small text-muted"></i>
-                <input type="hidden" name="panelRange" id="panelRangeInput" th:value="${panelRange}">
-            </div>
-        </form>
+
+        <div class="d-flex align-items-center gap-2">
+            <!-- NÚT XUẤT EXCEL THÊM MỚI -->
+            <button class="btn btn-success fw-bold rounded-pill px-3 shadow-sm d-flex align-items-center" onclick="exportExcel()">
+                <i class="fas fa-file-excel me-2"></i> Xuất Excel
+            </button>
+
+            <form action="/admin/dashboard" method="get" id="panelForm" class="m-0">
+                <input type="hidden" name="revenueYear" th:value="${revenueYear}">
+                <input type="hidden" name="topProdRange" th:value="${topProdRange}">
+                <input type="hidden" name="statusRange" th:value="${statusRange}">
+                <div class="daterange-picker" id="panelRangePicker">
+                    <i class="far fa-calendar-alt me-2 text-primary-blue"></i><span th:text="${panelRange}"></span> <i class="fas fa-chevron-down ms-2 small text-muted"></i>
+                    <input type="hidden" name="panelRange" id="panelRangeInput" th:value="${panelRange}">
+                </div>
+            </form>
+        </div>
     </div>
 
     <div class="row g-4 mb-4">
@@ -306,6 +314,13 @@
                 }
             }
         });
+
+        // Hàm gọi tải file Excel
+        function exportExcel() {
+            const panelRange = document.getElementById('panelRangeInput').value;
+            // Chuyển hướng trình duyệt đến API, nó sẽ tự động tải file xuống
+            window.location.href = '/admin/dashboard/export?panelRange=' + encodeURIComponent(panelRange);
+        }
     </script>
 </div>
 

@@ -34,6 +34,14 @@ public class ProductServiceImpl implements ProductService {
     private final SpecCpuRepository specCpuRepository;
     private final SpecVgaRepository specVgaRepository;
 
+    private final SpecMainboardRepository specMainboardRepository;
+    private final SpecPsuRepository specPsuRepository;
+    private final SpecCaseRepository specCaseRepository;
+    private final SpecCoolerRepository specCoolerRepository;
+    private final SpecMonitorRepository specMonitorRepository;
+    private final SpecKeyboardRepository specKeyboardRepository;
+    private final SpecMouseRepository specMouseRepository;
+    private final SpecSpeakerRepository specSpeakerRepository;
     private final UploadService uploadService;
 
     @Override
@@ -130,6 +138,70 @@ public class ProductServiceImpl implements ProductService {
                 vga.setVram(dto.getVram());
                 vga.setVramType(dto.getVramType());
                 specVgaRepository.save(vga);
+            }else if (catId == 8L) { // [THÊM MỚI] MAINBOARD
+                SpecMainboard mb = new SpecMainboard();
+                mb.setProductId(savedProduct.getProductId());
+                mb.setSocketType(dto.getSocketType());
+                mb.setChipset(dto.getChipset());
+                mb.setFormFactor(dto.getFormFactor());
+                mb.setRamType(dto.getRamType());
+                mb.setRamSlots(dto.getRamSlots());
+                mb.setMaxRamGb(dto.getMaxRamGb());
+                mb.setM2Slots(dto.getM2Slots());
+                mb.setSataPorts(dto.getSataPorts());
+                specMainboardRepository.save(mb);
+            } else if (catId == 9L) { // [THÊM MỚI] PSU
+                SpecPsu psu = new SpecPsu();
+                psu.setProductId(savedProduct.getProductId());
+                psu.setWattage(dto.getWattage());
+                psu.setEfficiencyRating(dto.getEfficiencyRating());
+                psu.setModularType(dto.getModularType());
+                psu.setFormFactor(dto.getFormFactor());
+                specPsuRepository.save(psu);
+            } else if (catId == 10L) { // [THÊM MỚI] CASE
+                SpecCase c = new SpecCase();
+                c.setProductId(savedProduct.getProductId());
+                c.setMaxMainboardSize(dto.getMaxMainboardSize());
+                c.setMaxGpuLengthMm(dto.getMaxGpuLengthMm());
+                c.setMaxCoolerHeightMm(dto.getMaxCoolerHeightMm());
+                specCaseRepository.save(c);
+            } else if (catId == 11L) { // [THÊM MỚI] COOLER
+                SpecCooler cl = new SpecCooler();
+                cl.setProductId(savedProduct.getProductId());
+                cl.setCoolerType(dto.getCoolerType());
+                cl.setRadiatorSizeMm(dto.getRadiatorSizeMm());
+                cl.setHeightMm(dto.getHeightMm());
+                cl.setSupportedSockets(dto.getSupportedSockets());
+                cl.setTdpSupportW(dto.getTdpSupportW());
+                specCoolerRepository.save(cl);
+            }else if (catId == 12L) { // MONITOR
+                SpecMonitor monitor = new SpecMonitor();
+                monitor.setProductId(savedProduct.getProductId());
+                monitor.setScreenSize(dto.getScreenSize());
+                monitor.setResolution(dto.getResolution());
+                monitor.setRefreshRate(dto.getRefreshRate());
+                monitor.setPanelType(dto.getPanelType());
+                specMonitorRepository.save(monitor);
+            } else if (catId == 13L) { // KEYBOARD
+                SpecKeyboard kb = new SpecKeyboard();
+                kb.setProductId(savedProduct.getProductId());
+                kb.setKeyboardType(dto.getKeyboardType());
+                kb.setConnectionType(dto.getConnectionType());
+                kb.setLayout(dto.getLayout());
+                specKeyboardRepository.save(kb);
+            } else if (catId == 14L) { // MOUSE
+                SpecMouse mouse = new SpecMouse();
+                mouse.setProductId(savedProduct.getProductId());
+                mouse.setDpi(dto.getDpi());
+                mouse.setConnectionType(dto.getConnectionType());
+                mouse.setSensor(dto.getSensor());
+                specMouseRepository.save(mouse);
+            } else if (catId == 15L) { // SPEAKER
+                SpecSpeaker speaker = new SpecSpeaker();
+                speaker.setProductId(savedProduct.getProductId());
+                speaker.setPowerW(dto.getPowerW());
+                speaker.setConnectionType(dto.getConnectionType());
+                specSpeakerRepository.save(speaker);
             }
         }
         // -------------------------------------------------------------
@@ -244,6 +316,70 @@ public class ProductServiceImpl implements ProductService {
                 vga.setVram(dto.getVram());
                 vga.setVramType(dto.getVramType());
                 specVgaRepository.save(vga);
+            }else if (catId == 8L) { // [THÊM MỚI] MAINBOARD
+                SpecMainboard mb = specMainboardRepository.findById(id).orElse(new SpecMainboard());
+                mb.setProductId(id);
+                mb.setSocketType(dto.getSocketType());
+                mb.setChipset(dto.getChipset());
+                mb.setFormFactor(dto.getFormFactor());
+                mb.setRamType(dto.getRamType());
+                mb.setRamSlots(dto.getRamSlots());
+                mb.setMaxRamGb(dto.getMaxRamGb());
+                mb.setM2Slots(dto.getM2Slots());
+                mb.setSataPorts(dto.getSataPorts());
+                specMainboardRepository.save(mb);
+            } else if (catId == 9L) { // [THÊM MỚI] PSU
+                SpecPsu psu = specPsuRepository.findById(id).orElse(new SpecPsu());
+                psu.setProductId(id);
+                psu.setWattage(dto.getWattage());
+                psu.setEfficiencyRating(dto.getEfficiencyRating());
+                psu.setModularType(dto.getModularType());
+                psu.setFormFactor(dto.getFormFactor());
+                specPsuRepository.save(psu);
+            } else if (catId == 10L) { // [THÊM MỚI] CASE
+                SpecCase c = specCaseRepository.findById(id).orElse(new SpecCase());
+                c.setProductId(id);
+                c.setMaxMainboardSize(dto.getMaxMainboardSize());
+                c.setMaxGpuLengthMm(dto.getMaxGpuLengthMm());
+                c.setMaxCoolerHeightMm(dto.getMaxCoolerHeightMm());
+                specCaseRepository.save(c);
+            } else if (catId == 11L) { // [THÊM MỚI] COOLER
+                SpecCooler cl = specCoolerRepository.findById(id).orElse(new SpecCooler());
+                cl.setProductId(id);
+                cl.setCoolerType(dto.getCoolerType());
+                cl.setRadiatorSizeMm(dto.getRadiatorSizeMm());
+                cl.setHeightMm(dto.getHeightMm());
+                cl.setSupportedSockets(dto.getSupportedSockets());
+                cl.setTdpSupportW(dto.getTdpSupportW());
+                specCoolerRepository.save(cl);
+            }else if (catId == 12L) { // MONITOR
+                SpecMonitor monitor = new SpecMonitor();
+                monitor.setProductId(savedProduct.getProductId());
+                monitor.setScreenSize(dto.getScreenSize());
+                monitor.setResolution(dto.getResolution());
+                monitor.setRefreshRate(dto.getRefreshRate());
+                monitor.setPanelType(dto.getPanelType());
+                specMonitorRepository.save(monitor);
+            } else if (catId == 13L) { // KEYBOARD
+                SpecKeyboard kb = new SpecKeyboard();
+                kb.setProductId(savedProduct.getProductId());
+                kb.setKeyboardType(dto.getKeyboardType());
+                kb.setConnectionType(dto.getConnectionType());
+                kb.setLayout(dto.getLayout());
+                specKeyboardRepository.save(kb);
+            } else if (catId == 14L) { // MOUSE
+                SpecMouse mouse = new SpecMouse();
+                mouse.setProductId(savedProduct.getProductId());
+                mouse.setDpi(dto.getDpi());
+                mouse.setConnectionType(dto.getConnectionType());
+                mouse.setSensor(dto.getSensor());
+                specMouseRepository.save(mouse);
+            } else if (catId == 15L) { // SPEAKER
+                SpecSpeaker speaker = new SpecSpeaker();
+                speaker.setProductId(savedProduct.getProductId());
+                speaker.setPowerW(dto.getPowerW());
+                speaker.setConnectionType(dto.getConnectionType());
+                specSpeakerRepository.save(speaker);
             }
         }
         // --------------------------------------------------------

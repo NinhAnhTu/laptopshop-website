@@ -1,8 +1,7 @@
 package com.example.laptopshop.controller.admin;
 
 import com.example.laptopshop.dto.request.ProductCreateDTO;
-import com.example.laptopshop.entity.Product;
-import com.example.laptopshop.entity.ProductSerial;
+import com.example.laptopshop.entity.*;
 import com.example.laptopshop.repository.*;
 import com.example.laptopshop.service.BrandService;
 import com.example.laptopshop.service.CategoryService;
@@ -36,6 +35,16 @@ public class AdminProductController {
     private final SpecCpuRepository specCpuRepository;
     private final SpecVgaRepository specVgaRepository;
     private final ProductSerialRepository productSerialRepository;
+
+    private final SpecCaseRepository specCaseRepository;
+    private final SpecMainboardRepository specMainboardRepository;
+    private final SpecCoolerRepository specCoolerRepository;
+    private final SpecPsuRepository specPsuRepository;
+
+    private final SpecMouseRepository specMouseRepository;
+    private final SpecSpeakerRepository specSpeakerRepository;
+    private final SpecMonitorRepository specMonitorRepository;
+    private final SpecKeyboardRepository specKeyboardRepository;
     // --- 1. DANH SÁCH SẢN PHẨM ---
     @GetMapping("/products")
     public String listProducts(Model model,
@@ -233,8 +242,67 @@ public class AdminProductController {
                     dto.setVram(vga.getVram());
                     dto.setVramType(vga.getVramType());
                 });
+
+            }
+            else if (catId == 8L) { // Mainboard
+                specMainboardRepository.findById(id).ifPresent(mb -> {
+                    dto.setSocketType(mb.getSocketType());
+                    dto.setChipset(mb.getChipset());
+                    dto.setFormFactor(mb.getFormFactor());
+                    dto.setRamType(mb.getRamType());
+                    dto.setRamSlots(mb.getRamSlots());
+                    dto.setMaxRamGb(mb.getMaxRamGb());
+                    dto.setM2Slots(mb.getM2Slots());
+                    dto.setSataPorts(mb.getSataPorts());
+                });
+            } else if (catId == 9L) { // PSU
+                specPsuRepository.findById(id).ifPresent(psu -> {
+                    dto.setWattage(psu.getWattage());
+                    dto.setEfficiencyRating(psu.getEfficiencyRating());
+                    dto.setModularType(psu.getModularType());
+                    dto.setFormFactor(psu.getFormFactor());
+                });
+            } else if (catId == 10L) { // Case
+                specCaseRepository.findById(id).ifPresent(c -> {
+                    dto.setMaxMainboardSize(c.getMaxMainboardSize());
+                    dto.setMaxGpuLengthMm(c.getMaxGpuLengthMm());
+                    dto.setMaxCoolerHeightMm(c.getMaxCoolerHeightMm());
+                });
+            } else if (catId == 11L) { // Cooler
+                specCoolerRepository.findById(id).ifPresent(cl -> {
+                    dto.setCoolerType(cl.getCoolerType());
+                    dto.setRadiatorSizeMm(cl.getRadiatorSizeMm());
+                    dto.setHeightMm(cl.getHeightMm());
+                    dto.setSupportedSockets(cl.getSupportedSockets());
+                    dto.setTdpSupportW(cl.getTdpSupportW());
+                });
+            } else if (catId == 12L) { // MONITOR
+                specMonitorRepository.findById(id).ifPresent(m -> {
+                    dto.setScreenSize(m.getScreenSize());
+                    dto.setResolution(m.getResolution());
+                    dto.setRefreshRate(m.getRefreshRate());
+                    dto.setPanelType(m.getPanelType());
+                });
+            } else if (catId == 13L) { // KEYBOARD
+                specKeyboardRepository.findById(id).ifPresent(kb -> {
+                    dto.setKeyboardType(kb.getKeyboardType());
+                    dto.setConnectionType(kb.getConnectionType());
+                    dto.setLayout(kb.getLayout());
+                });
+            } else if (catId == 14L) { // MOUSE
+                specMouseRepository.findById(id).ifPresent(ms -> {
+                    dto.setDpi(ms.getDpi());
+                    dto.setConnectionType(ms.getConnectionType());
+                    dto.setSensor(ms.getSensor());
+                });
+            } else if (catId == 15L) { // SPEAKER
+                specSpeakerRepository.findById(id).ifPresent(sp -> {
+                    dto.setPowerW(sp.getPowerW());
+                    dto.setConnectionType(sp.getConnectionType());
+                });
             }
         }
+
         // ---------------------------------------------------------
         model.addAttribute("productDTO", dto);
         model.addAttribute("productId", id);

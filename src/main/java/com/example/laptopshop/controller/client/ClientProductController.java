@@ -5,10 +5,7 @@ import com.example.laptopshop.entity.OrderDetail;
 import com.example.laptopshop.entity.Product;
 import com.example.laptopshop.entity.Review;
 import com.example.laptopshop.entity.User;
-import com.example.laptopshop.repository.SpecCpuRepository;
-import com.example.laptopshop.repository.SpecRamRepository;
-import com.example.laptopshop.repository.SpecStorageRepository;
-import com.example.laptopshop.repository.SpecVgaRepository;
+import com.example.laptopshop.repository.*;
 import com.example.laptopshop.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -39,6 +36,14 @@ public class ClientProductController {
     private final SpecStorageRepository specStorageRepository;
     private final SpecCpuRepository specCpuRepository;
     private final SpecVgaRepository specVgaRepository;
+    private final SpecCaseRepository specCaseRepository;
+    private final SpecMainboardRepository specMainboardRepository;
+    private final SpecCoolerRepository specCoolerRepository;
+    private final SpecPsuRepository specPsuRepository;
+    private final SpecMonitorRepository specMonitorRepository;
+    private final SpecKeyboardRepository specKeyboardRepository;
+    private final SpecMouseRepository specMouseRepository;
+    private final SpecSpeakerRepository specSpeakerRepository;
 
     // [HÀM MỚI] Xử lý lấy User an toàn cho cả Google Login và Đăng nhập thường
     private User getUserFromPrincipal(Principal principal) {
@@ -86,7 +91,14 @@ public class ClientProductController {
         specStorageRepository.findById(product.getProductId()).ifPresent(storage -> model.addAttribute("specStorage", storage));
         specCpuRepository.findById(product.getProductId()).ifPresent(cpu -> model.addAttribute("specCpu", cpu));
         specVgaRepository.findById(product.getProductId()).ifPresent(vga -> model.addAttribute("specVga", vga));
-
+        specMainboardRepository.findById(product.getProductId()).ifPresent(mb -> model.addAttribute("specMainboard", mb));
+        specPsuRepository.findById(product.getProductId()).ifPresent(psu -> model.addAttribute("specPsu", psu));
+        specCaseRepository.findById(product.getProductId()).ifPresent(c -> model.addAttribute("specCase", c));
+        specCoolerRepository.findById(product.getProductId()).ifPresent(cooler -> model.addAttribute("specCooler", cooler));
+        specMonitorRepository.findById(product.getProductId()).ifPresent(m -> model.addAttribute("specMonitor", m));
+        specKeyboardRepository.findById(product.getProductId()).ifPresent(kb -> model.addAttribute("specKeyboard", kb));
+        specMouseRepository.findById(product.getProductId()).ifPresent(ms -> model.addAttribute("specMouse", ms));
+        specSpeakerRepository.findById(product.getProductId()).ifPresent(sp -> model.addAttribute("specSpeaker", sp));
         // Logic check điều kiện khóa/mở Form Đánh giá
         boolean canReview = false;
         User user = getUserFromPrincipal(principal);

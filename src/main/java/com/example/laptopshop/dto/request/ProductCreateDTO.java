@@ -59,6 +59,50 @@ public class ProductCreateDTO {
     private String vramType;
     private String powerRecommended;
 
+    // --- MAINBOARD (ID: 8) ---
+    // (Đã có socketType, ramType ở trên)
+    private String chipset;
+    // formFactor (Đã có ở Storage, có thể tái sử dụng chung biến formFactor hoặc tạo riêng mainboardFormFactor. Dùng chung cho gọn)
+    private Integer ramSlots;
+    private Integer maxRamGb;
+    private Integer m2Slots;
+    private Integer sataPorts;
+
+    // --- PSU (ID: 9) ---
+    private Integer wattage;
+    private String efficiencyRating;
+    private String modularType;
+    // formFactor (Dùng chung)
+
+    // --- CASE (ID: 10) ---
+    private String maxMainboardSize;
+    private Integer maxGpuLengthMm;
+    private Integer maxCoolerHeightMm;
+
+    // --- COOLER (ID: 11) ---
+    private String coolerType;
+    private Integer radiatorSizeMm;
+    private Integer heightMm;
+    private String supportedSockets;
+    private Integer tdpSupportW;
+
+    // --- MONITOR (12) ---
+    private String screenSize;
+    private String resolution;
+    private String refreshRate;
+    private String panelType;
+
+    // --- KEYBOARD (13) ---
+    private String keyboardType;
+    private String connectionType; // Dùng chung cho Phím, Chuột, Loa
+    private String layout;
+
+    // --- MOUSE (14) ---
+    private String dpi;
+    private String sensor;
+
+    // --- SPEAKER (15) ---
+    private String powerW;
     //Status
     private Boolean isActive;
 }

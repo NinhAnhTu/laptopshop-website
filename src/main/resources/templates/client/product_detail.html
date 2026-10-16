@@ -264,12 +264,14 @@
                                 <i class="fas fa-microchip me-2 text-primary"></i>Thông số kỹ thuật
                             </h6>
 
+                            <!-- 1. RAM -->
                             <th:block th:if="${specRam != null}">
                                 <div class="spec-item"><span class="spec-label">Dung lượng</span><span class="spec-value" th:text="${specRam.capacity}"></span></div>
                                 <div class="spec-item"><span class="spec-label">Loại RAM</span><span class="spec-value" th:text="${specRam.ramType}"></span></div>
                                 <div class="spec-item"><span class="spec-label">Tốc độ (Bus)</span><span class="spec-value" th:text="${specRam.busSpeed}"></span></div>
                             </th:block>
 
+                            <!-- 2. STORAGE (SSD/HDD) -->
                             <th:block th:if="${specStorage != null}">
                                 <div class="spec-item"><span class="spec-label">Dung lượng</span><span class="spec-value" th:text="${specStorage.capacity}"></span></div>
                                 <div class="spec-item"><span class="spec-label">Chuẩn giao tiếp</span><span class="spec-value" th:text="${specStorage.storageType}"></span></div>
@@ -278,6 +280,7 @@
                                 <div class="spec-item"><span class="spec-label">Tốc độ ghi</span><span class="spec-value" th:text="${specStorage.writeSpeed}"></span></div>
                             </th:block>
 
+                            <!-- 3. CPU -->
                             <th:block th:if="${specCpu != null}">
                                 <div class="spec-item"><span class="spec-label">Socket</span><span class="spec-value" th:text="${specCpu.socketType}"></span></div>
                                 <div class="spec-item"><span class="spec-label">Số nhân</span><span class="spec-value" th:text="${specCpu.cores}"></span></div>
@@ -287,20 +290,89 @@
                                 <div class="spec-item"><span class="spec-label">TDP</span><span class="spec-value" th:text="${specCpu.tdp}"></span></div>
                             </th:block>
 
+                            <!-- 4. VGA -->
                             <th:block th:if="${specVga != null}">
                                 <div class="spec-item"><span class="spec-label">Chip đồ họa</span><span class="spec-value" th:text="${specVga.gpuChip}"></span></div>
                                 <div class="spec-item"><span class="spec-label">Bộ nhớ (VRAM)</span><span class="spec-value" th:text="${specVga.vram}"></span></div>
                                 <div class="spec-item"><span class="spec-label">Loại VRAM</span><span class="spec-value" th:text="${specVga.vramType}"></span></div>
                                 <div class="spec-item"><span class="spec-label">Nguồn đề xuất</span><span class="spec-value" th:text="${specVga.powerRecommended}"></span></div>
+                                <div class="spec-item" th:if="${specVga.lengthMm != null}"><span class="spec-label">Chiều dài</span><span class="spec-value" th:text="${specVga.lengthMm} + ' mm'"></span></div>
                             </th:block>
 
-                            <th:block th:if="${specRam == null and specStorage == null and specCpu == null and specVga == null}">
+                            <!-- 5. MAINBOARD -->
+                            <th:block th:if="${specMainboard != null}">
+                                <div class="spec-item"><span class="spec-label">Socket hỗ trợ</span><span class="spec-value" th:text="${specMainboard.socketType}"></span></div>
+                                <div class="spec-item"><span class="spec-label">Chipset</span><span class="spec-value" th:text="${specMainboard.chipset}"></span></div>
+                                <div class="spec-item"><span class="spec-label">Kích thước (Form)</span><span class="spec-value" th:text="${specMainboard.formFactor}"></span></div>
+                                <div class="spec-item"><span class="spec-label">Loại RAM hỗ trợ</span><span class="spec-value" th:text="${specMainboard.ramType}"></span></div>
+                                <div class="spec-item"><span class="spec-label">Số khe RAM</span><span class="spec-value" th:text="${specMainboard.ramSlots}"></span></div>
+                                <div class="spec-item"><span class="spec-label">RAM Tối đa</span><span class="spec-value" th:text="${specMainboard.maxRamGb} + ' GB'"></span></div>
+                                <div class="spec-item"><span class="spec-label">Số khe M.2</span><span class="spec-value" th:text="${specMainboard.m2Slots}"></span></div>
+                                <div class="spec-item"><span class="spec-label">Cổng SATA</span><span class="spec-value" th:text="${specMainboard.sataPorts}"></span></div>
+                            </th:block>
+
+                            <!-- 6. NGUỒN (PSU) -->
+                            <th:block th:if="${specPsu != null}">
+                                <div class="spec-item"><span class="spec-label">Công suất</span><span class="spec-value" th:text="${specPsu.wattage} + ' W'"></span></div>
+                                <div class="spec-item"><span class="spec-label">Chuẩn hiệu suất</span><span class="spec-value" th:text="${specPsu.efficiencyRating}"></span></div>
+                                <div class="spec-item"><span class="spec-label">Loại cáp</span><span class="spec-value" th:text="${specPsu.modularType}"></span></div>
+                                <div class="spec-item"><span class="spec-label">Kích thước (Form)</span><span class="spec-value" th:text="${specPsu.formFactor}"></span></div>
+                            </th:block>
+
+                            <!-- 7. VỎ MÁY (CASE) -->
+                            <th:block th:if="${specCase != null}">
+                                <div class="spec-item"><span class="spec-label">Hỗ trợ Mainboard</span><span class="spec-value" th:text="${specCase.maxMainboardSize}"></span></div>
+                                <div class="spec-item"><span class="spec-label">VGA dài tối đa</span><span class="spec-value" th:text="${specCase.maxGpuLengthMm} + ' mm'"></span></div>
+                                <div class="spec-item"><span class="spec-label">Tản nhiệt cao tối đa</span><span class="spec-value" th:text="${specCase.maxCoolerHeightMm} + ' mm'"></span></div>
+                            </th:block>
+
+                            <!-- 8. TẢN NHIỆT (COOLER) -->
+                            <th:block th:if="${specCooler != null}">
+                                <div class="spec-item"><span class="spec-label">Loại tản nhiệt</span><span class="spec-value" th:text="${specCooler.coolerType}"></span></div>
+                                <div class="spec-item" th:if="${specCooler.radiatorSizeMm != null}"><span class="spec-label">Kích cỡ Radiator</span><span class="spec-value" th:text="${specCooler.radiatorSizeMm} + ' mm'"></span></div>
+                                <div class="spec-item" th:if="${specCooler.heightMm != null}"><span class="spec-label">Chiều cao tản</span><span class="spec-value" th:text="${specCooler.heightMm} + ' mm'"></span></div>
+                                <div class="spec-item"><span class="spec-label">Công suất tải (TDP)</span><span class="spec-value" th:text="${specCooler.tdpSupportW} + ' W'"></span></div>
+                                <div class="spec-item"><span class="spec-label">Socket hỗ trợ</span><span class="spec-value" th:text="${specCooler.supportedSockets}"></span></div>
+                            </th:block>
+
+                            <!-- 9. MÀN HÌNH -->
+                            <th:block th:if="${specMonitor != null}">
+                                <div class="spec-item"><span class="spec-label">Kích thước</span><span class="spec-value" th:text="${specMonitor.screenSize}"></span></div>
+                                <div class="spec-item"><span class="spec-label">Độ phân giải</span><span class="spec-value" th:text="${specMonitor.resolution}"></span></div>
+                                <div class="spec-item"><span class="spec-label">Tần số quét</span><span class="spec-value" th:text="${specMonitor.refreshRate}"></span></div>
+                                <div class="spec-item"><span class="spec-label">Tấm nền</span><span class="spec-value" th:text="${specMonitor.panelType}"></span></div>
+                            </th:block>
+
+                            <!-- 10. BÀN PHÍM -->
+                            <th:block th:if="${specKeyboard != null}">
+                                <div class="spec-item"><span class="spec-label">Loại bàn phím</span><span class="spec-value" th:text="${specKeyboard.keyboardType}"></span></div>
+                                <div class="spec-item"><span class="spec-label">Kết nối</span><span class="spec-value" th:text="${specKeyboard.connectionType}"></span></div>
+                                <div class="spec-item"><span class="spec-label">Layout</span><span class="spec-value" th:text="${specKeyboard.layout}"></span></div>
+                            </th:block>
+
+                            <!-- 11. CHUỘT -->
+                            <th:block th:if="${specMouse != null}">
+                                <div class="spec-item"><span class="spec-label">Độ nhạy (DPI)</span><span class="spec-value" th:text="${specMouse.dpi}"></span></div>
+                                <div class="spec-item"><span class="spec-label">Kết nối</span><span class="spec-value" th:text="${specMouse.connectionType}"></span></div>
+                                <div class="spec-item"><span class="spec-label">Cảm biến</span><span class="spec-value" th:text="${specMouse.sensor}"></span></div>
+                            </th:block>
+
+                            <!-- 12. LOA -->
+                            <th:block th:if="${specSpeaker != null}">
+                                <div class="spec-item"><span class="spec-label">Công suất</span><span class="spec-value" th:text="${specSpeaker.powerW}"></span></div>
+                                <div class="spec-item"><span class="spec-label">Kết nối</span><span class="spec-value" th:text="${specSpeaker.connectionType}"></span></div>
+                            </th:block>
+
+                            <!-- 9. CẤU HÌNH LAPTOP (Chỉ render 1 LẦN DUY NHẤT nếu tất cả linh kiện rời đều Null) -->
+                            <th:block th:if="${specRam == null and specStorage == null and specCpu == null and specVga == null and specMainboard == null and specPsu == null and specCase == null and specCooler == null}">
                                 <div class="spec-item" th:if="${product.cpu != null and product.cpu != ''}"><span class="spec-label">CPU</span><span class="spec-value" th:text="${product.cpu}"></span></div>
                                 <div class="spec-item" th:if="${product.ram != null and product.ram != ''}"><span class="spec-label">RAM</span><span class="spec-value" th:text="${product.ram}"></span></div>
                                 <div class="spec-item" th:if="${product.storage != null and product.storage != ''}"><span class="spec-label">Ổ cứng</span><span class="spec-value" th:text="${product.storage}"></span></div>
                                 <div class="spec-item" th:if="${product.screen != null}"><span class="spec-label">Màn hình</span><span class="spec-value" th:text="${product.screen} + ' inch'"></span></div>
                                 <div class="spec-item" th:if="${product.gpu != null and product.gpu != ''}"><span class="spec-label">Card đồ họa</span><span class="spec-value" th:text="${product.gpu}"></span></div>
                             </th:block>
+
+
                         </div>
                     </div>
                 </div>

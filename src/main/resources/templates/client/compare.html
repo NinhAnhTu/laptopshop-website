@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>So sánh sản phẩm - ChaosCoders</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary-blue: #0f2027; --accent-orange: #f37021; --light-bg: #f8f9fa; }
+        body { background-color: var(--light-bg); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .page-wrapper { padding: 3rem 0; min-height: 80vh; }
+
+        .compare-table { width: 100%; border-collapse: separate; border-spacing: 0; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #dee2e6; }
+        .compare-table th, .compare-table td { padding: 1.2rem; border-bottom: 1px solid #dee2e6; border-right: 1px solid #dee2e6; vertical-align: middle; }
+        .compare-table td:last-child, .compare-table th:last-child { border-right: none; }
+        .compare-table tr:last-child td { border-bottom: none; }
+
+        /* Cột tiêu đề thông số */
+        .spec-label-col { width: 20%; background-color: #f8f9fa; font-weight: bold; color: #495057; }
+        /* 2 Cột sản phẩm */
+        .product-col { width: 40%; text-align: center; }
+
+        /* Highlight điểm khác biệt */
+        .diff-highlight { background-color: #fff3cd !important; font-weight: 600; color: #856404; }
+
+        /* Khung chứa ảnh và thông tin cơ bản (Dính trên đỉnh) */
+        .sticky-header th { position: sticky; top: 0; background: white; z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+
+        .prod-img { width: 160px; height: 160px; object-fit: contain; margin-bottom: 1rem; }
+        .prod-name { font-size: 1.1rem; font-weight: 700; color: var(--primary-blue); height: 45px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .prod-price { font-size: 1.4rem; color: var(--accent-orange); font-weight: 800; margin: 0.5rem 0; }
+
+        .btn-custom-orange { background-color: var(--accent-orange); color: white; font-weight: bold; border-radius: 50px; padding: 10px 25px; transition: 0.2s; }
+        .btn-custom-orange:hover { background-color: #d35400; transform: translateY(-2px); }
+
+        .spec-section-title { background-color: #e9ecef; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px; color: #6c757d; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="page-wrapper">
+    <div class="container">
+
+        <!-- Nút Back & Tiêu đề -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold m-0"><i class="fas fa-balance-scale text-primary me-2"></i>SO SÁNH SẢN PHẨM</h2>
+            <button class="btn btn-outline-secondary rounded-pill fw-bold px-4" onclick="history.back()">
+                <i class="fas fa-arrow-left me-1"></i> Quay lại
+            </button>
+        </div>
+
+        <!-- Thông báo lỗi (Nếu nhập ID sai hoặc SP bị ẩn) -->
+        <div th:if="${errorMessage}" class="alert alert-danger shadow-sm text-center py-5 rounded-4">
+            <i class="fas fa-exclamation-triangle fa-3x mb-3 text-danger"></i>
+            <h4 th:text="${errorMessage}"></h4>
+            <a href="/" class="btn btn-primary rounded-pill mt-3 px-4">Về trang chủ</a>
+        </div>
+
+        <!-- Bảng So Sánh (Chỉ hiện khi có đủ 2 SP) -->
+        <div th:if="${product1 != null and product2 != null}" class="table-responsive">
+            <table class="compare-table">
+                <thead>
+                <tr class="sticky-header">
+                    <th class="spec-label-col border-bottom-0"></th>
+                    <!-- Cột Sản phẩm 1 -->
+                    <th class="product-col">
+                        <div class="position-relative">
+                            <button class="btn btn-sm btn-light text-danger position-absolute top-0 end-0 rounded-circle shadow-sm" onclick="removeCompareItem('1')" title="Xóa">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <img th:if="${not #lists.isEmpty(product1.images)}" th:src="${product1.images[0].url}" class="prod-img">
+                            <img th:if="${#lists.isEmpty(product1.images)}" src="https://via.placeholder.com/160" class="prod-img">
+
+                            <div class="prod-name" th:text="${product1.productName}"></div>
+                            <div class="prod-price" th:text="${#numbers.formatDecimal(product1.salePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></div>
+
+                            <form action="/cart/add" method="post">
+                                <input type="hidden" name="productId" th:value="${product1.productId}">
+                                <input type="hidden" name="quantity" value="1">
+                                <button type="submit" class="btn btn-custom-orange w-100" th:disabled="${product1.stock <= 0}">
+                                    <i class="fas fa-cart-plus me-1"></i> Mua Ngay
+                                </button>
+                            </form>
+                        </div>
+                    </th>
+                    <!-- Cột Sản phẩm 2 -->
+                    <th class="product-col">
+                        <div class="position-relative">
+                            <button class="btn btn-sm btn-light text-danger position-absolute top-0 end-0 rounded-circle shadow-sm" onclick="removeCompareItem('2')" title="Xóa">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <img th:if="${not #lists.isEmpty(product2.images)}" th:src="${product2.images[0].url}" class="prod-img">
+                            <img th:if="${#lists.isEmpty(product2.images)}" src="https://via.placeholder.com/160" class="prod-img">
+
+                            <div class="prod-name" th:text="${product2.productName}"></div>
+                            <div class="prod-price" th:text="${#numbers.formatDecimal(product2.salePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></div>
+
+                            <form action="/cart/add" method="post">
+                                <input type="hidden" name="productId" th:value="${product2.productId}">
+                                <input type="hidden" name="quantity" value="1">
+                                <button type="submit" class="btn btn-custom-orange w-100" th:disabled="${product2.stock <= 0}">
+                                    <i class="fas fa-cart-plus me-1"></i> Mua Ngay
+                                </button>
+                            </form>
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+
+                <!-- 1. THÔNG TIN CƠ BẢN (Dùng chung cho mọi SP) -->
+                <tr>
+                    <td colspan="3" class="spec-section-title fw-bold"><i class="fas fa-info-circle me-2"></i>Thông tin cơ bản</td>
+                </tr>
+                <tr>
+                    <td class="spec-label-col">Thương hiệu</td>
+                    <td th:text="${product1.brand != null ? product1.brand.brandName : 'N/A'}" th:classappend="${product1.brand?.brandId != product2.brand?.brandId} ? 'diff-highlight'"></td>
+                    <td th:text="${product2.brand != null ? product2.brand.brandName : 'N/A'}" th:classappend="${product1.brand?.brandId != product2.brand?.brandId} ? 'diff-highlight'"></td>
+                </tr>
+                <tr>
+                    <td class="spec-label-col">Bảo hành</td>
+                    <td th:text="${product1.warrantyPolicy != null ? product1.warrantyPolicy.policyName : 'N/A'}"></td>
+                    <td th:text="${product2.warrantyPolicy != null ? product2.warrantyPolicy.policyName : 'N/A'}"></td>
+                </tr>
+
+                <!-- ========================================== -->
+                <!-- CÁC KHỐI THÔNG SỐ (Chỉ hiển thị nếu 1 trong 2 SP có thông số này) -->
+                <!-- ========================================== -->
+
+                <!-- KHỐI CPU -->
+                <th:block th:if="${specCpu1 != null or specCpu2 != null}">
+                    <tr><td colspan="3" class="spec-section-title fw-bold"><i class="fas fa-microchip me-2"></i>Vi Xử Lý (CPU)</td></tr>
+                    <tr>
+                        <td class="spec-label-col">Socket</td>
+                        <td th:text="${specCpu1?.socketType ?: '-'}" th:classappend="${specCpu1?.socketType != specCpu2?.socketType} ? 'diff-highlight'"></td>
+                        <td th:text="${specCpu2?.socketType ?: '-'}" th:classappend="${specCpu1?.socketType != specCpu2?.socketType} ? 'diff-highlight'"></td>
+                    </tr>
+                    <tr>
+                        <td class="spec-label-col">Số nhân / Luồng</td>
+                        <td th:text="${(specCpu1?.cores ?: '-') + ' Nhân / ' + (specCpu1?.threads ?: '-') + ' Luồng'}" th:classappend="${specCpu1?.cores != specCpu2?.cores or specCpu1?.threads != specCpu2?.threads} ? 'diff-highlight'"></td>
+                        <td th:text="${(specCpu2?.cores ?: '-') + ' Nhân / ' + (specCpu2?.threads ?: '-') + ' Luồng'}" th:classappend="${specCpu1?.cores != specCpu2?.cores or specCpu1?.threads != specCpu2?.threads} ? 'diff-highlight'"></td>
+                    </tr>
+                    <tr>
+                        <td class="spec-label-col">Xung nhịp Tối đa</td>
+                        <td th:text="${specCpu1?.boostClock ?: '-'}" th:classappend="${specCpu1?.boostClock != specCpu2?.boostClock} ? 'diff-highlight'"></td>
+                        <td th:text="${specCpu2?.boostClock ?: '-'}" th:classappend="${specCpu1?.boostClock != specCpu2?.boostClock} ? 'diff-highlight'"></td>
+                    </tr>
+                </th:block>
+
+                <!-- KHỐI RAM -->
+                <th:block th:if="${specRam1 != null or specRam2 != null}">
+                    <tr><td colspan="3" class="spec-section-title fw-bold"><i class="fas fa-memory me-2"></i>Bộ Nhớ Trong (RAM)</td></tr>
+                    <tr>
+                        <td class="spec-label-col">Dung lượng</td>
+                        <td th:text="${specRam1?.capacity ?: '-'}" th:classappend="${specRam1?.capacity != specRam2?.capacity} ? 'diff-highlight'"></td>
+                        <td th:text="${specRam2?.capacity ?: '-'}" th:classappend="${specRam1?.capacity != specRam2?.capacity} ? 'diff-highlight'"></td>
+                    </tr>
+                    <tr>
+                        <td class="spec-label-col">Loại / Bus</td>
+                        <td th:text="${(specRam1?.ramType ?: '') + ' ' + (specRam1?.busSpeed ?: '')}" th:classappend="${specRam1?.busSpeed != specRam2?.busSpeed} ? 'diff-highlight'"></td>
+                        <td th:text="${(specRam2?.ramType ?: '') + ' ' + (specRam2?.busSpeed ?: '')}" th:classappend="${specRam1?.busSpeed != specRam2?.busSpeed} ? 'diff-highlight'"></td>
+                    </tr>
+                </th:block>
+
+                <!-- KHỐI Ổ CỨNG -->
+                <th:block th:if="${specStorage1 != null or specStorage2 != null}">
+                    <tr><td colspan="3" class="spec-section-title fw-bold"><i class="fas fa-hdd me-2"></i>Ổ Cứng (Storage)</td></tr>
+                    <tr>
+                        <td class="spec-label-col">Dung lượng</td>
+                        <td th:text="${specStorage1?.capacity ?: '-'}" th:classappend="${specStorage1?.capacity != specStorage2?.capacity} ? 'diff-highlight'"></td>
+                        <td th:text="${specStorage2?.capacity ?: '-'}" th:classappend="${specStorage1?.capacity != specStorage2?.capacity} ? 'diff-highlight'"></td>
+                    </tr>
+                    <tr>
+                        <td class="spec-label-col">Tốc độ Đọc/Ghi</td>
+                        <td th:text="${(specStorage1?.readSpeed ?: '-') + ' / ' + (specStorage1?.writeSpeed ?: '-')}" th:classappend="${specStorage1?.readSpeed != specStorage2?.readSpeed} ? 'diff-highlight'"></td>
+                        <td th:text="${(specStorage2?.readSpeed ?: '-') + ' / ' + (specStorage2?.writeSpeed ?: '-')}" th:classappend="${specStorage1?.readSpeed != specStorage2?.readSpeed} ? 'diff-highlight'"></td>
+                    </tr>
+                </th:block>
+
+                <!-- KHỐI VGA -->
+                <th:block th:if="${specVga1 != null or specVga2 != null}">
+                    <tr><td colspan="3" class="spec-section-title fw-bold"><i class="fas fa-vr-cardboard me-2"></i>Card Đồ Họa (VGA)</td></tr>
+                    <tr>
+                        <td class="spec-label-col">Chip đồ họa</td>
+                        <td th:text="${specVga1?.gpuChip ?: '-'}" th:classappend="${specVga1?.gpuChip != specVga2?.gpuChip} ? 'diff-highlight'"></td>
+                        <td th:text="${specVga2?.gpuChip ?: '-'}" th:classappend="${specVga1?.gpuChip != specVga2?.gpuChip} ? 'diff-highlight'"></td>
+                    </tr>
+                    <tr>
+                        <td class="spec-label-col">VRAM</td>
+                        <td th:text="${(specVga1?.vram ?: '-') + ' ' + (specVga1?.vramType ?: '-')}" th:classappend="${specVga1?.vram != specVga2?.vram} ? 'diff-highlight'"></td>
+                        <td th:text="${(specVga2?.vram ?: '-') + ' ' + (specVga2?.vramType ?: '-')}" th:classappend="${specVga1?.vram != specVga2?.vram} ? 'diff-highlight'"></td>
+                    </tr>
+                </th:block>
+
+                <!-- CẤU HÌNH LAPTOP (Render nếu cả 2 đều là Laptop - không có linh kiện rời) -->
+                <th:block th:if="${specRam1 == null and specCpu1 == null and specVga1 == null}">
+                    <tr><td colspan="3" class="spec-section-title fw-bold"><i class="fas fa-laptop me-2"></i>Cấu hình máy</td></tr>
+                    <tr>
+                        <td class="spec-label-col">CPU</td>
+                        <td th:text="${product1.cpu ?: '-'}" th:classappend="${product1.cpu != product2.cpu} ? 'diff-highlight'"></td>
+                        <td th:text="${product2.cpu ?: '-'}" th:classappend="${product1.cpu != product2.cpu} ? 'diff-highlight'"></td>
+                    </tr>
+                    <tr>
+                        <td class="spec-label-col">RAM</td>
+                        <td th:text="${product1.ram ?: '-'}" th:classappend="${product1.ram != product2.ram} ? 'diff-highlight'"></td>
+                        <td th:text="${product2.ram ?: '-'}" th:classappend="${product1.ram != product2.ram} ? 'diff-highlight'"></td>
+                    </tr>
+                    <tr>
+                        <td class="spec-label-col">Ổ cứng</td>
+                        <td th:text="${product1.storage ?: '-'}" th:classappend="${product1.storage != product2.storage} ? 'diff-highlight'"></td>
+                        <td th:text="${product2.storage ?: '-'}" th:classappend="${product1.storage != product2.storage} ? 'diff-highlight'"></td>
+                    </tr>
+                    <tr>
+                        <td class="spec-label-col">Card đồ họa</td>
+                        <td th:text="${product1.gpu ?: '-'}" th:classappend="${product1.gpu != product2.gpu} ? 'diff-highlight'"></td>
+                        <td th:text="${product2.gpu ?: '-'}" th:classappend="${product1.gpu != product2.gpu} ? 'diff-highlight'"></td>
+                    </tr>
+                    <tr>
+                        <td class="spec-label-col">Màn hình</td>
+                        <td th:text="${(product1.screen ?: '-') + ' inch'}" th:classappend="${product1.screen != product2.screen} ? 'diff-highlight'"></td>
+                        <td th:text="${(product2.screen ?: '-') + ' inch'}" th:classappend="${product1.screen != product2.screen} ? 'diff-highlight'"></td>
+                    </tr>
+                </th:block>
+
+                <!-- Lời khuyên hệ thống (Fake Logic) -->
+                <tr>
+                    <td colspan="3" class="spec-section-title fw-bold bg-success text-white"><i class="fas fa-magic me-2"></i>Gợi ý từ ChaosCoders</td>
+                </tr>
+                <tr>
+                    <td class="spec-label-col">Lựa chọn tối ưu</td>
+                    <td colspan="2" class="text-center p-4">
+                            <span th:if="${product1.salePrice > product2.salePrice}">
+                                <strong><span th:text="${product2.productName}"></span></strong> có mức giá tốt hơn. Tuy nhiên <strong><span th:text="${product1.productName}"></span></strong> sở hữu công nghệ cao cấp hơn. Hãy cân nhắc theo ngân sách của bạn!
+                            </span>
+                        <span th:if="${product1.salePrice <= product2.salePrice}">
+                                <strong><span th:text="${product1.productName}"></span></strong> có mức giá tốt hơn. Tuy nhiên <strong><span th:text="${product2.productName}"></span></strong> sở hữu công nghệ cao cấp hơn. Hãy cân nhắc theo ngân sách của bạn!
+                            </span>
+                    </td>
+                </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Hàm dùng khi người dùng bấm nút "Xóa" trên đầu cột
+    function removeCompareItem(indexToRemove) {
+        // Lấy danh sách ID từ Local Storage
+        let compareList = JSON.parse(localStorage.getItem('chaosCompareList')) || [];
+
+        // Cập nhật lại mảng (xóa phần tử tương ứng)
+        if (indexToRemove === '1' && compareList.length >= 1) {
+            compareList.splice(0, 1);
+        } else if (indexToRemove === '2' && compareList.length === 2) {
+            compareList.splice(1, 1);
+        }
+
+        // Lưu lại
+        localStorage.setItem('chaosCompareList', JSON.stringify(compareList));
+
+        // Nếu còn 1 sản phẩm thì chuyển sang chi tiết sản phẩm đó, nếu hết thì về trang chủ
+        if (compareList.length === 1) {
+            window.location.href = "/product/id/" + compareList[0]; // (Giả sử bạn có api truy xuất qua ID)
+            // Hoặc an toàn nhất là bay về Home
+            window.location.href = "/";
+        } else {
+            window.location.href = "/";
+        }
+    }
+</script>
+
+</body>
+</html>

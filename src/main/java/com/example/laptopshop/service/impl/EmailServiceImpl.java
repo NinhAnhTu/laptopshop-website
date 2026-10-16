@@ -341,4 +341,48 @@ public class EmailServiceImpl implements EmailService {
             System.out.println("Lỗi gửi mail cảnh báo: " + e.getMessage());
         }
     }
+
+    @Override
+    @Async
+    public void sendBulkMarketingEmail(List<String> toEmails, String subject, String body) {
+        if (toEmails == null || toEmails.isEmpty()) return;
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            // Tên hiển thị người gửi
+            helper.setFrom("ChaosCoders <" + fromEmail + ">");
+
+            // Sử dụng Bcc (Blind Carbon Copy) để khách hàng không nhìn thấy email của nhau
+            helper.setBcc(toEmails.toArray(new String[0]));
+
+            helper.setSubject(subject);
+
+            // Bọc nội dung bằng một khung HTML cơ bản để email trông chuyên nghiệp hơn
+            String htmlContent = "<div style='font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto;'>"
+                    + "<div style='text-align: center; margin-bottom: 20px;'>"
+                    + "<h1 style='color: #f37021;'>CHAOSCODERS</h1>"
+                    + "</div>"
+                    + "<div style='line-height: 1.6;'>"
+                    // Nội dung từ Admin (Hỗ trợ định dạng HTML nếu Admin nhập tag <br>, <b>, vv)
+                    + body.replace("\n", "<br>")
+                    + "</div>"
+                    + "<div style='margin-top: 30px; padding-top: 15px; border-top: 1px solid #ddd; text-align: center; font-size: 0.9em; color: #777;'>"
+                    + "<p>Email này được gửi từ hệ thống Laptop Shop ChaosCoders.</p>"
+                    + "<a href='http://localhost:8080/' style='color: #f37021;'>Ghé thăm cửa hàng</a>"
+                    + "</div>"
+                    + "</div>";
+
+            // Set content là true để bật chế độ HTML
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+            System.out.println("Đã gửi thành công chiến dịch email tới " + toEmails.size() + " khách hàng.");
+
+        } catch (MessagingException e) {
+            System.out.println("Lỗi gửi email marketing: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

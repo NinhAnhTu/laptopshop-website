@@ -154,6 +154,10 @@
            th:classappend="${activePage == 'products'} ? 'active'">
             <i class="fas fa-laptop"></i> Sản phẩm
         </a>
+        <a th:href="@{/admin/pc-presets}" class="sidebar-link"
+           th:classappend="${activePage == 'pc-presets'} ? 'active'">
+            <i class="fas fa-desktop"></i> PC build sẵn
+        </a>
         <a th:href="@{/admin/vouchers}" class="sidebar-link"
            th:classappend="${activePage == 'vouchers'} ? 'active'">
             <i class="fas fa-ticket-alt"></i> Mã giảm giá
@@ -177,6 +181,10 @@
         <a th:href="@{/admin/users}" class="sidebar-link"
            th:classappend="${activePage == 'users'} ? 'active'">
             <i class="fas fa-users"></i> Người dùng
+        </a>
+
+        <a th:href="@{/admin/marketing/campaigns}" class="sidebar-link" th:classappend="${activePage == 'marketing'} ? 'active'">
+            <i class="fas fa-bullhorn"></i> Gửi thông báo
         </a>
 
         <a th:href="@{/admin/reviews}" class="sidebar-link"

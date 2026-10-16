@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/admin_layout :: layout(~{:: .marketing-content})}">
+<head>
+    <title>Chiến dịch Email - ChaosCoders</title>
+</head>
+<body>
+
+<div class="marketing-content" style="background-color: #f4f7f6; min-height: 100vh; padding: 2rem;">
+    <!-- CSS tùy chỉnh chiều cao cho CKEditor -->
+    <style>
+        .ck-editor__editable[role="textbox"] {
+            min-height: 350px;
+        }
+    </style>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold m-0 text-dark"><i class="fas fa-envelope-open-text me-2 text-primary"></i>Tạo chiến dịch</h3>
+    </div>
+
+    <div class="row">
+        <!-- Khối nhập liệu -->
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <form th:action="@{/admin/marketing/send-email}" method="post" id="campaignForm">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tiêu đề (Chủ đề thư) <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="subject" id="subject" required placeholder="VD: SIÊU SALE 11/11 - Giảm giá 50% Laptop Gaming">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Nội dung khuyến mãi <span class="text-danger">*</span></label>
+                            <!-- Textarea này sẽ được CKEditor "hô biến" thành trình soạn thảo -->
+                            <textarea class="form-control" name="content" id="editor" placeholder="Kính gửi Quý khách..."></textarea>
+                        </div>
+
+                        <!-- Đổi type="submit" thành "button" để bắt sự kiện bằng SweetAlert2 -->
+                        <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" onclick="confirmSend()">
+                            <i class="fas fa-paper-plane me-2"></i> Bắt đầu gửi
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Khối Thông tin bên phải -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4" style="background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); color: white;">
+                <div class="card-body p-4 text-center">
+                    <i class="fas fa-users fa-3x mb-3 opacity-75"></i>
+                    <h5 class="fw-bold">Đối tượng nhận tin</h5>
+                    <p class="mb-0">Tổng số khách hàng hiện tại:</p>
+                    <h2 class="fw-bold mt-2 display-4" th:text="${customerCount}">0</h2>
+                    <p class="small mt-3 opacity-75">Tất cả khách hàng đã đăng ký tài khoản có địa chỉ email hợp lệ sẽ nhận được thông báo này (dưới dạng Ẩn danh Bcc).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- TÍCH HỢP THƯ VIỆN & SCRIPT -->
+    <!-- ============================================== -->
+
+    <!-- Thư viện SweetAlert2 để làm đẹp thông báo -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Thư viện CKEditor 5 (Bản Classic) -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+
+    <script th:inline="javascript">
+        let editorInstance;
+
+        // 1. Khởi tạo CKEditor
+        ClassicEditor
+            .create(document.querySelector('#editor'), {
+                toolbar: [ 'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'insertTable', 'undo', 'redo' ]
+            })
+            .then(editor => {
+                editorInstance = editor;
+            })
+            .catch(error => {
+                console.error(error);
+            });
+
+        // 2. Xử lý thông báo trả về từ Controller (Thay thế alert Bootstrap cũ)
+        const successMsg = /*[[${successMessage}]]*/ null;
+        const errorMsg = /*[[${errorMessage}]]*/ null;
+
+        if (successMsg) {
+            Swal.fire({ icon: 'success', title: 'Thành công!', text: successMsg, confirmButtonColor: '#0d6efd' });
+        }
+        if (errorMsg) {
+            Swal.fire({ icon: 'error', title: 'Thất bại!', text: errorMsg, confirmButtonColor: '#0d6efd' });
+        }
+
+        // 3. Xử lý nút Bấm gửi với hoạt ảnh Loading
+        function confirmSend() {
+            const subject = document.getElementById('subject').value.trim();
+            const count = /*[[${customerCount}]]*/ 0;
+
+            // Đồng bộ dữ liệu HTML từ CKEditor về lại thẻ textarea trước khi submit
+            if (editorInstance) {
+                document.querySelector('#editor').value = editorInstance.getData().trim();
+            }
+            const content = document.getElementById('editor').value;
+
+            // Validate dữ liệu trống
+            if (!subject) {
+                Swal.fire({ icon: 'warning', title: 'Chưa nhập tiêu đề', text: 'Vui lòng nhập chủ đề cho email!' });
+                return;
+            }
+            if (!content) {
+                Swal.fire({ icon: 'warning', title: 'Chưa nhập nội dung', text: 'Vui lòng soạn thảo nội dung khuyến mãi!' });
+                return;
+            }
+            if (count === 0) {
+                Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không có khách hàng nào trong hệ thống để gửi!' });
+                return;
+            }
+
+            // Hộp thoại xác nhận cuối cùng
+            Swal.fire({
+                title: 'Xác nhận gửi hàng loạt?',
+                html: `Email sẽ được gửi tới <b>${count}</b> khách hàng.<br>Hệ thống có thể mất khoảng 1-2 phút để xử lý!`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#0d6efd',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-paper-plane me-1"></i> Gửi đi ngay',
+                cancelButtonText: 'Hủy bỏ',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Hiện trạng thái Loading để khóa tương tác
+                    Swal.fire({
+                        title: 'Đang gửi Email...',
+                        html: 'Vui lòng không đóng hoặc làm mới trình duyệt!',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Thực thi gửi form
+                    document.getElementById('campaignForm').submit();
+                }
+            });
+        }
+    </script>
+</div>
+
+</body>
+</html>

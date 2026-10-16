@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin_layout :: layout(~{:: .content-body})}">
+<head>
+    <title>Cấu hình PC build sẵn - ChaosCoders</title>
+</head>
+<body>
+
+<div class="content-body">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Cấu hình PC build sẵn</h2>
+            <small class="text-muted">Các bộ PC gồm nhiều linh kiện để khách mua trọn bộ.</small>
+        </div>
+        <a href="/admin/pc-presets/create" class="btn btn-primary rounded-pill px-4 fw-bold"
+           style="background-color: #f37021; border-color: #f37021;">
+            <i class="fas fa-plus me-2"></i>Thêm cấu hình
+        </a>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm rounded-3" role="alert">
+        <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold text-secondary">Danh sách cấu hình</h6>
+            <span class="badge bg-light text-dark border rounded-pill px-3"
+                  th:text="${presets.size()} + ' cấu hình'">0 cấu hình</span>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-secondary text-uppercase small">
+                    <tr>
+                        <th class="ps-4 py-3">Cấu hình</th>
+                        <th class="py-3">Nhãn</th>
+                        <th class="py-3 text-center">Linh kiện</th>
+                        <th class="py-3 text-center">Giá</th>
+                        <th class="py-3 text-center">Còn bán được</th>
+                        <th class="py-3 text-center">Trạng thái</th>
+                        <th class="text-end pe-4 py-3">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${presets.isEmpty()}">
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <div class="opacity-50 mb-3"><i class="fas fa-desktop fa-3x"></i></div>
+                            <p class="mb-0">Chưa có cấu hình nào.</p>
+                        </td>
+                    </tr>
+
+                    <tr th:each="p : ${presets}">
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="border rounded-3 p-1 me-3 bg-white" style="width: 50px; height: 50px; flex-shrink: 0;">
+                                    <img th:src="${p.resolveImageUrl()}" alt="" style="width: 100%; height: 100%; object-fit: contain;">
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold text-dark text-truncate" style="max-width: 280px;" th:text="${p.name}">PC Gaming</h6>
+                                    <small class="text-muted" th:text="'ID: #' + ${p.presetId}">ID: #1</small>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <span th:if="${p.tag != null}"
+                                  class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-3"
+                                  th:text="${p.tag}">Gaming</span>
+                            <span th:if="${p.tag == null}" class="text-muted">-</span>
+                        </td>
+
+                        <td class="text-center" th:text="${p.items.size()}">8</td>
+
+                        <td class="text-center fw-bold text-danger">
+                            <span th:text="${#numbers.formatDecimal(p.calcTotalPrice(), 0, 'POINT', 0, 'COMMA')}">20.000.000</span>
+                            <span class="small text-dark">đ</span>
+                        </td>
+
+                        <td class="text-center">
+                            <span th:if="${p.calcAvailableQty() > 0}"
+                                  class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3">
+                                <span th:text="${p.calcAvailableQty()}">3</span> bộ
+                            </span>
+                            <span th:if="${p.calcAvailableQty() <= 0}"
+                                  class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3">Hết hàng</span>
+                        </td>
+
+                        <td class="text-center">
+                            <span th:if="${p.isActive}"
+                                  class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3">
+                                <i class="fas fa-eye me-1"></i>Đang hiển thị
+                            </span>
+                            <span th:unless="${p.isActive}"
+                                  class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3">
+                                <i class="fas fa-eye-slash me-1"></i>Đã ẩn
+                            </span>
+                        </td>
+
+                        <td class="text-end pe-4">
+                            <div class="d-inline-flex gap-1 align-items-center">
+                                <a th:href="@{'/pc-presets/' + ${p.slug}}" target="_blank"
+                                   class="btn btn-outline-info btn-sm rounded-circle" title="Xem trang khách">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+
+                                <a th:href="@{/admin/pc-presets/edit/{id}(id=${p.presetId})}"
+                                   class="btn btn-outline-warning btn-sm rounded-circle" title="Sửa">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+
+                                <form th:action="@{/admin/pc-presets/toggle/{id}(id=${p.presetId})}" method="post" class="d-inline m-0">
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm rounded-circle"
+                                            th:title="${p.isActive} ? 'Ẩn cấu hình' : 'Hiển thị cấu hình'">
+                                        <i class="fas" th:classappend="${p.isActive} ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                    </button>
+                                </form>
+
+                                <form th:action="@{/admin/pc-presets/delete/{id}(id=${p.presetId})}" method="post" class="d-inline m-0"
+                                      onsubmit="return confirm('Xóa cấu hình này? Các linh kiện (sản phẩm) vẫn được giữ nguyên.')">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-circle" title="Xóa">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -39,6 +39,162 @@
 
     <div th:replace="~{fragments/chat_widget :: chat_widget}"></div>
 
+    <!-- ============================================== -->
+    <!-- THANH SO SÁNH SẢN PHẨM (COMPARE BAR) -->
+    <!-- ============================================== -->
+    <div id="compare-bar" class="fixed-bottom bg-white shadow-lg border-top p-3 d-none" style="z-index: 1050; border-radius: 20px 20px 0 0; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center">
+            <div class="d-flex align-items-center mb-2 mb-md-0 overflow-auto pt-3 pe-3" id="compare-items-container" style="max-width: 100%;">
+                <!-- Javascript sẽ vẽ các ô sản phẩm vào đây -->
+            </div>
+            <div class="d-flex align-items-center ms-md-4">
+                <button class="btn btn-outline-secondary rounded-pill me-2 fw-bold btn-sm" onclick="clearCompare()">
+                    Xóa tất cả
+                </button>
+                <button class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm" onclick="goToCompare()" id="btn-go-compare" disabled>
+                    So sánh ngay <span id="compare-count" class="badge bg-white text-danger ms-2 rounded-circle">0/2</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- LOGIC JAVASCRIPT XỬ LÝ SO SÁNH (LOCAL STORAGE) -->
+    <!-- ============================================== -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Khởi tạo mảng compareList từ Local Storage
+        let compareList = JSON.parse(localStorage.getItem('chaosCompareList')) || [];
+
+        // Hàm gọi khi bấm nút "Thêm vào so sánh" trên thẻ sản phẩm
+        function addToCompare(btnElement) {
+            const id = btnElement.getAttribute('data-id');
+            const name = btnElement.getAttribute('data-name');
+            const img = btnElement.getAttribute('data-img');
+            const catId = btnElement.getAttribute('data-cat');
+
+            // 1. Kiểm tra xem đã có trong danh sách chưa
+            if (compareList.find(item => item.id === id)) {
+                Swal.fire({ icon: 'info', title: 'Đã có', text: 'Sản phẩm này đã nằm trong danh sách so sánh!', timer: 1500, showConfirmButton: false });
+                return;
+            }
+
+            // 2. Kiểm tra xem có cùng danh mục không (Khác danh mục -> Cảnh báo)
+            if (compareList.length > 0 && compareList[0].catId !== catId) {
+                Swal.fire({ icon: 'warning', title: 'Không cùng loại', text: 'Chỉ có thể so sánh các sản phẩm cùng chung một loại danh mục!', confirmButtonColor: '#f37021' });
+                return;
+            }
+
+            // 3. Kiểm tra số lượng (Tối đa 2)
+            if (compareList.length >= 2) {
+                Swal.fire({ icon: 'warning', title: 'Đã đầy', text: 'Chỉ có thể so sánh tối đa 2 sản phẩm cùng lúc. Vui lòng xóa bớt để thêm mới!', confirmButtonColor: '#f37021' });
+                return;
+            }
+
+            // Thêm vào mảng và lưu xuống Storage
+            compareList.push({ id, name, img, catId });
+            saveCompareList();
+
+            // Hiện Toast Notification đẹp mắt góc màn hình
+            const Toast = Swal.mixin({
+                toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true
+            });
+            Toast.fire({ icon: 'success', title: 'Đã thêm vào so sánh' });
+        }
+
+        // Xóa 1 sản phẩm khỏi thanh
+        function removeCompare(id) {
+            compareList = compareList.filter(item => item.id !== id.toString());
+            saveCompareList();
+        }
+
+        // Xóa sạch
+        function clearCompare() {
+            compareList = [];
+            saveCompareList();
+        }
+
+        // Lưu và Vẽ lại giao diện
+        function saveCompareList() {
+            localStorage.setItem('chaosCompareList', JSON.stringify(compareList));
+            renderCompareBar();
+        }
+
+        // Vẽ thanh Compare Bar
+        function renderCompareBar() {
+            const bar = document.getElementById('compare-bar');
+            if (!bar) return;
+
+            // Hiện hoặc ẩn thanh
+            if (compareList.length === 0) {
+                bar.style.transform = 'translateY(100%)';
+                setTimeout(() => { bar.classList.add('d-none'); bar.classList.remove('d-block'); }, 400);
+                return;
+            } else {
+                bar.classList.remove('d-none');
+                bar.classList.add('d-block');
+                setTimeout(() => { bar.style.transform = 'translateY(0)'; }, 50);
+            }
+
+            const container = document.getElementById('compare-items-container');
+            container.innerHTML = '';
+
+            compareList.forEach(item => {
+                container.innerHTML += `
+                <div class="position-relative border rounded p-2 bg-light me-3 d-flex align-items-center shadow-sm" style="width: 250px; min-width: 250px;">
+                    <button class="btn btn-sm btn-danger position-absolute top-0 start-100 translate-middle rounded-circle p-0 shadow" style="width: 22px; height: 22px; font-size: 11px; z-index: 10;" onclick="removeCompare('${item.id}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <img src="${item.img}" style="width: 45px; height: 45px; object-fit: contain;" class="me-2 bg-white rounded border">
+                    <div class="text-truncate fw-bold small text-dark" style="max-width: 170px;" title="${item.name}">${item.name}</div>
+                </div>
+            `;
+            });
+
+            // Nếu thiếu sản phẩm, hiện ô mờ gợi ý
+            if (compareList.length === 1) {
+                container.innerHTML += `
+                <div class="border rounded p-2 bg-light me-3 d-flex align-items-center border-dashed" style="width: 250px; opacity: 0.6; border-style: dashed !important;">
+                    <div class="d-flex align-items-center justify-content-center bg-white rounded border me-2 text-muted" style="width: 45px; height: 45px;"><i class="fas fa-plus"></i></div>
+                    <div class="fw-bold small text-muted">Thêm 1 sản phẩm nữa...</div>
+                </div>
+            `;
+            }
+
+            // Cập nhật trạng thái nút bấm "So sánh ngay"
+            const btnGo = document.getElementById('btn-go-compare');
+            document.getElementById('compare-count').innerText = `${compareList.length}/2`;
+            if (compareList.length === 2) {
+                btnGo.disabled = false;
+                btnGo.classList.remove('btn-secondary');
+                btnGo.classList.add('btn-danger');
+                btnGo.style.animation = 'pulse 1.5s infinite'; // Hiệu ứng nhấp nháy gọi mời
+            } else {
+                btnGo.disabled = true;
+                btnGo.classList.add('btn-secondary');
+                btnGo.classList.remove('btn-danger');
+                btnGo.style.animation = 'none';
+            }
+        }
+
+        // Chuyển hướng đến URL So sánh
+        function goToCompare() {
+            if (compareList.length === 2) {
+                window.location.href = `/compare?id1=${compareList[0].id}&id2=${compareList[1].id}`;
+            }
+        }
+
+        // Luôn chạy render khi load trang
+        document.addEventListener('DOMContentLoaded', renderCompareBar);
+    </script>
+
+    <style>
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+    </style>
 </footer>
 </body>
 </html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${preset.name} + ' - ChaosCoders'">Cấu hình PC - ChaosCoders</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f4f6f8; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .preset-container { max-width: 1200px; margin: 2rem auto; }
+        .main-img { width: 100%; max-height: 380px; object-fit: contain; background: #fff; border-radius: 12px; padding: 16px; }
+        .comp-img { width: 56px; height: 56px; object-fit: contain; background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 4px; }
+        .total-price { color: #dc3545; font-weight: 800; font-size: 1.8rem; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container preset-container">
+    <nav class="mb-3">
+        <a th:href="@{/pc-builder}" class="text-decoration-none"><i class="fas fa-arrow-left me-1"></i> Quay lại xây dựng cấu hình</a>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Ảnh + mô tả -->
+        <div class="col-lg-5">
+            <img th:src="${preset.resolveImageUrl()}" th:alt="${preset.name}" class="main-img shadow-sm">
+        </div>
+
+        <!-- Thông tin + nút mua -->
+        <div class="col-lg-7">
+            <span class="badge bg-primary mb-2" th:if="${preset.tag != null}" th:text="${preset.tag}"></span>
+            <h2 class="fw-bold text-dark" th:text="${preset.name}"></h2>
+            <p class="text-muted" th:if="${preset.description != null}" th:text="${preset.description}"></p>
+
+            <div class="total-price my-3"
+                 th:text="${#numbers.formatDecimal(preset.calcTotalPrice(), 0, 'POINT', 0, 'COMMA')} + ' đ'"></div>
+
+            <div class="mb-3">
+                <span class="badge bg-success" th:if="${preset.calcAvailableQty() > 0}">
+                    <i class="fas fa-check me-1"></i> Còn hàng
+                </span>
+                <span class="badge bg-secondary" th:unless="${preset.calcAvailableQty() > 0}">
+                    <i class="fas fa-ban me-1"></i> Tạm hết hàng
+                </span>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap" th:if="${preset.calcAvailableQty() > 0}">
+                <button class="btn btn-danger btn-lg rounded-pill fw-bold px-4" onclick="buyPreset(true)">
+                    <i class="fas fa-bolt me-1"></i> Mua ngay
+                </button>
+                <button class="btn btn-outline-primary btn-lg rounded-pill fw-bold px-4" onclick="buyPreset(false)">
+                    <i class="fas fa-cart-plus me-1"></i> Thêm vào giỏ
+                </button>
+            </div>
+
+            <div class="alert alert-info border-0 shadow-sm rounded-3 mt-4 mb-0">
+                <i class="fas fa-info-circle me-2"></i>
+                Cấu hình gồm các linh kiện chính hãng, mỗi linh kiện có serial và bảo hành riêng.
+                Cần đổi linh kiện? <a href="/chat" class="fw-bold text-decoration-none">Chat với chuyên gia</a>.
+            </div>
+        </div>
+    </div>
+
+    <!-- Bảng linh kiện -->
+    <div class="card border-0 shadow-sm rounded-3 mt-4">
+        <div class="card-header bg-white fw-bold fs-5">Chi tiết linh kiện</div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th style="width:80px"></th>
+                    <th>Linh kiện</th>
+                    <th class="text-center">SL</th>
+                    <th class="text-end">Đơn giá</th>
+                    <th class="text-end">Thành tiền</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="it : ${preset.items}">
+                    <td><img th:src="${it.resolveImageUrl()}" class="comp-img" alt=""></td>
+                    <td>
+                        <a th:href="@{'/product/' + ${it.product.slug}}" class="fw-bold text-dark text-decoration-none"
+                           th:text="${it.product.productName}"></a>
+                    </td>
+                    <td class="text-center" th:text="${it.quantity}"></td>
+                    <td class="text-end"
+                        th:text="${#numbers.formatDecimal(it.unitPrice(), 0, 'POINT', 0, 'COMMA')} + ' đ'"></td>
+                    <td class="text-end fw-bold text-danger"
+                        th:text="${#numbers.formatDecimal(it.lineTotal(), 0, 'POINT', 0, 'COMMA')} + ' đ'"></td>
+                </tr>
+                </tbody>
+                <tfoot>
+                <tr class="table-light">
+                    <td colspan="4" class="text-end fw-bold">Tổng cộng</td>
+                    <td class="text-end total-price fs-5"
+                        th:text="${#numbers.formatDecimal(preset.calcTotalPrice(), 0, 'POINT', 0, 'COMMA')} + ' đ'"></td>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script th:inline="javascript">
+    // Danh sách {productId, quantity} do server dựng sẵn, cùng định dạng /cart/add-multiple đang nhận
+    const presetItems = /*[[${cartItems}]]*/ [];
+
+    function buyPreset(goToCart) {
+        Swal.fire({ title: 'Đang thêm vào giỏ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        fetch('/cart/add-multiple', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(presetItems)
+        })
+            .then(res => {
+                if (res.redirected) { window.location.href = res.url; return; }
+                return res.text();
+            })
+            .then(msg => {
+                if (msg === undefined) return; // đã redirect (ví dụ chưa đăng nhập)
+                Swal.close();
+                if (msg === 'success') {
+                    if (goToCart) {
+                        window.location.href = '/cart';
+                        return;
+                    }
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công!',
+                        text: 'Đã thêm cấu hình vào giỏ hàng.',
+                        showCancelButton: true,
+                        confirmButtonColor: '#f37021',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Đến giỏ hàng ngay',
+                        cancelButtonText: 'Xem tiếp'
+                    }).then(r => { if (r.isConfirmed) window.location.href = '/cart'; });
+                } else if (msg) {
+                    Swal.fire({ icon: 'error', title: 'Lỗi', text: msg });
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể kết nối máy chủ.' });
+            });
+    }
+</script>
+</body>
+</html>

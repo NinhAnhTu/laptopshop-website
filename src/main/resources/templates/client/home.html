@@ -306,6 +306,7 @@
         </h4>
 
         <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4" id="all-products-container">
+            <!-- Vòng lặp hiển thị sản phẩm -->
             <div class="col product-item-container" th:id="'realtime-product-' + ${product.productId}" th:each="product : ${products}">
                 <div class="card product-card h-100">
                     <a th:href="@{'/product/' + ${product.slug}}" class="text-decoration-none d-block text-center pt-3">
@@ -328,9 +329,25 @@
                         <div class="mt-auto">
                             <div class="price mb-2" th:text="${#numbers.formatDecimal(product.salePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></div>
 
-                            <a th:href="@{'/product/' + ${product.slug}}" class="btn btn-custom-orange w-100 rounded-pill btn-sm py-2">
-                                <i class="fas fa-shopping-cart me-1"></i> Xem chi tiết
-                            </a>
+                            <!-- Bố cục Flexbox tỷ lệ 4:1 và điều kiện categoryId = 16 -->
+                            <!-- Bố cục Flexbox tỷ lệ 4:1 và điều kiện categoryId an toàn -->
+                            <div class="d-flex gap-2">
+                                <a th:href="@{'/product/' + ${product.slug}}" class="btn btn-custom-orange rounded-pill btn-sm py-2 flex-grow-1">
+                                    <i class="fas fa-shopping-cart me-1"></i> Xem chi tiết
+                                </a>
+
+                                <button class="btn btn-outline-secondary rounded-pill btn-sm d-flex align-items-center justify-content-center"
+                                        style="width: 45px; flex-shrink: 0;"
+                                        title="So sánh"
+                                        th:data-id="${product.productId}"
+                                        th:data-name="${product.productName}"
+                                        th:data-img="${not #lists.isEmpty(product.images) ? product.images[0].url : 'https://via.placeholder.com/150'}"
+                                        th:data-cat="${product.compareGroup}"
+                                        onclick="addToCompare(this)">
+                                    <i class="fas fa-balance-scale"></i>
+                                </button>
+                            </div>
+
                         </div>
                     </div>
                 </div>

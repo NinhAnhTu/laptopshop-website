@@ -1,6 +1,7 @@
 package com.example.laptopshop.controller.client;
 
 import com.example.laptopshop.entity.Cart;
+import com.example.laptopshop.entity.CartDetail;
 import com.example.laptopshop.entity.User;
 import com.example.laptopshop.service.CartService;
 import com.example.laptopshop.service.UserService;
@@ -11,6 +12,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/cart")
@@ -105,5 +109,45 @@ public class CartController {
             return userService.findByEmail(email);
         }
         return null;
+    }
+
+    //Thêm nhiều sản phẩm (dành cho PC Builder)
+    @PostMapping("/add-multiple")
+    @ResponseBody
+    public String addMultipleToCart(@RequestBody List<Map<String, Integer>> items, Authentication authentication) {
+        User user = getUserFromAuthentication(authentication);
+        if (user == null) {
+            return "redirect:/login"; // Cần xử lý redirect ở frontend nếu nhận response này
+        }
+
+        try {
+            for (Map<String, Integer> item : items) {
+                Long productId = Long.valueOf(item.get("productId"));
+                Integer quantity = item.get("quantity");
+                cartService.addToCart(user, productId, quantity);
+            }
+            return "success";
+        } catch (Exception e) {
+            return "error: " + e.getMessage();
+        }
+    }
+
+    @GetMapping("/clear")
+    public String clearCart(Authentication authentication) {
+        User user = getUserFromAuthentication(authentication);
+        if (user == null) return "redirect:/login";
+
+        Cart cart = cartService.getCartByUser(user);
+        if (cart != null && cart.getCartDetails() != null) {
+            // Lấy danh sách ID trước để tránh lỗi ConcurrentModificationException
+            List<Long> detailIds = cart.getCartDetails().stream()
+                    .map(CartDetail::getCartDetailId)
+                    .toList();
+
+            for (Long id : detailIds) {
+                cartService.removeFromCart(id);
+            }
+        }
+        return "redirect:/cart";
     }
 }

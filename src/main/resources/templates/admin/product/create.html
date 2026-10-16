@@ -129,6 +129,70 @@
                             <div class="col-md-6"><label class="form-label small fw-bold text-muted">Dung lượng VRAM</label><input type="text" th:field="*{vram}" class="form-control" placeholder="VD: 12GB"></div>
                             <div class="col-md-6"><label class="form-label small fw-bold text-muted">Loại VRAM</label><input type="text" th:field="*{vramType}" class="form-control" placeholder="VD: GDDR6"></div>
                         </div>
+
+                        <!-- 4 KHỐI LINH KIỆN PC MỚI -->
+                        <!-- MAINBOARD -->
+                        <div id="specs-mainboard" class="specs-block row g-3 bg-light p-3 rounded-4 border border-dashed d-none">
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Socket</label><input type="text" th:field="*{socketType}" class="form-control" placeholder="VD: LGA1700"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Chipset</label><input type="text" th:field="*{chipset}" class="form-control" placeholder="VD: B760"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Kích thước (Form)</label><input type="text" th:field="*{formFactor}" class="form-control" placeholder="VD: Micro-ATX"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Hỗ trợ RAM</label><input type="text" th:field="*{ramType}" class="form-control" placeholder="VD: DDR4"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Số khe RAM</label><input type="number" th:field="*{ramSlots}" class="form-control" placeholder="VD: 2"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">RAM Tối đa (GB)</label><input type="number" th:field="*{maxRamGb}" class="form-control" placeholder="VD: 64"></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">Số khe M.2</label><input type="number" th:field="*{m2Slots}" class="form-control" placeholder="VD: 2"></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">Cổng SATA</label><input type="number" th:field="*{sataPorts}" class="form-control" placeholder="VD: 4"></div>
+                        </div>
+
+                        <!-- PSU -->
+                        <div id="specs-psu" class="specs-block row g-3 bg-light p-3 rounded-4 border border-dashed d-none">
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">Công suất (W)</label><input type="number" th:field="*{wattage}" class="form-control" placeholder="VD: 650"></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">Chuẩn hiệu suất</label><input type="text" th:field="*{efficiencyRating}" class="form-control" placeholder="VD: 80 Plus Bronze"></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">Loại cáp (Modular)</label><input type="text" th:field="*{modularType}" class="form-control" placeholder="VD: Non-modular"></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">Kích thước (Form)</label><input type="text" th:field="*{formFactor}" class="form-control" placeholder="VD: ATX"></div>
+                        </div>
+
+                        <!-- CASE -->
+                        <div id="specs-case" class="specs-block row g-3 bg-light p-3 rounded-4 border border-dashed d-none">
+                            <div class="col-md-12"><label class="form-label small fw-bold text-muted">Mainboard Tối đa hỗ trợ</label><input type="text" th:field="*{maxMainboardSize}" class="form-control" placeholder="VD: ATX"></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">VGA dài tối đa (mm)</label><input type="number" th:field="*{maxGpuLengthMm}" class="form-control" placeholder="VD: 360"></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">Tản nhiệt cao tối đa (mm)</label><input type="number" th:field="*{maxCoolerHeightMm}" class="form-control" placeholder="VD: 170"></div>
+                        </div>
+
+                        <!-- COOLER -->
+                        <div id="specs-cooler" class="specs-block row g-3 bg-light p-3 rounded-4 border border-dashed d-none">
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Loại tản (Air/AIO)</label><input type="text" th:field="*{coolerType}" class="form-control" placeholder="VD: Air"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Kích cỡ Radiator (nếu AIO)</label><input type="number" th:field="*{radiatorSizeMm}" class="form-control" placeholder="VD: 240 (Bỏ trống nếu Air)"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Chiều cao (nếu Air)</label><input type="number" th:field="*{heightMm}" class="form-control" placeholder="VD: 164 (Bỏ trống nếu AIO)"></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">Công suất tải (TDP Support)</label><input type="number" th:field="*{tdpSupportW}" class="form-control" placeholder="VD: 270"></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">Hỗ trợ Socket (Ngăn cách dấu phẩy)</label><input type="text" th:field="*{supportedSockets}" class="form-control" placeholder="VD: LGA1700,AM4,AM5"></div>
+                        </div>
+
+                        <div id="specs-monitor" class="specs-block row g-3 bg-light p-3 rounded-4 border border-dashed d-none">
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">Kích thước màn hình</label><input type="text" th:field="*{screenSize}" class="form-control" placeholder="VD: 27 inch"></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">Độ phân giải</label><input type="text" th:field="*{resolution}" class="form-control" placeholder="VD: 2560x1440 (2K)"></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">Tần số quét</label><input type="text" th:field="*{refreshRate}" class="form-control" placeholder="VD: 144Hz"></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">Tấm nền</label><input type="text" th:field="*{panelType}" class="form-control" placeholder="VD: IPS"></div>
+                        </div>
+
+                        <!-- BÀN PHÍM -->
+                        <div id="specs-keyboard" class="specs-block row g-3 bg-light p-3 rounded-4 border border-dashed d-none">
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Loại bàn phím</label><input type="text" th:field="*{keyboardType}" class="form-control" placeholder="VD: Cơ (Mechanical)"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Kiểu kết nối</label><input type="text" th:field="*{connectionType}" class="form-control" placeholder="VD: Wireless 2.4GHz / Bluetooth"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Layout</label><input type="text" th:field="*{layout}" class="form-control" placeholder="VD: TKL (87 phím)"></div>
+                        </div>
+
+                        <!-- CHUỘT -->
+                        <div id="specs-mouse" class="specs-block row g-3 bg-light p-3 rounded-4 border border-dashed d-none">
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Độ phân giải (DPI)</label><input type="text" th:field="*{dpi}" class="form-control" placeholder="VD: 16000 DPI"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Kiểu kết nối</label><input type="text" th:field="*{connectionType}" class="form-control" placeholder="VD: Wireless"></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold text-muted">Cảm biến</label><input type="text" th:field="*{sensor}" class="form-control" placeholder="VD: Quang học (Optical)"></div>
+                        </div>
+
+                        <!-- LOA -->
+                        <div id="specs-speaker" class="specs-block row g-3 bg-light p-3 rounded-4 border border-dashed d-none">
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">Tổng công suất</label><input type="text" th:field="*{powerW}" class="form-control" placeholder="VD: 50W"></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold text-muted">Kiểu kết nối</label><input type="text" th:field="*{connectionType}" class="form-control" placeholder="VD: Bluetooth / Jack 3.5mm"></div>
+                        </div>
                     </div>
 
                     <div class="col-lg-4 border-start-lg">
@@ -230,6 +294,24 @@
                     document.getElementById('specs-cpu').classList.remove('d-none');
                 } else if (catId === 7) {               // VGA  (cũ: 9)
                     document.getElementById('specs-vga').classList.remove('d-none');
+                } else if (catId === 8) {               // BỔ SUNG: Mainboard
+                    document.getElementById('specs-mainboard').classList.remove('d-none');
+                } else if (catId === 9) {               // BỔ SUNG: PSU
+                    document.getElementById('specs-psu').classList.remove('d-none');
+                } else if (catId === 10) {              // BỔ SUNG: Case
+                    document.getElementById('specs-case').classList.remove('d-none');
+                } else if (catId === 11) {              // BỔ SUNG: Cooler
+                    document.getElementById('specs-cooler').classList.remove('d-none');
+                } else if (catId === 11) {
+                    document.getElementById('specs-cooler').classList.remove('d-none');
+                } else if (catId === 12) {
+                    document.getElementById('specs-monitor').classList.remove('d-none');
+                } else if (catId === 13) {
+                    document.getElementById('specs-keyboard').classList.remove('d-none');
+                } else if (catId === 14) {
+                    document.getElementById('specs-mouse').classList.remove('d-none');
+                } else if (catId === 15) {
+                    document.getElementById('specs-speaker').classList.remove('d-none');
                 } else {
                     document.getElementById('specs-laptop').classList.remove('d-none');
                 }

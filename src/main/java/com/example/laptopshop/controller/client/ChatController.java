@@ -1,6 +1,7 @@
 package com.example.laptopshop.controller.client;
 
 import com.example.laptopshop.entity.ChatMessage;
+import com.example.laptopshop.entity.ChatRoom;
 import com.example.laptopshop.entity.User;
 import com.example.laptopshop.repository.ChatRoomRepository;
 import com.example.laptopshop.repository.ProductRepository;
@@ -122,8 +123,8 @@ public class ChatController {
         if (user == null) return ResponseEntity.status(401).body("Not logged in");
 
         // [FIX LỖI CỐT LÕI]: Tự động tạo phòng cho khách ngay khi họ vừa mở hộp chat
-        com.example.laptopshop.entity.ChatRoom room = chatRoomRepository.findByCustomer(user).orElseGet(() -> {
-            com.example.laptopshop.entity.ChatRoom newRoom = new com.example.laptopshop.entity.ChatRoom();
+        ChatRoom room = chatRoomRepository.findByCustomer(user).orElseGet(() -> {
+            ChatRoom newRoom = new ChatRoom();
             newRoom.setCustomer(user);
             newRoom.setStatus("AI");
             return chatRoomRepository.save(newRoom);
@@ -132,17 +133,44 @@ public class ChatController {
         List<Map<String, Object>> safeHistory = chatService.getHistoryByRoomId(room.getRoomId())
                 .stream().map(this::convertToSafeDto).collect(Collectors.toList());
 
-        return ResponseEntity.ok(java.util.Map.of(
-                "hasRoom", true,
-                "roomId", room.getRoomId(),
-                "status", room.getStatus(),
-                "history", safeHistory
-        ));
+        // Sử dụng HashMap để an toàn với giá trị null
+        Map<String, Object> responseData = new java.util.HashMap<>();
+        responseData.put("hasRoom", true);
+        responseData.put("roomId", room.getRoomId());
+        responseData.put("status", room.getStatus());
+        responseData.put("history", safeHistory);
+
+        // [MỚI THÊM] Truyền tên Admin nếu phòng đang được hỗ trợ
+        if (room.getAssignedAdmin() != null) {
+            responseData.put("adminName", room.getAssignedAdmin().getFullname());
+        } else {
+            responseData.put("adminName", "Nhân viên tư vấn");
+        }
+
+        return ResponseEntity.ok(responseData);
     }
 
     @MessageMapping("/chat.typing")
     public void handleTyping(Map<String, Object> payload) {
         Long roomId = Long.valueOf(payload.get("roomId").toString());
         messagingTemplate.convertAndSend("/topic/room/" + roomId + "/typing", payload);
+    }
+
+    // Khách hàng bấm nút "Gặp nhân viên tư vấn"
+    @PostMapping("/request-admin")
+    public ResponseEntity<?> requestAdminFromUser(Principal principal) {
+        User user = getUserFromPrincipal(principal);
+        if (user == null) return ResponseEntity.badRequest().build();
+        chatService.requestAdminFromUser(user);
+        return ResponseEntity.ok().build();
+    }
+
+    // Khách hàng bấm nút "Thoát khỏi phòng"
+    @PostMapping("/leave-room")
+    public ResponseEntity<?> leaveRoomFromUser(Principal principal) {
+        User user = getUserFromPrincipal(principal);
+        if (user == null) return ResponseEntity.badRequest().build();
+        chatService.leaveRoomFromUser(user);
+        return ResponseEntity.ok().build();
     }
 }

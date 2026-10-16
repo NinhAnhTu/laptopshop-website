@@ -25,4 +25,5 @@ public interface WarrantyRepository extends JpaRepository<Warranty, Long> {
     List<Warranty> findByUserOrderByPurchaseDateDesc(User user);
 
     List<Warranty> findByStatus(String status);
+    List<Warranty> findTop10ByUser_EmailOrderByExpirationDateDesc(String email);
 }

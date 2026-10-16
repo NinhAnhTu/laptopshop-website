@@ -1,5 +1,6 @@
 package com.example.laptopshop.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
@@ -73,4 +74,14 @@ public class Product {
     @OneToMany(mappedBy = "product")
     private List<ProductSerial> serials;
 
+    @Transient
+    @JsonIgnore
+    public String getCompareGroup() {
+        if (category == null) return "0";
+        Category parent = category.getParent();
+        if (parent != null && Long.valueOf(16L).equals(parent.getCategoryId())) {
+            return "16";                                  // nhóm Laptop: so sánh chéo được
+        }
+        return String.valueOf(category.getCategoryId());  // còn lại: cùng category mới so sánh
+    }
 }

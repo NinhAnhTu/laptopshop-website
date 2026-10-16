@@ -133,6 +133,9 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     // --- HÀM ÉP KIỂU AN TOÀN TRÁNH LỖI TRÀN BỘ NHỚ KHI GỬI SOCKET ---
     private Map<String, Object> convertToSafeDto(ChatMessage msg) {
         Map<String, Object> map = new java.util.HashMap<>();
+        if (msg.getSender() != null) {
+            map.put("senderName", msg.getSender().getFullname());
+        }
         map.put("id", msg.getId());
         map.put("senderType", msg.getSenderType());
         map.put("createdAt", msg.getCreatedAt() != null ? msg.getCreatedAt() : LocalDateTime.now());
@@ -200,5 +203,26 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         payload.put("isNewUserMessage", isNewUserMessage);
         payload.put("needsHelp", needsHelp);
         messagingTemplate.convertAndSend("/topic/admin", payload);
+    }
+
+    @Override
+    @Transactional
+    public void requestAdminFromUser(User user) {
+        ChatRoom room = chatRoomRepository.findByCustomer(user).orElseThrow();
+        room.setStatus("WAITING_ADMIN");
+        chatRoomRepository.save(room);
+        sendSystemMessage(room, "Bạn đã yêu cầu gặp nhân viên tư vấn. Vui lòng chờ trong giây lát, hệ thống đang kết nối...");
+        notifyAdmin(room, true, true); // Bật báo động cho Admin
+    }
+
+    @Override
+    @Transactional
+    public void leaveRoomFromUser(User user) {
+        ChatRoom room = chatRoomRepository.findByCustomer(user).orElseThrow();
+        room.setStatus("AI");
+        room.setAssignedAdmin(null);
+        chatRoomRepository.save(room);
+        sendSystemMessage(room, "Bạn đã thoát khỏi cuộc trò chuyện với nhân viên. Trợ lý AI đã quay trở lại.");
+        notifyAdmin(room, false, false);
     }
 }

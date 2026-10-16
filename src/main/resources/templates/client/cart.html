@@ -41,7 +41,9 @@
             </ol>
         </nav>
 
-        <h3 class="mb-4 fw-bold" style="color: var(--primary-blue);"><i class="fas fa-shopping-cart me-2"></i>GIỎ HÀNG CỦA BẠN</h3>
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <h3 class="fw-bold m-0" style="color: var(--primary-blue);"><i class="fas fa-shopping-cart me-2"></i>GIỎ HÀNG CỦA BẠN</h3>
+        </div>
 
         <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
             <i class="fas fa-exclamation-triangle me-2"></i> <span th:text="${errorMessage}"></span>
@@ -66,14 +68,20 @@
                         <table class="table table-hover mb-0 align-middle">
                             <thead>
                             <tr>
-                                <th width="50" class="text-center">
+                                <th width="50" class="text-center align-middle">
                                     <input class="form-check-input" type="checkbox" id="selectAll" onclick="toggleAll(this)">
                                 </th>
-                                <th>Sản phẩm</th>
-                                <th class="text-center">Đơn giá</th>
-                                <th class="text-center">Số lượng</th>
-                                <th class="text-center">Thành tiền</th>
-                                <th width="50"></th>
+                                <th class="align-middle">Sản phẩm</th>
+                                <th class="text-center align-middle text-nowrap">Đơn giá</th>
+                                <!-- Giữ nguyên SỐ LƯỢNG trên 1 dòng -->
+                                <th class="text-center align-middle text-nowrap">Số lượng</th>
+                                <th class="text-center align-middle text-nowrap">Thành tiền</th>
+                                <!-- Sửa lại nút Xóa tất cả -->
+                                <th width="120" class="text-center align-middle text-nowrap">
+                                    <a href="/cart/clear" class="btn btn-outline-danger btn-sm rounded-pill py-1 px-3 fw-bold d-inline-flex align-items-center justify-content-center" style="font-size: 0.8rem;" onclick="confirmDelete(event, this.href, 'Xóa toàn bộ giỏ hàng?')">
+                                        <i class="fas fa-trash-alt me-1"></i> Xóa tất cả
+                                    </a>
+                                </th>
                             </tr>
                             </thead>
                             <tbody>
@@ -108,7 +116,7 @@
                                     </div>
                                 </td>
 
-                                <td class="text-center text-muted fw-bold"
+                                <td class="text-center text-muted fw-bold text-nowrap"
                                     th:text="${#numbers.formatDecimal(item.product.salePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
 
                                 <td class="text-center">
@@ -121,14 +129,14 @@
                                     </form>
                                 </td>
 
-                                <td class="text-center price-text"
+                                <td class="text-center price-text text-nowrap"
                                     th:text="${#numbers.formatDecimal(item.product.salePrice * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' đ'">
                                 </td>
 
                                 <td class="text-center">
                                     <!-- ĐÃ SỬA: Đổi onclick thành gọi hàm confirmDelete() -->
                                     <a th:href="@{'/cart/remove/' + ${item.cartDetailId}}"
-                                       class="btn btn-sm btn-light text-danger rounded-circle shadow-sm"
+                                       class="btn btn-sm btn-light text-danger rounded-circle shadow-sm mx-auto"
                                        title="Xóa"
                                        style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;"
                                        onclick="confirmDelete(event, this.href)">

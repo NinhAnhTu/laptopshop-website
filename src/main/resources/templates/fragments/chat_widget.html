@@ -1,27 +1,16 @@
 <div th:fragment="chat_widget">
     <style>
         /* Hoạt ảnh dấu 3 chấm đang gõ */
-        .typing-indicator {
-            display: inline-block;
-            padding: 10px 15px;
-            background-color: #e9ecef;
-            border-radius: 20px;
-            border-bottom-left-radius: 2px;
-        }
-        .typing-indicator span {
-            display: inline-block;
-            width: 6px; height: 6px;
-            background-color: #6c757d;
-            border-radius: 50%;
-            margin: 0 2px;
-            animation: typing 1.4s infinite ease-in-out both;
-        }
+        .typing-indicator { display: inline-block; padding: 10px 15px; background-color: #e9ecef; border-radius: 20px; border-bottom-left-radius: 2px; }
+        .typing-indicator span { display: inline-block; width: 6px; height: 6px; background-color: #6c757d; border-radius: 50%; margin: 0 2px; animation: typing 1.4s infinite ease-in-out both; }
         .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
         .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes typing {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
+        @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
+        /* CSS cho menu thả xuống giống GearVN */
+        .chat-menu-dropdown .dropdown-menu { border-radius: 10px; border: 1px solid #eee; box-shadow: 0 5px 15px rgba(0,0,0,0.1); padding: 5px 0; }
+        .chat-menu-dropdown .dropdown-item { padding: 10px 20px; font-size: 0.95rem; font-weight: 500; transition: 0.2s; }
+        .chat-menu-dropdown .dropdown-item:hover { background-color: #f8f9fa; }
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
@@ -36,8 +25,25 @@
          style="position: fixed; bottom: 100px; right: 30px; width: 350px; height: 500px; z-index: 1000; border-radius: 15px; overflow: hidden; display: flex; flex-direction: column;">
 
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center p-3">
-            <h6 class="mb-0 fw-bold"><i class="fas fa-robot me-2"></i> Trợ lý AI - ChaosCoders</h6>
-            <button id="btn-close-chat" class="btn-close btn-close-white"></button>
+            <h6 class="mb-0 fw-bold text-truncate" id="chat-header-title" style="max-width: 75%;"><i class="fas fa-robot me-2"></i> Trợ lý AI</h6>
+
+            <div class="d-flex align-items-center chat-menu-dropdown">
+                <!-- Nút 3 gạch -->
+                <div class="dropdown me-2">
+                    <button class="btn btn-link text-white p-0 text-decoration-none" data-bs-toggle="dropdown" aria-expanded="false" style="opacity: 0.9;">
+                        <i class="fas fa-bars fs-5"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="#" id="menu-action-btn" onclick="handleMenuAction(event)">
+                                <i class="fas fa-headset me-2 text-primary" style="width: 20px;"></i> Gặp nhân viên tư vấn
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <!-- Nút đóng -->
+                <button id="btn-close-chat" class="btn-close btn-close-white ms-1"></button>
+            </div>
         </div>
 
         <div id="chat-messages" class="card-body p-3" style="overflow-y: auto; flex-grow: 1; background-color: #f8f9fa;">
@@ -60,21 +66,55 @@
         let stompClient = null;
         let currentRoomId = null;
         let currentRoomStatus = 'AI';
+        let currentAdminName = 'Nhân viên'; // Tên admin mặc định
         let typingTimeout;
         let lastMsgDateStr = null;
 
         const chatContainer = document.getElementById("chat-box-container");
         const msgContainer = document.getElementById("chat-messages");
         const chatInput = document.getElementById("chat-input");
+        const titleEl = document.getElementById("chat-header-title");
+        const menuBtnEl = document.getElementById("menu-action-btn");
 
-        // Xử lý nút Mở chat
+        // Giao diện thay đổi dựa theo trạng thái phòng
+        function updateChatUI(status) {
+            currentRoomStatus = status;
+            if (status === 'CHATTING') {
+                titleEl.innerHTML = `<i class="fas fa-headset me-2"></i> ${currentAdminName}`;
+                menuBtnEl.innerHTML = `<i class="fas fa-sign-out-alt me-2 text-danger" style="width: 20px;"></i> Thoát khỏi phòng`;
+            } else if (status === 'WAITING_ADMIN') {
+                titleEl.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i> Đang chờ kết nối...`;
+                menuBtnEl.innerHTML = `<i class="fas fa-times me-2 text-secondary" style="width: 20px;"></i> Hủy yêu cầu gặp NV`;
+            } else {
+                titleEl.innerHTML = `<i class="fas fa-robot me-2"></i> Trợ lý AI`;
+                menuBtnEl.innerHTML = `<i class="fas fa-headset me-2 text-primary" style="width: 20px;"></i> Gặp nhân viên tư vấn`;
+            }
+        }
+
+        // Xử lý khi bấm nút trong Menu 3 gạch
+        function handleMenuAction(e) {
+            e.preventDefault();
+            if (!currentRoomId) return;
+
+            if (currentRoomStatus === 'CHATTING' || currentRoomStatus === 'WAITING_ADMIN') {
+                // Thoát phòng -> Về lại AI
+                fetch('/api/chat/leave-room', { method: 'POST' }).then(() => {
+                    updateChatUI('AI');
+                });
+            } else {
+                // Gọi nhân viên tư vấn
+                fetch('/api/chat/request-admin', { method: 'POST' }).then(() => {
+                    updateChatUI('WAITING_ADMIN');
+                });
+            }
+        }
+
         document.getElementById("btn-open-chat").addEventListener("click", function() {
             chatContainer.classList.remove("d-none");
             this.classList.add("d-none");
             initChat();
         });
 
-        // Xử lý nút Đóng chat
         document.getElementById("btn-close-chat").onclick = function() {
             chatContainer.classList.add("d-none");
             document.getElementById("btn-open-chat").classList.remove("d-none");
@@ -94,21 +134,13 @@
 
         function getNewDayDivider(timestamp) {
             if (!timestamp) timestamp = new Date();
-            var date = new Date(timestamp);
-            var dateStr = date.toLocaleDateString('vi-VN');
-            if (dateStr !== lastMsgDateStr) {
-                lastMsgDateStr = dateStr;
-                return dateStr;
-            }
+            var dateStr = new Date(timestamp).toLocaleDateString('vi-VN');
+            if (dateStr !== lastMsgDateStr) { lastMsgDateStr = dateStr; return dateStr; }
             return null;
         }
 
         function initChat() {
-            msgContainer.innerHTML = `
-        <div class="d-flex justify-content-center align-items-center h-100 flex-column text-muted opacity-75">
-            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
-            <span class="fw-bold">Đang tải cuộc trò chuyện...</span>
-        </div>`;
+            msgContainer.innerHTML = `<div class="d-flex justify-content-center align-items-center h-100 text-muted opacity-75"><div class="spinner-border text-primary me-2" role="status"></div> Đang tải...</div>`;
 
             fetch('/api/chat/my-room')
                 .then(res => {
@@ -124,17 +156,14 @@
 
                     if (data.hasRoom) {
                         currentRoomId = data.roomId;
-                        currentRoomStatus = data.status;
-
+                        currentAdminName = data.adminName || 'Nhân viên tư vấn';
+                        updateChatUI(data.status); // Cập nhật Header
                         connectWebSocket(currentRoomId);
 
                         if (data.history && data.history.length > 0) {
                             data.history.forEach(msg => appendMessage(msg));
                         } else {
-                            appendMessage({
-                                senderType: 'AI',
-                                content: 'Chào bạn, mình là trợ lý AI của Laptop Shop ChaosCoders. Bạn đang cần tìm laptop phục vụ nhu cầu gì ạ? (Học tập, chơi game, hay văn phòng...)'
-                            });
+                            appendMessage({ senderType: 'AI', content: 'Chào bạn, mình là trợ lý AI của ChaosCoders. Bạn cần hỗ trợ gì ạ?' });
                         }
                     }
                 }).catch(err => console.log(err));
@@ -147,17 +176,31 @@
             stompClient.debug = null;
 
             stompClient.connect({}, function(frame) {
-
                 stompClient.subscribe('/topic/room/' + roomId, function(payload) {
                     removeTypingIndicator();
                     let message = JSON.parse(payload.body);
-                    appendMessage(message);
 
+                    // Lắng nghe thay đổi trạng thái từ System
                     if (message.senderType === 'SYSTEM') {
-                        if (message.content.includes("kết thúc")) currentRoomStatus = 'AI';
-                        else if (message.content.includes("tham gia")) currentRoomStatus = 'CHATTING';
-                        else if (message.content.includes("chờ")) currentRoomStatus = 'WAITING_ADMIN';
+                        if (message.content.includes("kết thúc") || message.content.includes("thoát")) {
+                            updateChatUI('AI');
+                        } else if (message.content.includes("tham gia")) {
+                            // Trích xuất tên Admin từ thông báo hệ thống: "Nhân viên Nguyễn Văn A đã tham gia..."
+                            let match = message.content.match(/Nhân viên (.*?) đã tham gia/);
+                            if (match) currentAdminName = match[1];
+                            updateChatUI('CHATTING');
+                        } else if (message.content.includes("yêu cầu") || message.content.includes("chờ")) {
+                            updateChatUI('WAITING_ADMIN');
+                        }
                     }
+
+                    // Nếu Admin nhắn tin mà UI chưa cập nhật, ép cập nhật
+                    if (message.senderType === 'ADMIN' && currentRoomStatus !== 'CHATTING') {
+                        if (message.senderName) currentAdminName = message.senderName;
+                        updateChatUI('CHATTING');
+                    }
+
+                    appendMessage(message);
 
                     if (message.senderType === 'USER' && (currentRoomStatus === 'AI' || currentRoomStatus === 'CLOSED')) {
                         showAiTypingIndicator();
@@ -166,9 +209,7 @@
 
                 stompClient.subscribe('/topic/room/' + roomId + '/typing', function(payload) {
                     let data = JSON.parse(payload.body);
-                    if (data.senderType === 'ADMIN') {
-                        showAdminTypingIndicator();
-                    }
+                    if (data.senderType === 'ADMIN') showAdminTypingIndicator();
                 });
             });
         }
@@ -179,45 +220,20 @@
             let content = chatInput.value.trim();
             if (!content || !currentRoomId) return;
             chatInput.value = "";
-
-            fetch('/api/chat/send/user', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content: content })
-            });
+            fetch('/api/chat/send/user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: content }) });
         }
 
         function showAiTypingIndicator() {
-            let indicator = document.getElementById("typing-indicator");
-            if (!indicator) {
-                let alignClass = "text-start";
-                let nameTag = `<div class="small text-muted fw-bold mb-1"><i class="fas fa-robot text-primary me-1"></i>Bot AI</div>`;
-
-                let html = `
-          <div id="typing-indicator" class="mb-3 ${alignClass}">
-              ${nameTag}
-              <div class="typing-indicator">
-                  <span></span><span></span><span></span>
-              </div>
-          </div>`;
+            if (!document.getElementById("typing-indicator")) {
+                let html = `<div id="typing-indicator" class="mb-3 text-start"><div class="small text-muted fw-bold mb-1"><i class="fas fa-robot text-primary me-1"></i>Trợ lý AI</div><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
                 msgContainer.insertAdjacentHTML('beforeend', html);
             }
             msgContainer.scrollTop = msgContainer.scrollHeight;
         }
 
         function showAdminTypingIndicator() {
-            let indicator = document.getElementById("typing-indicator");
-            if (!indicator) {
-                let alignClass = "text-start";
-                let nameTag = `<div class="small text-muted fw-bold mb-1"><i class="fas fa-headset text-success me-1"></i>Hỗ trợ viên</div>`;
-
-                let html = `
-          <div id="typing-indicator" class="mb-3 ${alignClass}">
-              ${nameTag}
-              <div class="typing-indicator">
-                  <span></span><span></span><span></span>
-              </div>
-          </div>`;
+            if (!document.getElementById("typing-indicator")) {
+                let html = `<div id="typing-indicator" class="mb-3 text-start"><div class="small text-muted fw-bold mb-1"><i class="fas fa-headset text-success me-1"></i>${currentAdminName}</div><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
                 msgContainer.insertAdjacentHTML('beforeend', html);
             }
             msgContainer.scrollTop = msgContainer.scrollHeight;
@@ -230,10 +246,7 @@
             if (indicator) indicator.remove();
         }
 
-        function formatText(text) {
-            if (!text) return "";
-            return text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
-        }
+        function formatText(text) { return text ? text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>') : ""; }
 
         function appendMessage(msg) {
             let isUser = (msg.senderType === 'USER');
@@ -241,43 +254,32 @@
             let timestamp = msg.createdAt || new Date().toISOString();
 
             let newDayStr = getNewDayDivider(timestamp);
-            if (newDayStr) {
-                msgContainer.innerHTML += `<div class="text-center my-3"><span class="small text-muted bg-light px-3 py-1 rounded-pill" style="border: 1px solid #eee;">${newDayStr}</span></div>`;
-            }
+            if (newDayStr) msgContainer.innerHTML += `<div class="text-center my-3"><span class="small text-muted bg-light px-3 py-1 rounded-pill" style="border: 1px solid #eee;">${newDayStr}</span></div>`;
 
             if (isSystem) {
                 msgContainer.innerHTML += `<div class="text-center my-3"><span class="badge bg-secondary opacity-75 text-wrap lh-base" style="max-width: 90%; line-height: 1.5;">${msg.content}</span></div>`;
-                msgContainer.scrollTop = msgContainer.scrollHeight;
-                return;
+                msgContainer.scrollTop = msgContainer.scrollHeight; return;
             }
 
             let alignClass = isUser ? "text-end" : "text-start";
             let bgClass = isUser ? "bg-primary text-white" : "bg-white text-dark border";
-            let nameTag = msg.senderType === 'AI' ? `<div class="small text-muted fw-bold mb-1"><i class="fas fa-robot text-primary me-1"></i>Bot AI</div>` : '';
-            if (msg.senderType === 'ADMIN') nameTag = `<div class="small text-muted fw-bold mb-1"><i class="fas fa-headset text-success me-1"></i>Hỗ trợ viên</div>`;
-            let timeStr = formatTimeOnly(timestamp);
+
+            // Render Tên người gửi động
+            let nameTag = '';
+            if (msg.senderType === 'AI') nameTag = `<div class="small text-muted fw-bold mb-1"><i class="fas fa-robot text-primary me-1"></i>Trợ lý AI</div>`;
+            if (msg.senderType === 'ADMIN') nameTag = `<div class="small text-muted fw-bold mb-1"><i class="fas fa-headset text-success me-1"></i>${msg.senderName || currentAdminName}</div>`;
 
             let html = `<div class="mb-3 ${alignClass}"> ${!isUser ? nameTag : ''} <div class="d-inline-block p-2 rounded-3 shadow-sm ${bgClass}" style="max-width: 85%; text-align: left; font-size: 0.95rem;"> ${formatText(msg.content)} </div>`;
 
             if (msg.suggestedProducts && msg.suggestedProducts.length > 0) {
                 html += `<div class="d-flex flex-wrap gap-2 mt-2 ${isUser ? 'justify-content-end' : 'justify-content-start'}">`;
-
                 msg.suggestedProducts.forEach(p => {
                     let imgUrl = (p.images && p.images.length > 0) ? p.images[0].url : 'https://via.placeholder.com/150';
-                    html += `
-                        <div class="card shadow-sm text-start bg-white" style="width: 160px; border-radius: 10px;">
-                            <img src="${imgUrl}" class="card-img-top p-2" style="height: 100px; object-fit: contain; background: white;">
-                            <div class="card-body p-2 border-top">
-                                <h6 class="card-title text-truncate mb-1 text-dark" style="font-size: 0.8rem;" title="${p.productName}">${p.productName}</h6>
-                                <p class="text-danger fw-bold mb-0" style="font-size: 0.85rem;">${p.salePrice.toLocaleString('vi-VN')} đ</p>
-                                <a href="/product/${p.slug}" class="btn btn-sm btn-outline-primary w-100 mt-2" style="font-size: 0.75rem;">Xem chi tiết</a>
-                            </div>
-                        </div>`;
+                    html += `<div class="card shadow-sm text-start bg-white" style="width: 160px; border-radius: 10px;"> <img src="${imgUrl}" class="card-img-top p-2" style="height: 100px; object-fit: contain; background: white;"> <div class="card-body p-2 border-top"> <h6 class="card-title text-truncate mb-1 text-dark" style="font-size: 0.8rem;">${p.productName}</h6> <p class="text-danger fw-bold mb-0" style="font-size: 0.85rem;">${p.salePrice.toLocaleString('vi-VN')} đ</p> <a href="/product/${p.slug}" class="btn btn-sm btn-outline-primary w-100 mt-2" style="font-size: 0.75rem;">Xem chi tiết</a></div></div>`;
                 });
                 html += `</div>`;
             }
-
-            html += `<div class="${isUser ? 'text-end' : 'text-start'} mt-1" style="font-size: 0.7rem; opacity: 0.7; color: #888;">${timeStr}</div></div>`;
+            html += `<div class="${isUser ? 'text-end' : 'text-start'} mt-1" style="font-size: 0.7rem; opacity: 0.7; color: #888;">${formatTimeOnly(timestamp)}</div></div>`;
             msgContainer.innerHTML += html;
             msgContainer.scrollTop = msgContainer.scrollHeight;
         }
